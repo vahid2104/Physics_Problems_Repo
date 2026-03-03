@@ -54,6 +54,7 @@ $$
 ## Problem 4 – Circular motion
 
 A body moves in a circle of radius $R$ with angular velocity $\omega$: 
+
 * Determine $\vec r(t)$, $\vec v(t)$, $\vec a(t)$.
 * Determine $|\vec r(t)|$, $|\vec v(t)|$, $|\vec a(t)|$.
 * Show that the acceleration is centripetal.
