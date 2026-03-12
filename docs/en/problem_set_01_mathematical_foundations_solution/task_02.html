@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 2 – Parametric Trajectory Visualizer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #60a5fa;
+      --green: #34d399;
+      --orange: #f59e0b;
+      --pink: #f472b6;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    canvas {
+      width: 100%;
+      height: 520px;
+      display: block;
+      background: radial-gradient(circle at top, #0b1220, #020617 80%);
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #0b1220;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .traj::before { background: var(--accent); }
+    .vel::before { background: var(--green); }
+    .acc::before { background: var(--orange); }
+    .cross::before { background: var(--pink); }
+
+    .section-title {
+      font-size: 18px;
+      margin: 0 0 12px;
+    }
+
+    .formula, .result {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .result strong {
+      color: white;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .toggle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    label.toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: #0b1220;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .grid, .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Problem 2 – Parametric Trajectory, Velocity, and Acceleration</h1>
+    <div class="sub">
+      Visual explanation for <strong>r(t) = (t², sin t, 5)</strong>. Move the slider to see position, velocity, acceleration, and derived quantities change with time.
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <canvas id="plot" width="760" height="520"></canvas>
+
+        <div class="controls">
+          <div class="row">
+            <input id="tSlider" type="range" min="-4" max="4" step="0.01" value="1" />
+            <span class="pill">t = <span id="tValue">1.00</span></span>
+          </div>
+
+          <div class="toggle-group">
+            <label class="toggle"><input type="checkbox" id="showVelocity" checked> Show velocity vector</label>
+            <label class="toggle"><input type="checkbox" id="showAcceleration" checked> Show acceleration vector</label>
+            <label class="toggle"><input type="checkbox" id="showCross" checked> Show v × a direction</label>
+            <label class="toggle"><input type="checkbox" id="showPath" checked> Show trajectory</label>
+          </div>
+
+          <div class="legend">
+            <span class="traj">Trajectory</span>
+            <span class="vel">Velocity</span>
+            <span class="acc">Acceleration</span>
+            <span class="cross">v × a</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Given</h2>
+        <div class="formula">r(t) = (t², sin t, 5)</div>
+
+        <h2 class="section-title">Derived formulas</h2>
+        <div class="formula">v(t) = r'(t) = (2t, cos t, 0)</div>
+        <div class="formula">a(t) = v'(t) = (2, -sin t, 0)</div>
+        <div class="formula">v · a = 4t - sin t cos t</div>
+        <div class="formula">v × a = (0, 0, -2t sin t - 2 cos t)</div>
+
+        <h2 class="section-title">Live values</h2>
+        <div class="result"><strong>r(t)</strong> = <span id="rOut"></span></div>
+        <div class="result"><strong>v(t)</strong> = <span id="vOut"></span></div>
+        <div class="result"><strong>a(t)</strong> = <span id="aOut"></span></div>
+        <div class="result"><strong>|v(1)|</strong> = <span id="v1Mag"></span></div>
+        <div class="result"><strong>v · a</strong> = <span id="dotOut"></span></div>
+        <div class="result"><strong>v × a</strong> = <span id="crossOut"></span></div>
+
+        <div class="two-col">
+          <div class="result"><strong>Speed |v(t)|</strong><br><span id="speedOut"></span></div>
+          <div class="result"><strong>|v × a|</strong><br><span id="crossMagOut"></span></div>
+        </div>
+
+        <div class="footer-note">
+          Since z = 5 is constant, the trajectory stays in a horizontal plane. On the graph, we visualize the motion in the x–y plane, while the pink badge shows the z-direction effect of <strong>v × a</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2 class="section-title">Explanation</h2>
+      <div class="small">
+        The position point follows the parametric curve <strong>(x, y) = (t², sin t)</strong>. The green arrow is the velocity vector, which points in the direction of motion. The orange arrow is the acceleration vector, which shows how velocity changes. The cross product has only a <strong>k</strong>-component here, so it points perpendicular to the x–y plane.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+
+    const tSlider = document.getElementById('tSlider');
+    const tValue = document.getElementById('tValue');
+    const rOut = document.getElementById('rOut');
+    const vOut = document.getElementById('vOut');
+    const aOut = document.getElementById('aOut');
+    const v1Mag = document.getElementById('v1Mag');
+    const dotOut = document.getElementById('dotOut');
+    const crossOut = document.getElementById('crossOut');
+    const speedOut = document.getElementById('speedOut');
+    const crossMagOut = document.getElementById('crossMagOut');
+
+    const showVelocity = document.getElementById('showVelocity');
+    const showAcceleration = document.getElementById('showAcceleration');
+    const showCross = document.getElementById('showCross');
+    const showPath = document.getElementById('showPath');
+
+    function r(t) {
+      return { x: t * t, y: Math.sin(t), z: 5 };
+    }
+
+    function v(t) {
+      return { x: 2 * t, y: Math.cos(t), z: 0 };
+    }
+
+    function a(t) {
+      return { x: 2, y: -Math.sin(t), z: 0 };
+    }
+
+    function dot(u, w) {
+      return u.x * w.x + u.y * w.y + u.z * w.z;
+    }
+
+    function cross(u, w) {
+      return {
+        x: u.y * w.z - u.z * w.y,
+        y: u.z * w.x - u.x * w.z,
+        z: u.x * w.y - u.y * w.x
+      };
+    }
+
+    function mag(u) {
+      return Math.sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
+    }
+
+    function fmt(n) {
+      return (Math.abs(n) < 1e-10 ? 0 : n).toFixed(4);
+    }
+
+    function vecStr(u) {
+      return `(${fmt(u.x)}, ${fmt(u.y)}, ${fmt(u.z)})`;
+    }
+
+    function getBounds() {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (let t = -4; t <= 4; t += 0.02) {
+        const p = r(t);
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
+      }
+      return { minX, maxX, minY, maxY };
+    }
+
+    const bounds = getBounds();
+
+    function project(x, y) {
+      const pad = 60;
+      const w = canvas.width;
+      const h = canvas.height;
+      const sx = pad + ((x - bounds.minX) / (bounds.maxX - bounds.minX || 1)) * (w - 2 * pad);
+      const sy = h - pad - ((y - bounds.minY) / (bounds.maxY - bounds.minY || 1)) * (h - 2 * pad);
+      return { x: sx, y: sy };
+    }
+
+    function drawAxes() {
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+
+      const yAxis = project(0, 0);
+      const xLeft = project(bounds.minX, 0);
+      const xRight = project(bounds.maxX, 0);
+      const yTop = project(0, bounds.maxY);
+      const yBottom = project(0, bounds.minY);
+
+      ctx.beginPath();
+      ctx.moveTo(xLeft.x, xLeft.y);
+      ctx.lineTo(xRight.x, xRight.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(yAxis.x, yTop.y);
+      ctx.lineTo(yAxis.x, yBottom.y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px Arial';
+      ctx.fillText('x', xRight.x - 14, xRight.y - 8);
+      ctx.fillText('y', yAxis.x + 8, yTop.y + 14);
+    }
+
+    function drawPath() {
+      ctx.beginPath();
+      for (let t = -4; t <= 4; t += 0.02) {
+        const p = project(r(t).x, r(t).y);
+        if (t === -4) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function drawArrow(from, vec, color, label, scale = 1) {
+      const to = { x: from.x + vec.x * scale, y: from.y - vec.y * scale };
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+
+      const angle = Math.atan2(to.y - from.y, to.x - from.x);
+      const head = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(to.x, to.y);
+      ctx.lineTo(to.x - head * Math.cos(angle - Math.PI / 6), to.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(to.x - head * Math.cos(angle + Math.PI / 6), to.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = '13px Arial';
+      ctx.fillText(label, to.x + 8, to.y - 8);
+    }
+
+    function drawPoint(p, label) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '13px Arial';
+      ctx.fillText(label, p.x + 10, p.y - 10);
+    }
+
+    function drawCrossBadge(value) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(canvas.width - 190, 20, 160, 52, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#f9a8d4';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('v × a direction', canvas.width - 172, 42);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '13px Arial';
+      const dir = value >= 0 ? '+k (out of plane)' : '-k (into plane)';
+      ctx.fillText(dir, canvas.width - 172, 60);
+      ctx.restore();
+    }
+
+    function update() {
+      const t = parseFloat(tSlider.value);
+      tValue.textContent = t.toFixed(2);
+
+      const rt = r(t);
+      const vt = v(t);
+      const at = a(t);
+      const d = dot(vt, at);
+      const c = cross(vt, at);
+
+      rOut.textContent = vecStr(rt);
+      vOut.textContent = vecStr(vt);
+      aOut.textContent = vecStr(at);
+      dotOut.textContent = fmt(d);
+      crossOut.textContent = vecStr(c);
+      speedOut.textContent = fmt(mag(vt));
+      crossMagOut.textContent = fmt(mag(c));
+
+      const vAt1 = v(1);
+      v1Mag.textContent = `√(4 + cos²(1)) = ${mag(vAt1).toFixed(4)}`;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawAxes();
+      if (showPath.checked) drawPath();
+
+      const pos = project(rt.x, rt.y);
+      drawPoint(pos, 'r(t)');
+
+      if (showVelocity.checked) {
+        drawArrow(pos, vt, '#34d399', 'v(t)', 22);
+      }
+      if (showAcceleration.checked) {
+        drawArrow(pos, at, '#f59e0b', 'a(t)', 30);
+      }
+      if (showCross.checked) {
+        drawCrossBadge(c.z);
+      }
+    }
+
+    tSlider.addEventListener('input', update);
+    showVelocity.addEventListener('change', update);
+    showAcceleration.addEventListener('change', update);
+    showCross.addEventListener('change', update);
+    showPath.addEventListener('change', update);
+
+    update();
+  </script>
+</body>
+</html>

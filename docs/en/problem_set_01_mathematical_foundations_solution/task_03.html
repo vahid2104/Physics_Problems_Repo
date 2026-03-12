@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Integration of Motion – Visualizer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #a78bfa;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(56,189,248,0.14), rgba(167,139,250,0.16));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 10px;
+      line-height: 1.15;
+    }
+
+    h1 { font-size: clamp(28px, 4vw, 42px); }
+    h2 { font-size: 26px; margin-top: 6px; }
+    h3 { font-size: 20px; color: #dbeafe; }
+
+    p { margin: 8px 0; }
+
+    .muted { color: var(--muted); }
+    .accent { color: var(--accent); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(17,24,39,0.9);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .col-12 { grid-column: span 12; }
+    .col-7 { grid-column: span 7; }
+    .col-5 { grid-column: span 5; }
+    .col-6 { grid-column: span 6; }
+
+    @media (max-width: 900px) {
+      .col-7, .col-5, .col-6 { grid-column: span 12; }
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.18);
+      color: #bae6fd;
+      margin: 4px 8px 0 0;
+      font-size: 14px;
+    }
+
+    .formula, .step {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+
+    .formula code, .step code {
+      font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+      font-size: 15px;
+      white-space: pre-wrap;
+      color: #e2e8f0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .controls label {
+      min-width: 140px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: min(420px, 100%);
+      accent-color: #38bdf8;
+    }
+
+    .value-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 86px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      font-weight: 700;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px 12px;
+      margin-top: 12px;
+    }
+
+    .kv div:nth-child(odd) {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    canvas {
+      width: 100%;
+      height: 320px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .final {
+      border-left: 4px solid var(--good);
+      padding-left: 12px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Problem 3 – Integration of Motion</h1>
+      <p class="muted">An interactive visual explanation for both cases: <strong>given velocity</strong> and <strong>given acceleration</strong>.</p>
+      <div>
+        <span class="pill">Part A: integrate velocity → position</span>
+        <span class="pill">Part A: differentiate velocity → acceleration</span>
+        <span class="pill">Part B: integrate acceleration → velocity</span>
+        <span class="pill">Part B: integrate velocity → position</span>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card col-12">
+        <h2>Interactive time control</h2>
+        <p class="muted">Move the slider to see how the vectors change with time.</p>
+        <div class="controls">
+          <label for="tSlider">Choose time t</label>
+          <input id="tSlider" type="range" min="0" max="6" step="0.01" value="2" />
+          <div class="value-badge">t = <span id="tValue" style="margin-left:6px;">2.00</span></div>
+        </div>
+      </section>
+
+      <section class="card col-6">
+        <h2>Part A — Given velocity</h2>
+        <p>Given:</p>
+        <div class="formula"><code>v(t) = (2t, 3, -e^(-t))
+r(0) = (0, 1, 2)</code></div>
+
+        <h3>Step 1: Position vector</h3>
+        <div class="step"><code>r(t) = r(0) + ∫[0→t] v(τ) dτ</code></div>
+        <div class="step"><code>r(t) = (0,1,2) + ∫[0→t] (2τ, 3, -e^(-τ)) dτ</code></div>
+        <div class="step"><code>∫[0→t] 2τ dτ = [τ²][0→t] = t²
+∫[0→t] 3 dτ = [3τ][0→t] = 3t
+∫[0→t] -e^(-τ) dτ = [e^(-τ)][0→t] = e^(-t) - 1</code></div>
+        <div class="step"><code>r(t) = (0,1,2) + (t², 3t, e^(-t)-1)
+     = (t², 1+3t, 1+e^(-t))</code></div>
+
+        <h3>Step 2: Acceleration vector</h3>
+        <div class="step"><code>a(t) = dv/dt = (d/dt(2t), d/dt(3), d/dt(-e^(-t)))
+     = (2, 0, e^(-t))</code></div>
+
+        <div class="final">
+          <div class="formula"><code>Final A:
+r(t) = (t², 1 + 3t, 1 + e^(-t))
+a(t) = (2, 0, e^(-t))</code></div>
+        </div>
+
+        <div class="kv">
+          <div>r(t)</div><div id="aPos"></div>
+          <div>v(t)</div><div id="aVel"></div>
+          <div>a(t)</div><div id="aAcc"></div>
+        </div>
+      </section>
+
+      <section class="card col-6">
+        <h2>Part B — Given acceleration</h2>
+        <p>Given:</p>
+        <div class="formula"><code>a(t) = (4, -sin t, 0)
+v(0) = (1, 0, 2)
+r(0) = (0, 0, 0)</code></div>
+
+        <h3>Step 1: Velocity vector</h3>
+        <div class="step"><code>v(t) = v(0) + ∫[0→t] a(τ) dτ</code></div>
+        <div class="step"><code>v(t) = (1,0,2) + ∫[0→t] (4, -sin τ, 0) dτ</code></div>
+        <div class="step"><code>∫[0→t] 4 dτ = 4t
+∫[0→t] -sin τ dτ = [cos τ][0→t] = cos t - 1
+∫[0→t] 0 dτ = 0</code></div>
+        <div class="step"><code>v(t) = (1,0,2) + (4t, cos t - 1, 0)
+     = (1 + 4t, cos t - 1, 2)</code></div>
+
+        <h3>Step 2: Position vector</h3>
+        <div class="step"><code>r(t) = ∫[0→t] v(τ) dτ + r(0)</code></div>
+        <div class="step"><code>r(t) = ∫[0→t] (1+4τ, cos τ - 1, 2) dτ</code></div>
+        <div class="step"><code>∫[0→t] (1+4τ) dτ = [τ + 2τ²][0→t] = t + 2t²
+∫[0→t] (cos τ - 1) dτ = [sin τ - τ][0→t] = sin t - t
+∫[0→t] 2 dτ = 2t</code></div>
+        <div class="step"><code>r(t) = (t + 2t², sin t - t, 2t)</code></div>
+
+        <div class="final">
+          <div class="formula"><code>Final B:
+v(t) = (1 + 4t, cos t - 1, 2)
+r(t) = (t + 2t², sin t - t, 2t)</code></div>
+        </div>
+
+        <div class="kv">
+          <div>r(t)</div><div id="bPos"></div>
+          <div>v(t)</div><div id="bVel"></div>
+          <div>a(t)</div><div id="bAcc"></div>
+        </div>
+      </section>
+
+      <section class="card col-7">
+        <h2>Component graphs</h2>
+        <p class="muted">This plot shows the three components of the currently selected vector family over time from 0 to 6.</p>
+        <canvas id="chart" width="900" height="320"></canvas>
+        <div class="legend">
+          <span><span class="dot" style="background:#38bdf8"></span>x-component</span>
+          <span><span class="dot" style="background:#34d399"></span>y-component</span>
+          <span><span class="dot" style="background:#f59e0b"></span>z-component</span>
+        </div>
+      </section>
+
+      <section class="card col-5">
+        <h2>What this problem teaches</h2>
+        <div class="step"><code>Velocity is the derivative of position.
+So position is found by integrating velocity.</code></div>
+        <div class="step"><code>Acceleration is the derivative of velocity.
+So velocity is found by integrating acceleration.</code></div>
+        <div class="step"><code>Initial conditions like r(0) and v(0)
+fix the constants that appear after integration.</code></div>
+        <p class="footer-note">Tip: in vector-valued motion problems, do everything component by component. That is usually the cleanest route.</p>
+
+        <h3 style="margin-top:16px;">Displayed graph</h3>
+        <div class="controls">
+          <label><input type="radio" name="mode" value="A-pos" checked> A: position</label>
+          <label><input type="radio" name="mode" value="A-acc"> A: acceleration</label>
+          <label><input type="radio" name="mode" value="B-vel"> B: velocity</label>
+          <label><input type="radio" name="mode" value="B-pos"> B: position</label>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const slider = document.getElementById('tSlider');
+    const tValue = document.getElementById('tValue');
+    const aPos = document.getElementById('aPos');
+    const aVel = document.getElementById('aVel');
+    const aAcc = document.getElementById('aAcc');
+    const bPos = document.getElementById('bPos');
+    const bVel = document.getElementById('bVel');
+    const bAcc = document.getElementById('bAcc');
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+
+    function fmt(n) {
+      return Number(n).toFixed(3);
+    }
+
+    function vec(arr) {
+      return `(${arr.map(fmt).join(', ')})`;
+    }
+
+    function A_velocity(t) {
+      return [2*t, 3, -Math.exp(-t)];
+    }
+
+    function A_position(t) {
+      return [t*t, 1 + 3*t, 1 + Math.exp(-t)];
+    }
+
+    function A_acceleration(t) {
+      return [2, 0, Math.exp(-t)];
+    }
+
+    function B_acceleration(t) {
+      return [4, -Math.sin(t), 0];
+    }
+
+    function B_velocity(t) {
+      return [1 + 4*t, Math.cos(t) - 1, 2];
+    }
+
+    function B_position(t) {
+      return [t + 2*t*t, Math.sin(t) - t, 2*t];
+    }
+
+    function updateValues() {
+      const t = parseFloat(slider.value);
+      tValue.textContent = t.toFixed(2);
+
+      aPos.textContent = vec(A_position(t));
+      aVel.textContent = vec(A_velocity(t));
+      aAcc.textContent = vec(A_acceleration(t));
+
+      bPos.textContent = vec(B_position(t));
+      bVel.textContent = vec(B_velocity(t));
+      bAcc.textContent = vec(B_acceleration(t));
+
+      drawChart();
+    }
+
+    function currentMode() {
+      return document.querySelector('input[name="mode"]:checked').value;
+    }
+
+    function getSeries(mode, t) {
+      if (mode === 'A-pos') return A_position(t);
+      if (mode === 'A-acc') return A_acceleration(t);
+      if (mode === 'B-vel') return B_velocity(t);
+      return B_position(t);
+    }
+
+    function drawChart() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = { left: 54, right: 20, top: 20, bottom: 34 };
+      ctx.clearRect(0, 0, w, h);
+
+      const mode = currentMode();
+      const n = 200;
+      const xs = [];
+      const ys1 = [], ys2 = [], ys3 = [];
+      for (let i = 0; i <= n; i++) {
+        const t = 6 * i / n;
+        const v = getSeries(mode, t);
+        xs.push(t);
+        ys1.push(v[0]);
+        ys2.push(v[1]);
+        ys3.push(v[2]);
+      }
+
+      const allY = ys1.concat(ys2, ys3);
+      let minY = Math.min(...allY);
+      let maxY = Math.max(...allY);
+      if (Math.abs(maxY - minY) < 1e-8) {
+        maxY += 1;
+        minY -= 1;
+      }
+      const margin = 0.12 * (maxY - minY);
+      maxY += margin;
+      minY -= margin;
+
+      const xPix = t => pad.left + (t / 6) * (w - pad.left - pad.right);
+      const yPix = y => h - pad.bottom - ((y - minY) / (maxY - minY)) * (h - pad.top - pad.bottom);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 6; i++) {
+        const x = xPix(i);
+        ctx.beginPath();
+        ctx.moveTo(x, pad.top);
+        ctx.lineTo(x, h - pad.bottom);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 5; i++) {
+        const y = pad.top + i * (h - pad.top - pad.bottom) / 5;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, h - pad.bottom);
+      ctx.lineTo(w - pad.right, h - pad.bottom);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, h - pad.bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.font = '12px Arial';
+      for (let i = 0; i <= 6; i++) {
+        const x = xPix(i);
+        ctx.fillText(String(i), x - 3, h - 12);
+      }
+      for (let i = 0; i <= 5; i++) {
+        const yValue = maxY - i * (maxY - minY) / 5;
+        const y = pad.top + i * (h - pad.top - pad.bottom) / 5;
+        ctx.fillText(yValue.toFixed(1), 8, y + 4);
+      }
+
+      function plot(arr, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        arr.forEach((y, i) => {
+          const x = xPix(xs[i]);
+          const py = yPix(y);
+          if (i === 0) ctx.moveTo(x, py);
+          else ctx.lineTo(x, py);
+        });
+        ctx.stroke();
+      }
+
+      plot(ys1, '#38bdf8');
+      plot(ys2, '#34d399');
+      plot(ys3, '#f59e0b');
+
+      const t = parseFloat(slider.value);
+      const cur = getSeries(mode, t);
+      ['#38bdf8', '#34d399', '#f59e0b'].forEach((c, i) => {
+        ctx.fillStyle = c;
+        ctx.beginPath();
+        ctx.arc(xPix(t), yPix(cur[i]), 4.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.font = 'bold 14px Arial';
+      const labelMap = {
+        'A-pos': 'Part A: position r(t)',
+        'A-acc': 'Part A: acceleration a(t)',
+        'B-vel': 'Part B: velocity v(t)',
+        'B-pos': 'Part B: position r(t)'
+      };
+      ctx.fillText(labelMap[mode], pad.left, 16);
+    }
+
+    slider.addEventListener('input', updateValues);
+    document.querySelectorAll('input[name="mode"]').forEach(el => {
+      el.addEventListener('change', drawChart);
+    });
+
+    updateValues();
+  </script>
+</body>
+</html>

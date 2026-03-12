@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 4 – Geometry of Parametric Curves</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #182245;
+      --text: #eef2ff;
+      --muted: #b8c1ec;
+      --accent: #7dd3fc;
+      --accent-2: #a78bfa;
+      --good: #86efac;
+      --warn: #fca5a5;
+      --grid: rgba(255,255,255,0.08);
+      --axis: rgba(255,255,255,0.4);
+      --border: rgba(255,255,255,0.1);
+      --shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0b1020 0%, #101935 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(125,211,252,0.15), rgba(167,139,250,0.15));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    h1, h2, h3 { margin: 0 0 10px; }
+    h1 { font-size: clamp(28px, 4vw, 42px); }
+    h2 { font-size: 24px; margin-top: 10px; }
+    h3 { font-size: 18px; color: var(--accent); }
+    p { color: var(--muted); margin: 8px 0; }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: rgba(18,25,51,0.85);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .control-group {
+      background: var(--panel-2);
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid var(--border);
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    input[type="range"] { width: 100%; }
+    select, button {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #0f1730;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(125,211,252,0.2), rgba(167,139,250,0.2));
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); opacity: 0.95; }
+
+    .viz-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(rgba(255,255,255,0.03), rgba(255,255,255,0.03)),
+        radial-gradient(circle at top left, rgba(125,211,252,0.08), transparent 35%),
+        #0c1328;
+      min-height: 560px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 560px;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #0f1730;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      background: #0f1730;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .stat .k {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat .v {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+
+    .section {
+      margin-top: 24px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 16px;
+    }
+
+    .curve-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      font-size: 12px;
+      color: var(--text);
+      background: rgba(125,211,252,0.13);
+      border: 1px solid rgba(125,211,252,0.24);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .math-block {
+      overflow-x: auto;
+      background: #0f1730;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .small { font-size: 13px; color: var(--muted); }
+
+    @media (max-width: 1000px) {
+      .intro-grid, .viz-grid, .summary-grid { grid-template-columns: 1fr; }
+      canvas { height: 460px; }
+      .canvas-wrap { min-height: 460px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Problem 4 – Geometry of Parametric Curves</h1>
+      <p>
+        This interactive page visualizes the four parametric curves, shows the moving point on each curve,
+        and updates the position, velocity, acceleration, and magnitude checks in real time.
+      </p>
+      <div class="intro-grid">
+        <div class="card">
+          <h3>Curves</h3>
+          <div class="math-block">
+            $$\text{A)}\; x(t)=R\cos t,\; y(t)=R\sin t$$
+            $$\text{B)}\; x(t)=a\cos t,\; y(t)=b\sin t$$
+            $$\text{C)}\; x(t)=t,\; y(t)=t^2$$
+            $$\text{D)}\; x(t)=\cosh t,\; y(t)=\sinh t$$
+          </div>
+          <p class="small">Tip: change the selected curve and move the time slider to see how the motion changes.</p>
+        </div>
+
+        <div class="card">
+          <h3>Controls</h3>
+          <div class="controls">
+            <div class="control-group" style="grid-column: 1 / -1;">
+              <label for="curveSelect">Selected curve <span id="curveLabel">A — Circle</span></label>
+              <select id="curveSelect">
+                <option value="A">A — Circle</option>
+                <option value="B">B — Ellipse</option>
+                <option value="C">C — Parabola</option>
+                <option value="D">D — Hyperbola</option>
+              </select>
+            </div>
+
+            <div class="control-group" style="grid-column: 1 / -1;">
+              <label for="tSlider">Parameter t <span id="tValue">0.00</span></label>
+              <input id="tSlider" type="range" min="-3" max="6.28318" step="0.01" value="0" />
+            </div>
+
+            <div class="control-group">
+              <label for="rSlider">R (curve A) <span id="rValue">3.00</span></label>
+              <input id="rSlider" type="range" min="0.5" max="6" step="0.1" value="3" />
+            </div>
+
+            <div class="control-group">
+              <label for="aSlider">a (curve B) <span id="aValue">4.00</span></label>
+              <input id="aSlider" type="range" min="0.5" max="6" step="0.1" value="4" />
+            </div>
+
+            <div class="control-group">
+              <label for="bSlider">b (curve B) <span id="bValue">2.50</span></label>
+              <input id="bSlider" type="range" min="0.5" max="6" step="0.1" value="2.5" />
+            </div>
+
+            <div class="control-group">
+              <label>&nbsp;</label>
+              <button id="playBtn">▶ Play animation</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="viz-grid">
+      <div class="card">
+        <h2>Interactive visualization</h2>
+        <p>The curve is drawn in cyan, the position point in white, velocity in green, and acceleration in red.</p>
+        <div class="canvas-wrap">
+          <canvas id="plotCanvas" width="820" height="560"></canvas>
+        </div>
+        <div class="legend">
+          <span class="pill"><span class="dot" style="background:#67e8f9"></span>Curve</span>
+          <span class="pill"><span class="dot" style="background:#ffffff"></span>Position $\vec r(t)$</span>
+          <span class="pill"><span class="dot" style="background:#86efac"></span>Velocity $\vec v(t)$</span>
+          <span class="pill"><span class="dot" style="background:#fca5a5"></span>Acceleration $\vec a(t)$</span>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="card">
+          <div class="curve-title">
+            <h2 id="infoTitle">Curve A — Circle</h2>
+            <span class="badge" id="typeBadge">Type: Circle</span>
+          </div>
+          <p id="curveDescription">A circle of radius R centered at the origin.</p>
+          <div class="math-block" id="equationBlock"></div>
+        </div>
+
+        <div class="card">
+          <h2>Live values</h2>
+          <div class="stat-grid">
+            <div class="stat"><div class="k">Position</div><div class="v" id="posValue">(0, 0)</div></div>
+            <div class="stat"><div class="k">Parameter</div><div class="v" id="paramValue">t = 0.00</div></div>
+            <div class="stat"><div class="k">Velocity</div><div class="v" id="velValue">(0, 0)</div></div>
+            <div class="stat"><div class="k">Acceleration</div><div class="v" id="accValue">(0, 0)</div></div>
+            <div class="stat"><div class="k">|v|</div><div class="v" id="speedValue">0</div></div>
+            <div class="stat"><div class="k">|a|</div><div class="v" id="accMagValue">0</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Constancy check</h2>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="k">Is |v| constant?</div>
+              <div class="v" id="speedConst"></div>
+            </div>
+            <div class="stat">
+              <div class="k">Is |a| constant?</div>
+              <div class="v" id="accConst"></div>
+            </div>
+          </div>
+          <div class="math-block" id="magnitudeBlock"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="card">
+        <h2>Worked summary</h2>
+        <p>These panels match the mathematical results for each of the four curves.</p>
+        <div class="summary-grid">
+          <div class="card">
+            <div class="curve-title">
+              <h3>Curve A</h3>
+              <span class="badge">Circle</span>
+            </div>
+            <div class="math-block">
+              $$x^2+y^2=R^2$$
+              $$\vec v(t)=(-R\sin t,\;R\cos t)$$
+              $$\vec a(t)=(-R\cos t,\;-R\sin t)$$
+              $$|\vec v|=R,\qquad |\vec a|=R$$
+            </div>
+            <p>Both speed and acceleration magnitude are constant.</p>
+          </div>
+
+          <div class="card">
+            <div class="curve-title">
+              <h3>Curve B</h3>
+              <span class="badge">Ellipse</span>
+            </div>
+            <div class="math-block">
+              $$\frac{x^2}{a^2}+\frac{y^2}{b^2}=1$$
+              $$\vec v(t)=(-a\sin t,\;b\cos t)$$
+              $$\vec a(t)=(-a\cos t,\;-b\sin t)$$
+              $$|\vec v|=\sqrt{a^2\sin^2 t+b^2\cos^2 t}$$
+              $$|\vec a|=\sqrt{a^2\cos^2 t+b^2\sin^2 t}$$
+            </div>
+            <p>In general, neither magnitude is constant unless $a=b$.</p>
+          </div>
+
+          <div class="card">
+            <div class="curve-title">
+              <h3>Curve C</h3>
+              <span class="badge">Parabola</span>
+            </div>
+            <div class="math-block">
+              $$y=x^2$$
+              $$\vec v(t)=(1,\;2t)$$
+              $$\vec a(t)=(0,\;2)$$
+              $$|\vec v|=\sqrt{1+4t^2},\qquad |\vec a|=2$$
+            </div>
+            <p>The speed changes with $t$, but the acceleration magnitude stays constant.</p>
+          </div>
+
+          <div class="card">
+            <div class="curve-title">
+              <h3>Curve D</h3>
+              <span class="badge">Hyperbola</span>
+            </div>
+            <div class="math-block">
+              $$x^2-y^2=1$$
+              $$\vec v(t)=(\sinh t,\;\cosh t)$$
+              $$\vec a(t)=(\cosh t,\;\sinh t)$$
+              $$|\vec v|=\sqrt{\sinh^2 t+\cosh^2 t}$$
+              $$|\vec a|=\sqrt{\cosh^2 t+\sinh^2 t}$$
+            </div>
+            <p>Neither magnitude is constant.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const curveSelect = document.getElementById('curveSelect');
+    const curveLabel = document.getElementById('curveLabel');
+    const tSlider = document.getElementById('tSlider');
+    const tValue = document.getElementById('tValue');
+    const rSlider = document.getElementById('rSlider');
+    const aSlider = document.getElementById('aSlider');
+    const bSlider = document.getElementById('bSlider');
+    const rValue = document.getElementById('rValue');
+    const aValue = document.getElementById('aValue');
+    const bValue = document.getElementById('bValue');
+    const playBtn = document.getElementById('playBtn');
+
+    const infoTitle = document.getElementById('infoTitle');
+    const typeBadge = document.getElementById('typeBadge');
+    const curveDescription = document.getElementById('curveDescription');
+    const equationBlock = document.getElementById('equationBlock');
+    const magnitudeBlock = document.getElementById('magnitudeBlock');
+
+    const posValue = document.getElementById('posValue');
+    const paramValue = document.getElementById('paramValue');
+    const velValue = document.getElementById('velValue');
+    const accValue = document.getElementById('accValue');
+    const speedValue = document.getElementById('speedValue');
+    const accMagValue = document.getElementById('accMagValue');
+    const speedConst = document.getElementById('speedConst');
+    const accConst = document.getElementById('accConst');
+
+    const canvas = document.getElementById('plotCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let isPlaying = false;
+    let lastTime = 0;
+
+    function fmt(n) {
+      return (Math.abs(n) < 1e-10 ? 0 : n).toFixed(2);
+    }
+
+    function getParams() {
+      return {
+        R: parseFloat(rSlider.value),
+        a: parseFloat(aSlider.value),
+        b: parseFloat(bSlider.value),
+        t: parseFloat(tSlider.value),
+        curve: curveSelect.value
+      };
+    }
+
+    function curveData(curve, t, p) {
+      switch (curve) {
+        case 'A': {
+          const x = p.R * Math.cos(t);
+          const y = p.R * Math.sin(t);
+          const vx = -p.R * Math.sin(t);
+          const vy = p.R * Math.cos(t);
+          const ax = -p.R * Math.cos(t);
+          const ay = -p.R * Math.sin(t);
+          return {
+            name: 'Curve A — Circle',
+            type: 'Circle',
+            description: 'A circle of radius R centered at the origin.',
+            eq: `$$x^2+y^2=${p.R.toFixed(2)}^2$$
+                 $$\\vec r(t)=(${p.R.toFixed(2)}\\cos t,\;${p.R.toFixed(2)}\\sin t)$$
+                 $$\\vec v(t)=(-${p.R.toFixed(2)}\\sin t,\;${p.R.toFixed(2)}\\cos t)$$
+                 $$\\vec a(t)=(-${p.R.toFixed(2)}\\cos t,\;-${p.R.toFixed(2)}\\sin t)$$`,
+            magnitudes: `$$|\\vec v|=${p.R.toFixed(2)}$$
+                         $$|\\vec a|=${p.R.toFixed(2)}$$`,
+            speedConstant: true,
+            accConstant: true,
+            x, y, vx, vy, ax, ay,
+            tMin: 0, tMax: Math.PI * 2,
+            xRange: [-p.R - 2, p.R + 2],
+            yRange: [-p.R - 2, p.R + 2],
+            sampler: u => ({ x: p.R * Math.cos(u), y: p.R * Math.sin(u) })
+          };
+        }
+        case 'B': {
+          const x = p.a * Math.cos(t);
+          const y = p.b * Math.sin(t);
+          const vx = -p.a * Math.sin(t);
+          const vy = p.b * Math.cos(t);
+          const ax = -p.a * Math.cos(t);
+          const ay = -p.b * Math.sin(t);
+          const same = Math.abs(p.a - p.b) < 1e-9;
+          return {
+            name: 'Curve B — Ellipse',
+            type: 'Ellipse',
+            description: 'An ellipse centered at the origin with semi-axes a and b.',
+            eq: `$$\\frac{x^2}{${p.a.toFixed(2)}^2}+\\frac{y^2}{${p.b.toFixed(2)}^2}=1$$
+                 $$\\vec r(t)=(${p.a.toFixed(2)}\\cos t,\;${p.b.toFixed(2)}\\sin t)$$
+                 $$\\vec v(t)=(-${p.a.toFixed(2)}\\sin t,\;${p.b.toFixed(2)}\\cos t)$$
+                 $$\\vec a(t)=(-${p.a.toFixed(2)}\\cos t,\;-${p.b.toFixed(2)}\\sin t)$$`,
+            magnitudes: `$$|\\vec v|=\\sqrt{${p.a.toFixed(2)}^2\\sin^2 t+${p.b.toFixed(2)}^2\\cos^2 t}$$
+                         $$|\\vec a|=\\sqrt{${p.a.toFixed(2)}^2\\cos^2 t+${p.b.toFixed(2)}^2\\sin^2 t}$$`,
+            speedConstant: same,
+            accConstant: same,
+            x, y, vx, vy, ax, ay,
+            tMin: 0, tMax: Math.PI * 2,
+            xRange: [-p.a - 2, p.a + 2],
+            yRange: [-p.b - 2, p.b + 2],
+            sampler: u => ({ x: p.a * Math.cos(u), y: p.b * Math.sin(u) })
+          };
+        }
+        case 'C': {
+          const x = t;
+          const y = t * t;
+          const vx = 1;
+          const vy = 2 * t;
+          const ax = 0;
+          const ay = 2;
+          return {
+            name: 'Curve C — Parabola',
+            type: 'Parabola',
+            description: 'The parabola y = x², traced by x=t and y=t².',
+            eq: `$$y=x^2$$
+                 $$\\vec r(t)=(t,\;t^2)$$
+                 $$\\vec v(t)=(1,\;2t)$$
+                 $$\\vec a(t)=(0,\;2)$$`,
+            magnitudes: `$$|\\vec v|=\\sqrt{1+4t^2}$$
+                         $$|\\vec a|=2$$`,
+            speedConstant: false,
+            accConstant: true,
+            x, y, vx, vy, ax, ay,
+            tMin: -3, tMax: 3,
+            xRange: [-4, 4],
+            yRange: [-1, 10],
+            sampler: u => ({ x: u, y: u * u })
+          };
+        }
+        case 'D': {
+          const x = Math.cosh(t);
+          const y = Math.sinh(t);
+          const vx = Math.sinh(t);
+          const vy = Math.cosh(t);
+          const ax = Math.cosh(t);
+          const ay = Math.sinh(t);
+          return {
+            name: 'Curve D — Hyperbola',
+            type: 'Hyperbola',
+            description: 'The right branch of the hyperbola x² − y² = 1, since cosh(t) ≥ 1.',
+            eq: `$$x^2-y^2=1$$
+                 $$\\vec r(t)=(\\cosh t,\;\\sinh t)$$
+                 $$\\vec v(t)=(\\sinh t,\;\\cosh t)$$
+                 $$\\vec a(t)=(\\cosh t,\;\\sinh t)$$`,
+            magnitudes: `$$|\\vec v|=\\sqrt{\\sinh^2 t+\\cosh^2 t}$$
+                         $$|\\vec a|=\\sqrt{\\cosh^2 t+\\sinh^2 t}$$`,
+            speedConstant: false,
+            accConstant: false,
+            x, y, vx, vy, ax, ay,
+            tMin: -2.2, tMax: 2.2,
+            xRange: [-0.5, 5.5],
+            yRange: [-5, 5],
+            sampler: u => ({ x: Math.cosh(u), y: Math.sinh(u) })
+          };
+        }
+      }
+    }
+
+    function mapToCanvas(x, y, xr, yr) {
+      const pad = 48;
+      const w = canvas.width;
+      const h = canvas.height;
+      const sx = pad + ((x - xr[0]) / (xr[1] - xr[0])) * (w - 2 * pad);
+      const sy = h - pad - ((y - yr[0]) / (yr[1] - yr[0])) * (h - 2 * pad);
+      return [sx, sy];
+    }
+
+    function drawAxes(xr, yr) {
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0c1328';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const xStep = niceStep((xr[1] - xr[0]) / 8);
+      const yStep = niceStep((yr[1] - yr[0]) / 8);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = Math.ceil(xr[0] / xStep) * xStep; x <= xr[1]; x += xStep) {
+        const [sx] = mapToCanvas(x, 0, xr, yr);
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, canvas.height);
+      }
+      for (let y = Math.ceil(yr[0] / yStep) * yStep; y <= yr[1]; y += yStep) {
+        const [, sy] = mapToCanvas(0, y, xr, yr);
+        ctx.moveTo(0, sy);
+        ctx.lineTo(canvas.width, sy);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      if (xr[0] <= 0 && xr[1] >= 0) {
+        const [sx] = mapToCanvas(0, 0, xr, yr);
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, canvas.height);
+      }
+      if (yr[0] <= 0 && yr[1] >= 0) {
+        const [, sy] = mapToCanvas(0, 0, xr, yr);
+        ctx.moveTo(0, sy);
+        ctx.lineTo(canvas.width, sy);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '12px Inter, sans-serif';
+      if (xr[0] <= 0 && xr[1] >= 0) {
+        const [sx] = mapToCanvas(0, 0, xr, yr);
+        ctx.fillText('y', sx + 8, 16);
+      }
+      if (yr[0] <= 0 && yr[1] >= 0) {
+        const [, sy] = mapToCanvas(0, 0, xr, yr);
+        ctx.fillText('x', canvas.width - 18, sy - 8);
+      }
+      ctx.restore();
+    }
+
+    function niceStep(raw) {
+      const power = Math.pow(10, Math.floor(Math.log10(raw)));
+      const scaled = raw / power;
+      if (scaled < 1.5) return 1 * power;
+      if (scaled < 3) return 2 * power;
+      if (scaled < 7) return 5 * power;
+      return 10 * power;
+    }
+
+    function drawCurve(data) {
+      const { xRange, yRange, sampler, tMin, tMax, x, y, vx, vy, ax, ay } = data;
+      drawAxes(xRange, yRange);
+
+      ctx.save();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#67e8f9';
+      ctx.beginPath();
+      const samples = 400;
+      for (let i = 0; i <= samples; i++) {
+        const u = tMin + (i / samples) * (tMax - tMin);
+        const pt = sampler(u);
+        const [sx, sy] = mapToCanvas(pt.x, pt.y, xRange, yRange);
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+
+      const [px, py] = mapToCanvas(x, y, xRange, yRange);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      drawVector(px, py, vx, vy, xRange, yRange, '#86efac', 0.55);
+      drawVector(px, py, ax, ay, xRange, yRange, '#fca5a5', 0.55);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = '13px Inter, sans-serif';
+      ctx.fillText('r(t)', px + 10, py - 10);
+      ctx.restore();
+    }
+
+    function drawVector(px, py, vx, vy, xr, yr, color, scale) {
+      const dx = (vx / (xr[1] - xr[0])) * (canvas.width - 96) * scale;
+      const dy = -(vy / (yr[1] - yr[0])) * (canvas.height - 96) * scale;
+      const ex = px + dx;
+      const ey = py + dy;
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+
+      const angle = Math.atan2(ey - py, ex - px);
+      const head = 10;
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - head * Math.cos(angle - Math.PI / 6), ey - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(ex - head * Math.cos(angle + Math.PI / 6), ey - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function updateUI() {
+      const params = getParams();
+      rValue.textContent = params.R.toFixed(2);
+      aValue.textContent = params.a.toFixed(2);
+      bValue.textContent = params.b.toFixed(2);
+      tValue.textContent = params.t.toFixed(2);
+
+      const data = curveData(params.curve, params.t, params);
+      curveLabel.textContent = data.name.replace('Curve ', '').replace(' — ', ' — ');
+      infoTitle.textContent = data.name;
+      typeBadge.textContent = `Type: ${data.type}`;
+      curveDescription.textContent = data.description;
+      equationBlock.innerHTML = data.eq;
+      magnitudeBlock.innerHTML = data.magnitudes;
+
+      const speed = Math.hypot(data.vx, data.vy);
+      const accMag = Math.hypot(data.ax, data.ay);
+
+      posValue.textContent = `(${fmt(data.x)}, ${fmt(data.y)})`;
+      paramValue.textContent = `t = ${fmt(params.t)}`;
+      velValue.textContent = `(${fmt(data.vx)}, ${fmt(data.vy)})`;
+      accValue.textContent = `(${fmt(data.ax)}, ${fmt(data.ay)})`;
+      speedValue.textContent = fmt(speed);
+      accMagValue.textContent = fmt(accMag);
+
+      speedConst.innerHTML = data.speedConstant
+        ? '<span class="good">Yes</span>'
+        : '<span class="warn">No</span>';
+      accConst.innerHTML = data.accConstant
+        ? '<span class="good">Yes</span>'
+        : '<span class="warn">No</span>';
+
+      const ranges = {
+        A: { min: 0, max: (Math.PI * 2).toFixed(5), value: Math.min(Math.max(params.t, 0), Math.PI * 2) },
+        B: { min: 0, max: (Math.PI * 2).toFixed(5), value: Math.min(Math.max(params.t, 0), Math.PI * 2) },
+        C: { min: -3, max: 3, value: Math.min(Math.max(params.t, -3), 3) },
+        D: { min: -2.2, max: 2.2, value: Math.min(Math.max(params.t, -2.2), 2.2) }
+      };
+
+      const range = ranges[params.curve];
+      tSlider.min = range.min;
+      tSlider.max = range.max;
+      if (Math.abs(parseFloat(tSlider.value) - range.value) > 1e-9) {
+        tSlider.value = range.value;
+        tValue.textContent = parseFloat(tSlider.value).toFixed(2);
+        return updateUI();
+      }
+
+      drawCurve(data);
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise([equationBlock, magnitudeBlock]).catch(() => {});
+      }
+    }
+
+    function animate(timestamp) {
+      if (!isPlaying) return;
+      if (!lastTime) lastTime = timestamp;
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      const curve = curveSelect.value;
+      const speed = curve === 'C' ? 1.0 : (curve === 'D' ? 0.7 : 1.2);
+      let t = parseFloat(tSlider.value) + dt * speed;
+
+      if (curve === 'A' || curve === 'B') {
+        const max = Math.PI * 2;
+        if (t > max) t -= max;
+      } else if (curve === 'C') {
+        if (t > 3) t = -3;
+      } else if (curve === 'D') {
+        if (t > 2.2) t = -2.2;
+      }
+
+      tSlider.value = t;
+      updateUI();
+      requestAnimationFrame(animate);
+    }
+
+    playBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      playBtn.textContent = isPlaying ? '❚❚ Pause animation' : '▶ Play animation';
+      if (isPlaying) {
+        lastTime = 0;
+        requestAnimationFrame(animate);
+      }
+    });
+
+    [curveSelect, tSlider, rSlider, aSlider, bSlider].forEach(el => {
+      el.addEventListener('input', updateUI);
+      el.addEventListener('change', updateUI);
+    });
+
+    updateUI();
+    window.addEventListener('resize', updateUI);
+  </script>
+</body>
+</html>
