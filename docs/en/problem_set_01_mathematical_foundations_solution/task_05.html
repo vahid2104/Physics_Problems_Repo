@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ellipse Curvature Presentation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg2: #111827;
+      --panel: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.12);
+      --text: #e5eefc;
+      --muted: #cbd5e1;
+      --blue: #60a5fa;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --pink: #f472b6;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg), var(--bg2));
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1200px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    .hero, .section, .controls, .results {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero p, .section p, .section li, .results p {
+      color: var(--muted);
+    }
+
+    .formula {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      overflow-x: auto;
+      white-space: nowrap;
+      font-family: "Cambria Math", Georgia, serif;
+    }
+
+    .controls-grid,
+    .section-grid,
+    .result-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .controls-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .section-grid {
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: start;
+    }
+
+    .result-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.15);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: bold;
+      background: var(--blue);
+      color: #08111f;
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .svg-wrap {
+      background: rgba(0,0,0,0.15);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex: 0 0 12px;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 10px;
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .metric .name {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .metric .val {
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #bfdbfe;
+    }
+
+    sub {
+      font-size: 0.75em;
+      vertical-align: sub;
+      line-height: 0;
+    }
+
+    @media (max-width: 900px) {
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <section class="hero">
+      <h1>Problem 5 – Trajectory Curvature and Normal Acceleration</h1>
+      <p>
+        This page explains the ellipse motion in a simple way.
+        Each animation can be shown separately, and at the end you can also show everything together.
+      </p>
+      <div class="formula">x = a cos t, &nbsp; y = b sin t</div>
+      <div class="formula">r(t) = (a cos t, b sin t)</div>
+    </section>
+
+    
+
+    <section class="section">
+      <h2>1. Position on the ellipse</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            The point moves along the ellipse according to the parameter <b>t</b>.
+            When <b>t</b> changes, the coordinates of the point also change.
+          </p>
+          <div class="formula">x = a cos t</div>
+          <div class="formula">y = b sin t</div>
+          <p>
+            So the position vector is:
+          </p>
+          <div class="formula">r(t) = (a cos t, b sin t)</div>
+          <p>
+            In the animation, the white point is the moving particle.
+            The line from the center to the point is the position vector.
+          </p>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 560 420">
+            <defs>
+              <marker id="arrowPos1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#ffffff"></path>
+              </marker>
+            </defs>
+            <rect width="560" height="420" fill="transparent"></rect>
+            <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <line x1="280" y1="40" x2="280" y2="380" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <ellipse cx="280" cy="210" rx="170" ry="110" fill="rgba(96,165,250,0.04)" stroke="rgba(96,165,250,0.8)" stroke-width="3"></ellipse>
+            <line x1="280" y1="210" x2="430" y2="155" stroke="white" stroke-width="3" marker-end="url(#arrowPos1)"></line>
+            <circle cx="430" cy="155" r="8" fill="white"></circle>
+            <circle cx="280" cy="210" r="4" fill="white"></circle>
+            <text x="439" y="150" fill="white" font-size="14">P</text>
+            <text x="290" y="200" fill="#cbd5e1" font-size="14">O</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. Velocity</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            Velocity tells us how the position changes with time.
+            It gives both the speed and the direction of motion.
+          </p>
+          <div class="formula">v(t) = dr/dt = (-a sin t, b cos t)</div>
+          <div class="formula">|v(t)| = √(a<sup>2</sup> sin<sup>2</sup> t + b<sup>2</sup> cos<sup>2</sup> t)</div>
+          <p>
+            The velocity vector is always tangent to the ellipse.
+            In the animation, it is shown by the green arrow.
+          </p>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 560 420">
+            <defs>
+              <marker id="arrowVel2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#34d399"></path>
+              </marker>
+            </defs>
+            <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <line x1="280" y1="40" x2="280" y2="380" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <ellipse cx="280" cy="210" rx="170" ry="110" fill="rgba(96,165,250,0.04)" stroke="rgba(96,165,250,0.8)" stroke-width="3"></ellipse>
+            <circle cx="430" cy="155" r="8" fill="white"></circle>
+            <line x1="430" y1="155" x2="360" y2="105" stroke="#34d399" stroke-width="4" marker-end="url(#arrowVel2)"></line>
+            <text x="350" y="98" fill="#34d399" font-size="14">velocity</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>3. Acceleration</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            Acceleration tells us how the velocity changes with time.
+            It can change the speed, the direction, or both.
+          </p>
+          <div class="formula">a(t) = dv/dt = (-a cos t, -b sin t)</div>
+          <p>
+            In the animation, acceleration is shown by the yellow arrow.
+          </p>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 560 420">
+            <defs>
+              <marker id="arrowAcc3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"></path>
+              </marker>
+            </defs>
+            <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <line x1="280" y1="40" x2="280" y2="380" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <ellipse cx="280" cy="210" rx="170" ry="110" fill="rgba(96,165,250,0.04)" stroke="rgba(96,165,250,0.8)" stroke-width="3"></ellipse>
+            <circle cx="430" cy="155" r="8" fill="white"></circle>
+            <line x1="430" y1="155" x2="360" y2="175" stroke="#fbbf24" stroke-width="4" marker-end="url(#arrowAcc3)"></line>
+            <text x="345" y="188" fill="#fbbf24" font-size="14">acceleration</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. Unit tangent vector</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            The unit tangent vector gives only the direction of motion.
+            Its length is 1.
+          </p>
+          <div class="formula">T̂(t) = v(t) / |v(t)|</div>
+          <div class="formula">T̂(t) = (-a sin t, b cos t) / √(a<sup>2</sup> sin<sup>2</sup> t + b<sup>2</sup> cos<sup>2</sup> t)</div>
+          <p>
+            In the animation, it is shown by the blue arrow.
+          </p>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 560 420">
+            <defs>
+              <marker id="arrowTan4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#60a5fa"></path>
+              </marker>
+            </defs>
+            <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <line x1="280" y1="40" x2="280" y2="380" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <ellipse cx="280" cy="210" rx="170" ry="110" fill="rgba(96,165,250,0.04)" stroke="rgba(96,165,250,0.8)" stroke-width="3"></ellipse>
+            <circle cx="430" cy="155" r="8" fill="white"></circle>
+            <line x1="430" y1="155" x2="375" y2="115" stroke="#60a5fa" stroke-width="4" marker-end="url(#arrowTan4)"></line>
+            <text x="363" y="108" fill="#60a5fa" font-size="14">unit tangent</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>5. Tangential and normal acceleration</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            Acceleration can be divided into two parts:
+          </p>
+          <div class="formula">a = a<sub>t</sub> + a<sub>n</sub></div>
+          <p>
+            <b>Tangential acceleration</b> changes the speed.
+          </p>
+          <div class="formula">a<sub>t</sub> = (v · a) / |v|</div>
+          <div class="formula">a<sub>t</sub> = ((a<sup>2</sup> - b<sup>2</sup>) sin t cos t) / √(a<sup>2</sup> sin<sup>2</sup> t + b<sup>2</sup> cos<sup>2</sup> t)</div>
+          <p>
+            <b>Normal acceleration</b> changes the direction of motion.
+          </p>
+          <div class="formula">a<sub>n</sub> = |v × a| / |v|</div>
+          <div class="formula">a<sub>n</sub> = ab / √(a<sup>2</sup> sin<sup>2</sup> t + b<sup>2</sup> cos<sup>2</sup> t)</div>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 560 420">
+            <defs>
+              <marker id="arrowTan5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#60a5fa"></path>
+              </marker>
+              <marker id="arrowNorm5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#f472b6"></path>
+              </marker>
+            </defs>
+            <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <line x1="280" y1="40" x2="280" y2="380" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <ellipse cx="280" cy="210" rx="170" ry="110" fill="rgba(96,165,250,0.04)" stroke="rgba(96,165,250,0.8)" stroke-width="3"></ellipse>
+            <circle cx="430" cy="155" r="8" fill="white"></circle>
+            <line x1="430" y1="155" x2="374" y2="116" stroke="#60a5fa" stroke-width="4" marker-end="url(#arrowTan5)"></line>
+            <line x1="430" y1="155" x2="382" y2="210" stroke="#f472b6" stroke-width="4" marker-end="url(#arrowNorm5)"></line>
+            <text x="360" y="108" fill="#60a5fa" font-size="14">tangent part</text>
+            <text x="382" y="228" fill="#f472b6" font-size="14">normal part</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. Radius of curvature at t = 0</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            The radius of curvature shows how sharply the path bends.
+          </p>
+          <div class="formula">a<sub>n</sub> = v<sup>2</sup> / R</div>
+          <div class="formula">R = v<sup>2</sup> / a<sub>n</sub></div>
+          <p>
+            At <b>t = 0</b>:
+          </p>
+          <div class="formula">v(0) = (0, b)</div>
+          <div class="formula">|v(0)| = b</div>
+          <div class="formula">a<sub>n</sub>(0) = a</div>
+          <div class="formula">R(0) = b<sup>2</sup> / a</div>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 560 420">
+            <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <line x1="280" y1="40" x2="280" y2="380" stroke="rgba(255,255,255,0.15)" stroke-dasharray="6 6"></line>
+            <ellipse cx="280" cy="210" rx="170" ry="110" fill="rgba(96,165,250,0.04)" stroke="rgba(96,165,250,0.8)" stroke-width="3"></ellipse>
+            <circle cx="450" cy="210" r="8" fill="white"></circle>
+            <text x="420" y="190" fill="white" font-size="14">(a, 0)</text>
+            <text x="320" y="245" fill="#fbbf24" font-size="16">R(0) = b² / a</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+<section class="controls">
+      <h2>Animation Controls</h2>
+      <div class="controls-grid">
+        <div class="card">
+          <h3>Choose what to show</h3>
+          <label><input type="checkbox" id="showPath" checked> Show ellipse path</label>
+          <label><input type="checkbox" id="showPoint" checked> Show moving point</label>
+          <label><input type="checkbox" id="showRadius" checked> Show position vector</label>
+          <label><input type="checkbox" id="showVelocity"> Show velocity vector</label>
+          <label><input type="checkbox" id="showAcceleration"> Show acceleration vector</label>
+          <label><input type="checkbox" id="showTangent"> Show unit tangent vector</label>
+          <label><input type="checkbox" id="showNormal"> Show normal acceleration vector</label>
+        </div>
+
+        <div class="card">
+          <h3>Quick modes</h3>
+          <div class="btn-row">
+            <button onclick="setMode('position')">Position only</button>
+            <button onclick="setMode('velocity')">Velocity only</button>
+            <button onclick="setMode('acceleration')">Acceleration only</button>
+            <button onclick="setMode('tangent')">Tangent only</button>
+            <button onclick="setMode('normal')">Normal only</button>
+            <button onclick="setMode('all')">Show all</button>
+            <button class="secondary" onclick="togglePlay()" id="playBtn">Pause</button>
+          </div>
+          <p class="note">
+            You can explain the motion step by step by turning vectors on and off from one place.
+          </p>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <h2>7. Final interactive animation</h2>
+      <div class="section-grid">
+        <div>
+          <p>
+            This final animation combines everything in one place.
+            You can choose what to show using the control panel above.
+          </p>
+          <div class="legend">
+            <span><i class="dot" style="background:#ffffff"></i>Position vector</span>
+            <span><i class="dot" style="background:#34d399"></i>Velocity</span>
+            <span><i class="dot" style="background:#fbbf24"></i>Acceleration</span>
+            <span><i class="dot" style="background:#60a5fa"></i>Unit tangent</span>
+            <span><i class="dot" style="background:#f472b6"></i>Normal acceleration</span>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="name">Parameter</div>
+            <div class="val">t = <span id="tVal">0.00</span></div>
+          </div>
+          <div class="metric">
+            <div class="name">Point</div>
+            <div class="val">(x, y) = <span id="xyVal">0.00, 0.00</span></div>
+          </div>
+          <div class="metric">
+            <div class="name">Speed</div>
+            <div class="val">|v| = <span id="vVal">0.00</span></div>
+          </div>
+          <div class="metric">
+            <div class="name">Tangential acceleration</div>
+            <div class="val">a<sub>t</sub> = <span id="atVal">0.00</span></div>
+          </div>
+          <div class="metric">
+            <div class="name">Normal acceleration</div>
+            <div class="val">a<sub>n</sub> = <span id="anVal">0.00</span></div>
+          </div>
+          <div class="metric">
+            <div class="name">Radius of curvature</div>
+            <div class="val">R = <span id="rVal">0.00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="svg-wrap" style="margin-top:16px;">
+        <svg viewBox="0 0 760 500" id="mainSvg">
+          <defs>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3.5" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+
+            <marker id="arrowWhite" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#ffffff"></path>
+            </marker>
+            <marker id="arrowGreenMain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#34d399"></path>
+            </marker>
+            <marker id="arrowYellowMain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"></path>
+            </marker>
+            <marker id="arrowBlueMain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#60a5fa"></path>
+            </marker>
+            <marker id="arrowPinkMain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#f472b6"></path>
+            </marker>
+          </defs>
+
+          <rect width="760" height="500" fill="transparent"></rect>
+
+          <line x1="60" y1="250" x2="700" y2="250" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="6 7"></line>
+          <line x1="380" y1="50" x2="380" y2="450" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="6 7"></line>
+
+          <ellipse id="ellipsePath" cx="380" cy="250" rx="210" ry="140"
+                   fill="rgba(96,165,250,0.05)"
+                   stroke="rgba(96,165,250,0.8)"
+                   stroke-width="3"></ellipse>
+
+          <path id="trail" fill="none" stroke="rgba(34,211,238,0.8)" stroke-width="4" stroke-linecap="round"></path>
+
+          <line id="radiusLine" x1="380" y1="250" x2="380" y2="250"
+                stroke="#ffffff" stroke-width="3" marker-end="url(#arrowWhite)"></line>
+
+          <line id="velocityArrow" x1="0" y1="0" x2="0" y2="0"
+                stroke="#34d399" stroke-width="4" marker-end="url(#arrowGreenMain)"></line>
+
+          <line id="accelArrow" x1="0" y1="0" x2="0" y2="0"
+                stroke="#fbbf24" stroke-width="4" marker-end="url(#arrowYellowMain)"></line>
+
+          <line id="tangentArrow" x1="0" y1="0" x2="0" y2="0"
+                stroke="#60a5fa" stroke-width="4" marker-end="url(#arrowBlueMain)"></line>
+
+          <line id="normalArrow" x1="0" y1="0" x2="0" y2="0"
+                stroke="#f472b6" stroke-width="4" marker-end="url(#arrowPinkMain)"></line>
+
+          <circle cx="380" cy="250" r="4" fill="white"></circle>
+          <text x="392" y="242" fill="#cbd5e1" font-size="15">O</text>
+
+          <circle id="point" cx="590" cy="250" r="9" fill="#ffffff" filter="url(#glow)"></circle>
+
+          <text id="labelPos" x="0" y="0" fill="#ffffff" font-size="14">r(t)</text>
+          <text id="labelVel" x="0" y="0" fill="#34d399" font-size="14">v</text>
+          <text id="labelAcc" x="0" y="0" fill="#fbbf24" font-size="14">a</text>
+          <text id="labelTan" x="0" y="0" fill="#60a5fa" font-size="14">T̂</text>
+          <text id="labelNorm" x="0" y="0" fill="#f472b6" font-size="14">aₙ</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="results">
+      <h2>Final formulas</h2>
+      <div class="result-grid">
+        <div class="card">
+          <h3>Velocity</h3>
+          <div class="formula">v(t) = (-a sin t, b cos t)</div>
+        </div>
+        <div class="card">
+          <h3>Acceleration</h3>
+          <div class="formula">a(t) = (-a cos t, -b sin t)</div>
+        </div>
+        <div class="card">
+          <h3>Tangential acceleration</h3>
+          <div class="formula">a<sub>t</sub> = ((a<sup>2</sup> - b<sup>2</sup>) sin t cos t) / √(a<sup>2</sup> sin<sup>2</sup> t + b<sup>2</sup> cos<sup>2</sup> t)</div>
+        </div>
+        <div class="card">
+          <h3>Normal acceleration</h3>
+          <div class="formula">a<sub>n</sub> = ab / √(a<sup>2</sup> sin<sup>2</sup> t + b<sup>2</sup> cos<sup>2</sup> t)</div>
+        </div>
+        <div class="card">
+          <h3>Radius of curvature at t = 0</h3>
+          <div class="formula">R(0) = b<sup>2</sup> / a</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      playing: true,
+      t: 0,
+      trail: []
+    };
+
+    const aMath = 5.0;
+    const bMath = 3.2;
+
+    const cx = 380;
+    const cy = 250;
+    const aPx = 210;
+    const bPx = 140;
+
+    const point = document.getElementById("point");
+    const ellipsePath = document.getElementById("ellipsePath");
+    const trail = document.getElementById("trail");
+    const radiusLine = document.getElementById("radiusLine");
+    const velocityArrow = document.getElementById("velocityArrow");
+    const accelArrow = document.getElementById("accelArrow");
+    const tangentArrow = document.getElementById("tangentArrow");
+    const normalArrow = document.getElementById("normalArrow");
+
+    const labelPos = document.getElementById("labelPos");
+    const labelVel = document.getElementById("labelVel");
+    const labelAcc = document.getElementById("labelAcc");
+    const labelTan = document.getElementById("labelTan");
+    const labelNorm = document.getElementById("labelNorm");
+
+    const tVal = document.getElementById("tVal");
+    const xyVal = document.getElementById("xyVal");
+    const vVal = document.getElementById("vVal");
+    const atVal = document.getElementById("atVal");
+    const anVal = document.getElementById("anVal");
+    const rVal = document.getElementById("rVal");
+
+    const controls = {
+      showPath: document.getElementById("showPath"),
+      showPoint: document.getElementById("showPoint"),
+      showRadius: document.getElementById("showRadius"),
+      showVelocity: document.getElementById("showVelocity"),
+      showAcceleration: document.getElementById("showAcceleration"),
+      showTangent: document.getElementById("showTangent"),
+      showNormal: document.getElementById("showNormal")
+    };
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function setLine(el, x1, y1, x2, y2) {
+      el.setAttribute("x1", x1);
+      el.setAttribute("y1", y1);
+      el.setAttribute("x2", x2);
+      el.setAttribute("y2", y2);
+    }
+
+    function setVisible(el, visible) {
+      el.style.display = visible ? "" : "none";
+    }
+
+    function applyVisibility() {
+      setVisible(ellipsePath, controls.showPath.checked);
+      setVisible(trail, controls.showPath.checked);
+      setVisible(point, controls.showPoint.checked);
+
+      setVisible(radiusLine, controls.showRadius.checked);
+      setVisible(labelPos, controls.showRadius.checked);
+
+      setVisible(velocityArrow, controls.showVelocity.checked);
+      setVisible(labelVel, controls.showVelocity.checked);
+
+      setVisible(accelArrow, controls.showAcceleration.checked);
+      setVisible(labelAcc, controls.showAcceleration.checked);
+
+      setVisible(tangentArrow, controls.showTangent.checked);
+      setVisible(labelTan, controls.showTangent.checked);
+
+      setVisible(normalArrow, controls.showNormal.checked);
+      setVisible(labelNorm, controls.showNormal.checked);
+    }
+
+    function resetChecks() {
+      Object.values(controls).forEach(c => c.checked = false);
+    }
+
+    function setMode(mode) {
+      resetChecks();
+
+      if (mode === "position") {
+        controls.showPath.checked = true;
+        controls.showPoint.checked = true;
+        controls.showRadius.checked = true;
+      }
+
+      if (mode === "velocity") {
+        controls.showPath.checked = true;
+        controls.showPoint.checked = true;
+        controls.showVelocity.checked = true;
+      }
+
+      if (mode === "acceleration") {
+        controls.showPath.checked = true;
+        controls.showPoint.checked = true;
+        controls.showAcceleration.checked = true;
+      }
+
+      if (mode === "tangent") {
+        controls.showPath.checked = true;
+        controls.showPoint.checked = true;
+        controls.showTangent.checked = true;
+      }
+
+      if (mode === "normal") {
+        controls.showPath.checked = true;
+        controls.showPoint.checked = true;
+        controls.showNormal.checked = true;
+      }
+
+      if (mode === "all") {
+        controls.showPath.checked = true;
+        controls.showPoint.checked = true;
+        controls.showRadius.checked = true;
+        controls.showVelocity.checked = true;
+        controls.showAcceleration.checked = true;
+        controls.showTangent.checked = true;
+        controls.showNormal.checked = true;
+      }
+
+      applyVisibility();
+    }
+
+    function togglePlay() {
+      state.playing = !state.playing;
+      document.getElementById("playBtn").textContent = state.playing ? "Pause" : "Play";
+    }
+
+    Object.values(controls).forEach(c => c.addEventListener("change", applyVisibility));
+
+    function animate() {
+      if (state.playing) {
+        state.t += 0.012;
+      }
+
+      const t = state.t;
+      const x = aMath * Math.cos(t);
+      const y = bMath * Math.sin(t);
+
+      const vx = -aMath * Math.sin(t);
+      const vy =  bMath * Math.cos(t);
+
+      const ax = -aMath * Math.cos(t);
+      const ay = -bMath * Math.sin(t);
+
+      const speed = Math.sqrt(vx * vx + vy * vy);
+      const at = ((aMath * aMath - bMath * bMath) * Math.sin(t) * Math.cos(t)) / speed;
+      const an = (aMath * bMath) / speed;
+      const radius = (speed * speed) / an;
+
+      const px = cx + (x / aMath) * aPx;
+      const py = cy - (y / bMath) * bPx;
+
+      point.setAttribute("cx", px);
+      point.setAttribute("cy", py);
+
+      setLine(radiusLine, cx, cy, px, py);
+
+      const posLabelX = (cx + px) / 2 + 10;
+      const posLabelY = (cy + py) / 2 - 6;
+      labelPos.setAttribute("x", posLabelX);
+      labelPos.setAttribute("y", posLabelY);
+
+      const velocityScale = 24;
+      const accelScale = 16;
+      const tangentScale = 58;
+      const normalScale = 14;
+
+      const tx = vx / speed;
+      const ty = vy / speed;
+
+      const velX2 = px + vx * velocityScale;
+      const velY2 = py - vy * velocityScale;
+
+      const accX2 = px + ax * accelScale;
+      const accY2 = py - ay * accelScale;
+
+      const tanX2 = px + tx * tangentScale;
+      const tanY2 = py - ty * tangentScale;
+
+      const atx = at * tx;
+      const aty = at * ty;
+      const anx = ax - atx;
+      const any = ay - aty;
+      const normalMag = Math.sqrt(anx * anx + any * any) || 1;
+
+      const normX2 = px + (anx / normalMag) * an * normalScale;
+      const normY2 = py - (any / normalMag) * an * normalScale;
+
+      setLine(velocityArrow, px, py, velX2, velY2);
+      setLine(accelArrow, px, py, accX2, accY2);
+      setLine(tangentArrow, px, py, tanX2, tanY2);
+      setLine(normalArrow, px, py, normX2, normY2);
+
+      labelVel.setAttribute("x", velX2 + 8);
+      labelVel.setAttribute("y", velY2 - 8);
+
+      labelAcc.setAttribute("x", accX2 + 8);
+      labelAcc.setAttribute("y", accY2 + 16);
+
+      labelTan.setAttribute("x", tanX2 + 8);
+      labelTan.setAttribute("y", tanY2 - 8);
+
+      labelNorm.setAttribute("x", normX2 + 8);
+      labelNorm.setAttribute("y", normY2 + 16);
+
+      state.trail.push(`${px},${py}`);
+      if (state.trail.length > 280) state.trail.shift();
+      trail.setAttribute("d", `M ${state.trail.join(" L ")}`);
+
+      tVal.textContent = fmt(t % (2 * Math.PI));
+      xyVal.textContent = `${fmt(x)}, ${fmt(y)}`;
+      vVal.textContent = fmt(speed);
+      atVal.textContent = fmt(at);
+      anVal.textContent = fmt(an);
+      rVal.textContent = fmt(radius);
+
+      applyVisibility();
+      requestAnimationFrame(animate);
+    }
+
+    setMode("position");
+    animate();
+  </script>
+</body>
+</html>
