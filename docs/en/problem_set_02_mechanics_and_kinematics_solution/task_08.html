@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 8 – Relative Motion</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --grid: #d1d5db;
+      --axis: #374151;
+      --a: #2563eb;
+      --b: #dc2626;
+      --rel: #059669;
+      --border: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    .math {
+      background: #f9fafb;
+      border-left: 4px solid #9ca3af;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-family: "Courier New", monospace;
+      overflow-x: auto;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .panel h3 {
+      margin-bottom: 8px;
+    }
+
+    .panel p {
+      margin-top: 0;
+      color: var(--muted);
+      min-height: 48px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: block;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .info {
+      display: inline-block;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .blue { background: var(--a); }
+    .red { background: var(--b); }
+    .green { background: var(--rel); }
+
+    ul {
+      margin-top: 8px;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .code-note {
+      background: #ecfeff;
+      border-left: 4px solid #06b6d4;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Problem 8 – Relative Motion</h1>
+    <p class="subtitle">
+      Visualization and animation of two moving bodies in different reference frames
+    </p>
+
+    <div class="card">
+      <h2>Given velocities</h2>
+      <div class="math">
+        v<sub>A</sub> = (3, 1), &nbsp;&nbsp;&nbsp; v<sub>B</sub> = (1, -2)
+      </div>
+
+      <h2>Step 1 – Relative velocity of A with respect to B</h2>
+      <div class="math">
+        v<sub>A/B</sub> = v<sub>A</sub> - v<sub>B</sub> = (3,1) - (1,-2) = (2,3)
+      </div>
+
+      <p>
+        So the velocity of <strong>body A relative to body B</strong> is:
+      </p>
+      <div class="math">
+        v<sub>A/B</sub> = (2, 3)
+      </div>
+
+      <h2>Step 2 – Direction of the relative motion</h2>
+      <p>
+        The direction is the same as the vector <strong>(2,3)</strong>.
+        This means A moves relative to B:
+      </p>
+      <ul>
+        <li>2 units to the right,</li>
+        <li>3 units upward.</li>
+      </ul>
+
+      <p>The angle with the positive x-axis is:</p>
+      <div class="math">
+        θ = arctan(3/2) ≈ 56.3°
+      </div>
+
+      <h2>Step 3 – Meaning of the three reference frames</h2>
+      <ul>
+        <li>
+          <strong>Origin frame:</strong> both A and B move with their own velocities.
+        </li>
+        <li>
+          <strong>Frame attached to A:</strong> A is fixed, and B moves relative to A with velocity
+          <strong>v<sub>B/A</sub> = v<sub>B</sub> - v<sub>A</sub> = (-2,-3)</strong>.
+        </li>
+        <li>
+          <strong>Frame attached to B:</strong> B is fixed, and A moves relative to B with velocity
+          <strong>v<sub>A/B</sub> = (2,3)</strong>.
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Animation</h2>
+      <p>
+        The diagrams below show the same motion from three different points of view.
+      </p>
+
+      <div class="controls">
+        <button id="playPauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+        <label class="info">
+          Speed:
+          <input id="speedSlider" type="range" min="0.2" max="3" step="0.1" value="1" />
+          <span id="speedValue">1.0x</span>
+        </label>
+        <span class="info">Time: <span id="timeDisplay">0.00</span> s</span>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot blue"></span> Body A</div>
+        <div class="legend-item"><span class="dot red"></span> Body B</div>
+        <div class="legend-item"><span class="dot green"></span> Relative motion vector</div>
+      </div>
+    </div>
+
+    <div class="grid-layout">
+      <div class="card panel">
+        <h3>1. Origin frame</h3>
+        <p>
+          Both bodies move with their original velocities:
+          A = (3,1), B = (1,-2)
+        </p>
+        <canvas id="canvasOrigin" width="380" height="380"></canvas>
+      </div>
+
+      <div class="card panel">
+        <h3>2. Frame attached to body A</h3>
+        <p>
+          A is fixed at the center. B moves relative to A with velocity:
+          B/A = (-2,-3)
+        </p>
+        <canvas id="canvasA" width="380" height="380"></canvas>
+      </div>
+
+      <div class="card panel">
+        <h3>3. Frame attached to body B</h3>
+        <p>
+          B is fixed at the center. A moves relative to B with velocity:
+          A/B = (2,3)
+        </p>
+        <canvas id="canvasB" width="380" height="380"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>What the animation shows</h2>
+
+      <h3>In the origin frame</h3>
+      <ul>
+        <li>Body A moves along a straight line with velocity (3,1).</li>
+        <li>Body B moves along a straight line with velocity (1,-2).</li>
+      </ul>
+
+      <h3>In A’s frame</h3>
+      <ul>
+        <li>A stays at rest.</li>
+        <li>B moves left and downward with velocity (-2,-3).</li>
+      </ul>
+
+      <h3>In B’s frame</h3>
+      <ul>
+        <li>B stays at rest.</li>
+        <li>A moves right and upward with velocity (2,3).</li>
+      </ul>
+
+      <h3>Final answer</h3>
+      <div class="math">
+        v<sub>A/B</sub> = (2,3), &nbsp;&nbsp;&nbsp;
+        direction angle = arctan(3/2) ≈ 56.3°
+      </div>
+
+      <p class="footer-note">
+        This HTML uses only pure JavaScript and canvas, so it works directly in a browser without any external libraries.
+      </p>
+
+      <div class="code-note">
+        Tip: If you want, I can also make a second version with:
+        <strong>more beautiful design</strong>,
+        <strong>vector arrows with labels</strong>,
+        or a more <strong>university-style report layout</strong>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvasOrigin = document.getElementById("canvasOrigin");
+    const canvasA = document.getElementById("canvasA");
+    const canvasB = document.getElementById("canvasB");
+
+    const ctxOrigin = canvasOrigin.getContext("2d");
+    const ctxA = canvasA.getContext("2d");
+    const ctxB = canvasB.getContext("2d");
+
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedValue = document.getElementById("speedValue");
+    const timeDisplay = document.getElementById("timeDisplay");
+
+    const vA = { x: 3, y: 1 };
+    const vB = { x: 1, y: -2 };
+    const vRelAB = { x: 2, y: 3 };
+    const vRelBA = { x: -2, y: -3 };
+
+    let time = 0;
+    let running = true;
+    let speedMultiplier = 1.0;
+    let lastTimestamp = null;
+
+    const scale = 28;
+    const center = { x: 190, y: 190 };
+
+    function toCanvasCoords(pos) {
+      return {
+        x: center.x + pos.x * scale,
+        y: center.y - pos.y * scale
+      };
+    }
+
+    function drawGrid(ctx) {
+      ctx.clearRect(0, 0, 380, 380);
+
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x <= 380; x += 28) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 380);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= 380; y += 28) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(380, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#374151";
+      ctx.lineWidth = 2;
+
+      // x-axis
+      ctx.beginPath();
+      ctx.moveTo(0, center.y);
+      ctx.lineTo(380, center.y);
+      ctx.stroke();
+
+      // y-axis
+      ctx.beginPath();
+      ctx.moveTo(center.x, 0);
+      ctx.lineTo(center.x, 380);
+      ctx.stroke();
+
+      ctx.fillStyle = "#374151";
+      ctx.font = "12px Arial";
+      ctx.fillText("x", 364, center.y - 8);
+      ctx.fillText("y", center.x + 8, 14);
+    }
+
+    function drawPoint(ctx, pos, color, label) {
+      const p = toCanvasCoords(pos);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText(label, p.x + 10, p.y - 10);
+    }
+
+    function drawLineTrail(ctx, velocity, color, tMax) {
+      ctx.beginPath();
+      for (let t = 0; t <= tMax; t += 0.02) {
+        const pos = { x: velocity.x * t, y: velocity.y * t };
+        const p = toCanvasCoords(pos);
+        if (t === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawArrow(ctx, from, vec, color, label) {
+      const start = toCanvasCoords(from);
+      const end = toCanvasCoords({ x: from.x + vec.x, y: from.y + vec.y });
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const headLength = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(
+        end.x - headLength * Math.cos(angle - Math.PI / 6),
+        end.y - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        end.x - headLength * Math.cos(angle + Math.PI / 6),
+        end.y - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "13px Arial";
+      ctx.fillText(label, end.x + 8, end.y - 8);
+    }
+
+    function drawOriginFrame() {
+      drawGrid(ctxOrigin);
+
+      drawLineTrail(ctxOrigin, vA, "#93c5fd", 4);
+      drawLineTrail(ctxOrigin, vB, "#fca5a5", 4);
+
+      const posA = { x: vA.x * time, y: vA.y * time };
+      const posB = { x: vB.x * time, y: vB.y * time };
+
+      drawPoint(ctxOrigin, posA, "#2563eb", "A");
+      drawPoint(ctxOrigin, posB, "#dc2626", "B");
+
+      drawArrow(ctxOrigin, { x: 0, y: 0 }, vA, "#2563eb", "vA");
+      drawArrow(ctxOrigin, { x: 0, y: 0 }, vB, "#dc2626", "vB");
+    }
+
+    function drawAFrame() {
+      drawGrid(ctxA);
+
+      // A is fixed
+      const posA = { x: 0, y: 0 };
+      const posBrel = { x: vRelBA.x * time, y: vRelBA.y * time };
+
+      drawLineTrail(ctxA, vRelBA, "#fca5a5", 4);
+
+      drawPoint(ctxA, posA, "#2563eb", "A (fixed)");
+      drawPoint(ctxA, posBrel, "#dc2626", "B");
+
+      drawArrow(ctxA, { x: 0, y: 0 }, vRelBA, "#059669", "vB/A");
+    }
+
+    function drawBFrame() {
+      drawGrid(ctxB);
+
+      // B is fixed
+      const posB = { x: 0, y: 0 };
+      const posArel = { x: vRelAB.x * time, y: vRelAB.y * time };
+
+      drawLineTrail(ctxB, vRelAB, "#93c5fd", 4);
+
+      drawPoint(ctxB, posB, "#dc2626", "B (fixed)");
+      drawPoint(ctxB, posArel, "#2563eb", "A");
+
+      drawArrow(ctxB, { x: 0, y: 0 }, vRelAB, "#059669", "vA/B");
+    }
+
+    function drawAll() {
+      drawOriginFrame();
+      drawAFrame();
+      drawBFrame();
+      timeDisplay.textContent = time.toFixed(2);
+    }
+
+    function animate(timestamp) {
+      if (lastTimestamp === null) {
+        lastTimestamp = timestamp;
+      }
+
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (running) {
+        time += dt * speedMultiplier;
+
+        // loop animation
+        if (time > 4) {
+          time = 0;
+        }
+      }
+
+      drawAll();
+      requestAnimationFrame(animate);
+    }
+
+    playPauseBtn.addEventListener("click", () => {
+      running = !running;
+      playPauseBtn.textContent = running ? "Pause" : "Play";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      time = 0;
+      drawAll();
+    });
+
+    speedSlider.addEventListener("input", () => {
+      speedMultiplier = parseFloat(speedSlider.value);
+      speedValue.textContent = speedMultiplier.toFixed(1) + "x";
+    });
+
+    drawAll();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
