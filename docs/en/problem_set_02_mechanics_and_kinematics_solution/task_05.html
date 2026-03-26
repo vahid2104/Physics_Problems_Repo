@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elliptical Motion – Purely Kinematic</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card-2: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --accent-3: #f59e0b;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #020617, #0f172a);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1200px, 92%);
+      margin: 0 auto;
+      padding: 32px 0 64px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      color: white;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+    }
+
+    p {
+      color: var(--text);
+      margin: 10px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 1.05rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      backdrop-filter: blur(6px);
+    }
+
+    .card + .card {
+      margin-top: 20px;
+    }
+
+    .equation {
+      background: rgba(255,255,255,0.04);
+      border-left: 4px solid var(--accent-3);
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin: 12px 0;
+      overflow-x: auto;
+      font-family: "Courier New", monospace;
+      color: #fde68a;
+    }
+
+    .small-eq {
+      font-family: "Courier New", monospace;
+      color: #bfdbfe;
+      background: rgba(255,255,255,0.03);
+      padding: 8px 10px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    .highlight {
+      color: var(--accent-2);
+      font-weight: bold;
+    }
+
+    .warning {
+      color: #fca5a5;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .control-group {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .canvas-wrap {
+      display: grid;
+      gap: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      background: radial-gradient(circle at top, rgba(56,189,248,0.08), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: block;
+    }
+
+    .info-boxes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .info-box {
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .info-title {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      color: white;
+      font-size: 1.05rem;
+      font-weight: bold;
+      word-break: break-word;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info-boxes {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Elliptical Motion – Purely Kinematic</h1>
+    <p class="subtitle">
+      This interactive page explains the motion defined by
+      <strong>x(t) = a cos(ωt)</strong> and <strong>y(t) = b sin(ωt)</strong>.
+      You can see the trajectory, the moving particle, and the graphs of speed and acceleration magnitude.
+    </p>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>1. Given motion</h2>
+          <p>The particle moves according to the parametric equations:</p>
+
+          <div class="equation">
+            x(t) = a cos(ωt)<br>
+            y(t) = b sin(ωt)
+          </div>
+
+          <p>
+            Here:
+          </p>
+          <ul>
+            <li><strong>a</strong> is the horizontal semi-axis of the ellipse</li>
+            <li><strong>b</strong> is the vertical semi-axis of the ellipse</li>
+            <li><strong>ω</strong> controls how fast the particle moves around the ellipse</li>
+          </ul>
+
+          <p>
+            If we eliminate the parameter <strong>t</strong>, we get the trajectory:
+          </p>
+
+          <div class="equation">
+            x²/a² + y²/b² = 1
+          </div>
+
+          <p>
+            So the path is an <span class="highlight">ellipse</span>.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>2. Velocity</h2>
+          <p>
+            Velocity is the derivative of position with respect to time.
+          </p>
+
+          <div class="equation">
+            v(t) = (dx/dt, dy/dt)
+          </div>
+
+          <p>Differentiate each component:</p>
+
+          <div class="equation">
+            vₓ(t) = -aω sin(ωt)<br>
+            vᵧ(t) =  bω cos(ωt)
+          </div>
+
+          <p>So the velocity vector is:</p>
+
+          <div class="equation">
+            v(t) = (-aω sin(ωt), bω cos(ωt))
+          </div>
+
+          <p>The magnitude of velocity is:</p>
+
+          <div class="equation">
+            |v(t)| = ω √(a² sin²(ωt) + b² cos²(ωt))
+          </div>
+
+          <p>
+            This means the speed is <span class="warning">not constant in general</span>.
+            It becomes constant only when <strong>a = b</strong>, which means the ellipse becomes a circle.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>3. Acceleration</h2>
+          <p>
+            Acceleration is the derivative of velocity with respect to time.
+          </p>
+
+          <div class="equation">
+            a(t) = (dvₓ/dt, dvᵧ/dt)
+          </div>
+
+          <p>Differentiate again:</p>
+
+          <div class="equation">
+            aₓ(t) = -aω² cos(ωt)<br>
+            aᵧ(t) = -bω² sin(ωt)
+          </div>
+
+          <p>So the acceleration vector is:</p>
+
+          <div class="equation">
+            a(t) = (-aω² cos(ωt), -bω² sin(ωt))
+          </div>
+
+          <p>The magnitude of acceleration is:</p>
+
+          <div class="equation">
+            |a(t)| = ω² √(a² cos²(ωt) + b² sin²(ωt))
+          </div>
+
+          <p>
+            This value also changes with time, unless the motion is circular.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>4. Where is the velocity maximum?</h2>
+          <p>
+            We use
+          </p>
+
+          <div class="equation">
+            |v(t)| = ω √(a² sin²(ωt) + b² cos²(ωt))
+          </div>
+
+          <p>
+            The largest speed appears where the larger coefficient contributes most.
+          </p>
+
+          <ul>
+            <li>
+              If <strong>a &gt; b</strong>, then the maximum speed occurs when
+              <span class="small-eq">sin²(ωt) = 1</span>,
+              so the particle is at
+              <span class="small-eq">(0, ±b)</span>.
+            </li>
+            <li>
+              If <strong>b &gt; a</strong>, then the maximum speed occurs when
+              <span class="small-eq">cos²(ωt) = 1</span>,
+              so the particle is at
+              <span class="small-eq">(±a, 0)</span>.
+            </li>
+          </ul>
+
+          <p>
+            Therefore, in general:
+          </p>
+
+          <div class="equation">
+            |v|max = ω max(a, b)
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>5. What the graphs show</h2>
+          <p>
+            The page contains three animated views:
+          </p>
+          <ul>
+            <li><strong>Ellipse canvas:</strong> shows the trajectory and the moving particle</li>
+            <li><strong>Speed graph:</strong> shows how <strong>|v(t)|</strong> changes with time</li>
+            <li><strong>Acceleration graph:</strong> shows how <strong>|a(t)|</strong> changes with time</li>
+          </ul>
+
+          <p>
+            You can change <strong>a</strong>, <strong>b</strong>, and <strong>ω</strong> with the sliders and immediately see how the motion changes.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Interactive animation</h2>
+
+          <div class="controls">
+            <div class="control-group">
+              <label for="aRange">
+                <span>Semi-axis \(a\)</span>
+                <span class="value" id="aValue">180</span>
+              </label>
+              <input id="aRange" type="range" min="60" max="220" value="180" />
+            </div>
+
+            <div class="control-group">
+              <label for="bRange">
+                <span>Semi-axis \(b\)</span>
+                <span class="value" id="bValue">110</span>
+              </label>
+              <input id="bRange" type="range" min="40" max="180" value="110" />
+            </div>
+
+            <div class="control-group">
+              <label for="wRange">
+                <span>Angular frequency \(ω\)</span>
+                <span class="value" id="wValue">1.20</span>
+              </label>
+              <input id="wRange" type="range" min="20" max="250" value="120" />
+            </div>
+          </div>
+
+          <div class="canvas-wrap" style="margin-top: 18px;">
+            <canvas id="orbitCanvas" width="520" height="360"></canvas>
+            <canvas id="speedCanvas" width="520" height="220"></canvas>
+            <canvas id="accCanvas" width="520" height="220"></canvas>
+          </div>
+
+          <div class="info-boxes">
+            <div class="info-box">
+              <div class="info-title">Current position</div>
+              <div class="info-value" id="positionText">(0, 0)</div>
+            </div>
+            <div class="info-box">
+              <div class="info-title">Current speed</div>
+              <div class="info-value" id="speedText">0</div>
+            </div>
+            <div class="info-box">
+              <div class="info-title">Current acceleration magnitude</div>
+              <div class="info-value" id="accText">0</div>
+            </div>
+            <div class="info-box">
+              <div class="info-title">Maximum speed</div>
+              <div class="info-value" id="maxSpeedText">0</div>
+            </div>
+          </div>
+
+          <p class="footer-note">
+            Tip: set <strong>a = b</strong> to see circular motion. Then the speed graph becomes flat because the speed is constant.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const orbitCanvas = document.getElementById("orbitCanvas");
+    const speedCanvas = document.getElementById("speedCanvas");
+    const accCanvas = document.getElementById("accCanvas");
+
+    const octx = orbitCanvas.getContext("2d");
+    const sctx = speedCanvas.getContext("2d");
+    const actx = accCanvas.getContext("2d");
+
+    const aRange = document.getElementById("aRange");
+    const bRange = document.getElementById("bRange");
+    const wRange = document.getElementById("wRange");
+
+    const aValue = document.getElementById("aValue");
+    const bValue = document.getElementById("bValue");
+    const wValue = document.getElementById("wValue");
+
+    const positionText = document.getElementById("positionText");
+    const speedText = document.getElementById("speedText");
+    const accText = document.getElementById("accText");
+    const maxSpeedText = document.getElementById("maxSpeedText");
+
+    function getParams() {
+      const a = Number(aRange.value);
+      const b = Number(bRange.value);
+      const w = Number(wRange.value) / 100;
+      return { a, b, w };
+    }
+
+    function updateLabels() {
+      const { a, b, w } = getParams();
+      aValue.textContent = a;
+      bValue.textContent = b;
+      wValue.textContent = w.toFixed(2);
+    }
+
+    [aRange, bRange, wRange].forEach(input => {
+      input.addEventListener("input", updateLabels);
+    });
+
+    updateLabels();
+
+    function drawAxes(ctx, width, height, color = "rgba(255,255,255,0.18)") {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(width / 2, 16);
+      ctx.lineTo(width / 2, height - 16);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(16, height / 2);
+      ctx.lineTo(width - 16, height / 2);
+      ctx.stroke();
+    }
+
+    function drawOrbit(t) {
+      const { a, b, w } = getParams();
+      const width = orbitCanvas.width;
+      const height = orbitCanvas.height;
+      const cx = width / 2;
+      const cy = height / 2;
+
+      octx.clearRect(0, 0, width, height);
+      drawAxes(octx, width, height);
+
+      octx.save();
+
+      // ellipse
+      octx.beginPath();
+      octx.strokeStyle = "#38bdf8";
+      octx.lineWidth = 2.5;
+      octx.ellipse(cx, cy, a, b, 0, 0, Math.PI * 2);
+      octx.stroke();
+
+      // point
+      const x = a * Math.cos(w * t);
+      const y = b * Math.sin(w * t);
+
+      const px = cx + x;
+      const py = cy - y;
+
+      // trail
+      octx.beginPath();
+      octx.strokeStyle = "rgba(34,197,94,0.35)";
+      octx.lineWidth = 2;
+      for (let i = 0; i <= 200; i++) {
+        const tt = t - (200 - i) * 0.015;
+        const tx = cx + a * Math.cos(w * tt);
+        const ty = cy - b * Math.sin(w * tt);
+        if (i === 0) octx.moveTo(tx, ty);
+        else octx.lineTo(tx, ty);
+      }
+      octx.stroke();
+
+      // radius line
+      octx.beginPath();
+      octx.strokeStyle = "rgba(245,158,11,0.7)";
+      octx.lineWidth = 1.5;
+      octx.moveTo(cx, cy);
+      octx.lineTo(px, py);
+      octx.stroke();
+
+      // particle
+      octx.beginPath();
+      octx.fillStyle = "#22c55e";
+      octx.arc(px, py, 8, 0, Math.PI * 2);
+      octx.fill();
+
+      // velocity vector
+      const vx = -a * w * Math.sin(w * t);
+      const vy =  b * w * Math.cos(w * t);
+
+      const scale = 0.35;
+      octx.beginPath();
+      octx.strokeStyle = "#f59e0b";
+      octx.lineWidth = 2;
+      octx.moveTo(px, py);
+      octx.lineTo(px + vx * scale, py - vy * scale);
+      octx.stroke();
+
+      // labels
+      octx.fillStyle = "rgba(255,255,255,0.85)";
+      octx.font = "14px Arial";
+      octx.fillText("Ellipse trajectory", 20, 24);
+      octx.fillStyle = "#22c55e";
+      octx.fillText("Particle", 20, 44);
+      octx.fillStyle = "#f59e0b";
+      octx.fillText("Velocity direction", 20, 64);
+
+      octx.restore();
+
+      const speed = Math.sqrt(vx * vx + vy * vy);
+      const ax = -a * w * w * Math.cos(w * t);
+      const ay = -b * w * w * Math.sin(w * t);
+      const acc = Math.sqrt(ax * ax + ay * ay);
+
+      positionText.textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
+      speedText.textContent = speed.toFixed(3);
+      accText.textContent = acc.toFixed(3);
+      maxSpeedText.textContent = (w * Math.max(a, b)).toFixed(3);
+    }
+
+    function drawGraph(ctx, canvas, t, type) {
+      const { a, b, w } = getParams();
+      const width = canvas.width;
+      const height = canvas.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // background frame
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(40, 20, width - 60, height - 50);
+
+      // title
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.font = "15px Arial";
+      ctx.fillText(type === "speed" ? "|v(t)| graph" : "|a(t)| graph", 20, 16);
+
+      const plotX = 40;
+      const plotY = 20;
+      const plotW = width - 60;
+      const plotH = height - 50;
+
+      const T = (2 * Math.PI) / w;
+
+      let maxY;
+      if (type === "speed") {
+        maxY = w * Math.max(a, b) * 1.1;
+      } else {
+        maxY = w * w * Math.max(a, b) * 1.1;
+      }
+
+      // axis labels
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.font = "12px Arial";
+      ctx.fillText("0", plotX - 14, plotY + plotH + 4);
+      ctx.fillText("t", plotX + plotW + 8, plotY + plotH + 4);
+
+      // graph
+      ctx.beginPath();
+      for (let i = 0; i <= plotW; i++) {
+        const time = (i / plotW) * T;
+        let value;
+        if (type === "speed") {
+          value = w * Math.sqrt(a * a * Math.sin(w * time) ** 2 + b * b * Math.cos(w * time) ** 2);
+        } else {
+          value = w * w * Math.sqrt(a * a * Math.cos(w * time) ** 2 + b * b * Math.sin(w * time) ** 2);
+        }
+
+        const x = plotX + i;
+        const y = plotY + plotH - (value / maxY) * plotH;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.strokeStyle = type === "speed" ? "#38bdf8" : "#22c55e";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // moving marker
+      const currentTime = ((t % T) + T) % T;
+      let currentValue;
+      if (type === "speed") {
+        currentValue = w * Math.sqrt(a * a * Math.sin(w * currentTime) ** 2 + b * b * Math.cos(w * currentTime) ** 2);
+      } else {
+        currentValue = w * w * Math.sqrt(a * a * Math.cos(w * currentTime) ** 2 + b * b * Math.sin(w * currentTime) ** 2);
+      }
+
+      const mx = plotX + (currentTime / T) * plotW;
+      const my = plotY + plotH - (currentValue / maxY) * plotH;
+
+      ctx.beginPath();
+      ctx.fillStyle = "#f59e0b";
+      ctx.arc(mx, my, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // current guide line
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(245,158,11,0.45)";
+      ctx.setLineDash([5, 4]);
+      ctx.moveTo(mx, plotY);
+      ctx.lineTo(mx, plotY + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    let start = null;
+
+    function animate(timestamp) {
+      if (!start) start = timestamp;
+      const t = (timestamp - start) / 1000;
+
+      drawOrbit(t);
+      drawGraph(sctx, speedCanvas, t, "speed");
+      drawGraph(actx, accCanvas, t, "acc");
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

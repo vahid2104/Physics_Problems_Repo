@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projectile Motion Explanation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f7fb;
+      color: #222;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    h1, h2, h3 {
+      color: #1e3a5f;
+    }
+
+    .formula {
+      background: #f1f5f9;
+      padding: 12px 16px;
+      border-left: 5px solid #3b82f6;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-family: "Courier New", monospace;
+      white-space: pre-wrap;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+      padding: 18px;
+      background: #eef4ff;
+      border-radius: 12px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #b8c7db;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .results {
+      background: #f8fafc;
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 1px solid #dbe4f0;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      background: linear-gradient(to top, #dbeafe 0%, #eff6ff 100%);
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: block;
+    }
+
+    .note {
+      background: #fff7ed;
+      border-left: 5px solid #f59e0b;
+      padding: 14px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+
+    .small {
+      font-size: 14px;
+      color: #475569;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .grid-two {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .angles-list {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px dashed #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Problem 2 – Projectile Motion</h1>
+    <p>
+      A body moves in the Earth's gravitational field without air resistance.
+      It is launched with initial velocity <strong>v₀</strong> at an angle
+      <strong>α</strong> relative to the horizontal.
+    </p>
+
+    <div class="grid-two">
+      <div>
+        <h2>1. Theory</h2>
+        <p>First, we split the initial velocity into horizontal and vertical components:</p>
+        <div class="formula">
+v₀x = v₀ cos(α)
+v₀y = v₀ sin(α)
+        </div>
+
+        <h3>Horizontal motion</h3>
+        <p>There is no horizontal acceleration:</p>
+        <div class="formula">
+aₓ = 0
+x(t) = v₀ cos(α) · t
+        </div>
+
+        <h3>Vertical motion</h3>
+        <p>The vertical acceleration is caused by gravity:</p>
+        <div class="formula">
+aᵧ = -g
+y(t) = v₀ sin(α) · t - ½gt²
+        </div>
+
+        <h3>Time of flight</h3>
+        <div class="formula">
+T = (2v₀ sin(α)) / g
+        </div>
+
+        <h3>Maximum height</h3>
+        <div class="formula">
+Hmax = (v₀² sin²(α)) / (2g)
+        </div>
+
+        <h3>Range</h3>
+        <div class="formula">
+R = (v₀² sin(2α)) / g
+        </div>
+
+        <h3>Maximum range</h3>
+        <p>The range is maximum when:</p>
+        <div class="formula">
+α = 45°
+        </div>
+      </div>
+
+      <div>
+        <h2>2. Interactive Simulation</h2>
+        <div class="controls">
+          <div>
+            <label for="speed">Initial velocity v₀ (m/s)</label>
+            <input type="number" id="speed" value="20" min="1" step="0.1" />
+          </div>
+
+          <div>
+            <label for="angle">Launch angle α (degrees)</label>
+            <input type="number" id="angle" value="45" min="1" max="89" step="1" />
+          </div>
+
+          <div>
+            <label for="gravity">Gravity g (m/s²)</label>
+            <input type="number" id="gravity" value="9.81" min="0.1" step="0.01" />
+          </div>
+        </div>
+
+        <button onclick="startAnimation()">Start animation</button>
+        <button onclick="drawStatic()">Draw trajectory</button>
+        <button onclick="drawMultipleAngles()">Show different angles</button>
+
+        <div class="results" id="results">
+          <div class="badge">Calculated values</div>
+          <p><strong>Time of flight:</strong> <span id="timeFlight">-</span></p>
+          <p><strong>Maximum height:</strong> <span id="maxHeight">-</span></p>
+          <p><strong>Range:</strong> <span id="range">-</span></p>
+        </div>
+
+        <div class="angles-list">
+          <strong>Different-angle view:</strong>
+          <span class="small">15°, 30°, 45°, 60°, 75°</span>
+        </div>
+
+        <div class="note">
+          <strong>Explanation:</strong>
+          The trajectory is a parabola. When the launch angle increases, the projectile rises higher,
+          but after 45° the horizontal distance begins to decrease.
+        </div>
+      </div>
+    </div>
+
+    <canvas id="canvas" width="1000" height="500"></canvas>
+
+    <h2>3. Step-by-step explanation</h2>
+    <ul>
+      <li>The projectile starts with speed <strong>v₀</strong> at angle <strong>α</strong>.</li>
+      <li>The horizontal velocity stays constant because there is no air resistance.</li>
+      <li>The vertical velocity changes because gravity pulls the body downward.</li>
+      <li>The body reaches its maximum height when the vertical velocity becomes zero.</li>
+      <li>The projectile lands when the vertical position returns to zero.</li>
+      <li>The angle for maximum range is <strong>45°</strong>.</li>
+    </ul>
+
+    <div class="footer">
+      Projectile Motion Demo – HTML, CSS, and JavaScript
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function getInputs() {
+      const v0 = parseFloat(document.getElementById("speed").value);
+      const angle = parseFloat(document.getElementById("angle").value);
+      const g = parseFloat(document.getElementById("gravity").value);
+      return { v0, angle, g };
+    }
+
+    function calculateValues(v0, angleDeg, g) {
+      const angle = degToRad(angleDeg);
+      const T = (2 * v0 * Math.sin(angle)) / g;
+      const H = (v0 * v0 * Math.sin(angle) * Math.sin(angle)) / (2 * g);
+      const R = (v0 * v0 * Math.sin(2 * angle)) / g;
+      return { T, H, R };
+    }
+
+    function updateResults(v0, angle, g) {
+      const { T, H, R } = calculateValues(v0, angle, g);
+      document.getElementById("timeFlight").textContent = T.toFixed(2) + " s";
+      document.getElementById("maxHeight").textContent = H.toFixed(2) + " m";
+      document.getElementById("range").textContent = R.toFixed(2) + " m";
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawAxes(scaleX, scaleY, margin, groundY) {
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 2;
+
+      // x-axis
+      ctx.beginPath();
+      ctx.moveTo(margin, groundY);
+      ctx.lineTo(canvas.width - margin, groundY);
+      ctx.stroke();
+
+      // y-axis
+      ctx.beginPath();
+      ctx.moveTo(margin, groundY);
+      ctx.lineTo(margin, margin);
+      ctx.stroke();
+
+      // labels
+      ctx.fillStyle = "#1e293b";
+      ctx.font = "16px Arial";
+      ctx.fillText("x", canvas.width - margin + 10, groundY + 5);
+      ctx.fillText("y", margin - 15, margin - 10);
+
+      // ground line effect
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1;
+      for (let i = margin; i < canvas.width - margin; i += 25) {
+        ctx.beginPath();
+        ctx.moveTo(i, groundY + 4);
+        ctx.lineTo(i + 12, groundY + 4);
+        ctx.stroke();
+      }
+    }
+
+    function drawSingleTrajectory(v0, angleDeg, g, animated = false) {
+      clearCanvas();
+
+      const { T, H, R } = calculateValues(v0, angleDeg, g);
+      updateResults(v0, angleDeg, g);
+
+      const margin = 60;
+      const groundY = canvas.height - 60;
+      const usableWidth = canvas.width - 2 * margin;
+      const usableHeight = canvas.height - 2 * margin;
+
+      const scaleX = usableWidth / Math.max(R, 1);
+      const scaleY = usableHeight / Math.max(H * 1.2, 1);
+
+      drawAxes(scaleX, scaleY, margin, groundY);
+
+      const angle = degToRad(angleDeg);
+      const points = [];
+      const steps = 200;
+
+      for (let i = 0; i <= steps; i++) {
+        const t = (T * i) / steps;
+        const x = v0 * Math.cos(angle) * t;
+        const y = v0 * Math.sin(angle) * t - 0.5 * g * t * t;
+        points.push({ x, y });
+      }
+
+      if (!animated) {
+        ctx.strokeStyle = "#2563eb";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        points.forEach((p, index) => {
+          const px = margin + p.x * scaleX;
+          const py = groundY - p.y * scaleY;
+          if (index === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+
+        ctx.stroke();
+
+        // projectile at end
+        const last = points[points.length - 1];
+        ctx.fillStyle = "#dc2626";
+        ctx.beginPath();
+        ctx.arc(margin + last.x * scaleX, groundY - last.y * scaleY, 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        let frame = 0;
+
+        function animate() {
+          clearCanvas();
+          drawAxes(scaleX, scaleY, margin, groundY);
+
+          ctx.strokeStyle = "#2563eb";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+
+          for (let i = 0; i <= frame; i++) {
+            const p = points[i];
+            const px = margin + p.x * scaleX;
+            const py = groundY - p.y * scaleY;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+
+          ctx.stroke();
+
+          if (frame < points.length) {
+            const p = points[frame];
+            ctx.fillStyle = "#dc2626";
+            ctx.beginPath();
+            ctx.arc(margin + p.x * scaleX, groundY - p.y * scaleY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            frame++;
+            requestAnimationFrame(animate);
+          }
+        }
+
+        animate();
+      }
+    }
+
+    function drawMultipleAngles() {
+      clearCanvas();
+
+      const { v0, g } = getInputs();
+      updateResults(v0, 45, g);
+
+      const angles = [15, 30, 45, 60, 75];
+      const margin = 60;
+      const groundY = canvas.height - 60;
+
+      let maxR = 0;
+      let maxH = 0;
+
+      for (const a of angles) {
+        const vals = calculateValues(v0, a, g);
+        if (vals.R > maxR) maxR = vals.R;
+        if (vals.H > maxH) maxH = vals.H;
+      }
+
+      const usableWidth = canvas.width - 2 * margin;
+      const usableHeight = canvas.height - 2 * margin;
+      const scaleX = usableWidth / Math.max(maxR, 1);
+      const scaleY = usableHeight / Math.max(maxH * 1.2, 1);
+
+      drawAxes(scaleX, scaleY, margin, groundY);
+
+      const colors = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
+
+      angles.forEach((angleDeg, index) => {
+        const angle = degToRad(angleDeg);
+        const { T } = calculateValues(v0, angleDeg, g);
+
+        ctx.strokeStyle = colors[index];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        const steps = 200;
+        for (let i = 0; i <= steps; i++) {
+          const t = (T * i) / steps;
+          const x = v0 * Math.cos(angle) * t;
+          const y = v0 * Math.sin(angle) * t - 0.5 * g * t * t;
+
+          const px = margin + x * scaleX;
+          const py = groundY - y * scaleY;
+
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+
+        ctx.stroke();
+
+        // label
+        const vals = calculateValues(v0, angleDeg, g);
+        const labelX = margin + vals.R * scaleX - 30;
+        const labelY = groundY - 15 - index * 18;
+
+        ctx.fillStyle = colors[index];
+        ctx.font = "14px Arial";
+        ctx.fillText(angleDeg + "°", labelX, labelY);
+      });
+    }
+
+    function startAnimation() {
+      const { v0, angle, g } = getInputs();
+      drawSingleTrajectory(v0, angle, g, true);
+    }
+
+    function drawStatic() {
+      const { v0, angle, g } = getInputs();
+      drawSingleTrajectory(v0, angle, g, false);
+    }
+
+    // initial display
+    window.onload = function() {
+      const { v0, angle, g } = getInputs();
+      drawSingleTrajectory(v0, angle, g, false);
+    };
+  </script>
+</body>
+</html>

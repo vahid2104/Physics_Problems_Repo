@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uniform and Uniformly Accelerated Motion</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.78);
+      --panel-2: rgba(30, 41, 59, 0.85);
+      --text: #e5eefc;
+      --muted: #bfd0ee;
+      --accent: #60a5fa;
+      --accent-2: #22d3ee;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --danger: #fb7185;
+      --border: rgba(148, 163, 184, 0.18);
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(34,211,238,0.12), transparent 28%),
+        linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 60px;
+    }
+
+    .hero {
+      position: relative;
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(15,23,42,0.82), rgba(15,23,42,0.62));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -10%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(96,165,250,0.18), transparent 60%);
+      animation: floatBlob 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -120px;
+      top: -120px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(34,211,238,0.14), transparent 62%);
+      animation: floatBlob 10s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+
+    @keyframes floatBlob {
+      0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+      50% { transform: translateY(18px) translateX(10px) scale(1.04); }
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(96,165,250,0.12);
+      border: 1px solid rgba(96,165,250,0.24);
+      color: #cfe3ff;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3 { margin: 0 0 12px; }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.08;
+      max-width: 900px;
+    }
+
+    .lead {
+      max-width: 840px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+
+    .equation-box {
+      margin-top: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 16px 20px;
+      border-radius: 20px;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid var(--border);
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      backdrop-filter: blur(10px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .card h2 {
+      font-size: 1.45rem;
+      margin-bottom: 10px;
+    }
+
+    .card p, .card li {
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .step {
+      padding: 20px;
+      border-radius: 22px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      transform: translateY(20px);
+      opacity: 0;
+      animation: riseIn 0.7s ease forwards;
+    }
+
+    .step:nth-child(2) { animation-delay: 0.12s; }
+    .step:nth-child(3) { animation-delay: 0.24s; }
+
+    @keyframes riseIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #08111f;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .formula {
+      margin: 14px 0;
+      padding: 14px 16px;
+      background: rgba(2, 6, 23, 0.38);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 18px;
+      overflow-x: auto;
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 1.08rem;
+      color: #eef5ff;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: #dbeafe;
+      font-size: 0.96rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #dbeafe;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .value {
+      margin-top: 6px;
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .summary-box {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+    }
+
+    .summary-box .label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .summary-box .big {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #f8fbff;
+    }
+
+    .canvas-wrap {
+      margin-top: 20px;
+      background: linear-gradient(180deg, rgba(2,6,23,0.35), rgba(15,23,42,0.28));
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      padding: 12px;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(15,23,42,0.82), rgba(2,6,23,0.94));
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    .explain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .highlight {
+      color: white;
+      font-weight: 800;
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      color: var(--muted);
+      line-height: 1.7;
+      text-align: center;
+      opacity: 0.95;
+    }
+
+    @media (max-width: 980px) {
+      .grid, .steps, .controls, .summary, .explain-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="eyebrow">Interactive physics explanation</div>
+      <h1>Uniform and Uniformly Accelerated Motion</h1>
+      <p class="lead">
+        This page explains the motion equation step by step, shows how to find velocity and acceleration,
+        and visualizes the motion for the values <span class="highlight">x₀ = 0</span>,
+        <span class="highlight">v₀ = 5 m/s</span>, and <span class="highlight">a = -2 m/s²</span>.
+        It is designed to be simple, visual, and easy to present.
+      </p>
+      <div class="equation-box">
+        <strong>Main equation:</strong>
+        <span>x(t) = x₀ + v₀t + 1/2 at²</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>What we need to determine</h2>
+        <ul>
+          <li>The velocity function <strong>v(t)</strong></li>
+          <li>The acceleration function <strong>a(t)</strong></li>
+          <li>The stopping time</li>
+          <li>The maximum velocity</li>
+          <li>The maximum displacement</li>
+          <li>The graphs of <strong>x(t)</strong>, <strong>v(t)</strong>, and <strong>a(t)</strong></li>
+        </ul>
+        <div class="pill-row">
+          <div class="pill">Position → derivative → Velocity</div>
+          <div class="pill">Velocity → derivative → Acceleration</div>
+          <div class="pill">Stopping time when v(t)=0</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Given values</h2>
+        <div class="formula">x₀ = 0</div>
+        <div class="formula">v₀ = 5 m/s</div>
+        <div class="formula">a = -2 m/s²</div>
+        <p>
+          Because the acceleration is negative, the object slows down over time.
+          It will stop for a moment, then if we continue mathematically, it starts moving back.
+        </p>
+      </div>
+    </section>
+
+    <section class="steps">
+      <div class="step">
+        <div class="tag">1</div>
+        <h3>Find the velocity</h3>
+        <p>Velocity is the derivative of position with respect to time.</p>
+        <div class="formula">v(t) = dx/dt = v₀ + at</div>
+        <p>For the given values:</p>
+        <div class="formula">v(t) = 5 - 2t</div>
+      </div>
+      <div class="step">
+        <div class="tag">2</div>
+        <h3>Find the acceleration</h3>
+        <p>Acceleration is the derivative of velocity with respect to time.</p>
+        <div class="formula">a(t) = dv/dt = a</div>
+        <p>For this problem, acceleration is constant:</p>
+        <div class="formula">a(t) = -2 m/s²</div>
+      </div>
+      <div class="step">
+        <div class="tag">3</div>
+        <h3>Find the stopping time</h3>
+        <p>The object stops when the velocity becomes zero.</p>
+        <div class="formula">5 - 2t = 0</div>
+        <div class="formula">t = 2.5 s</div>
+        <p>So the object stops after <strong>2.5 seconds</strong>.</p>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:24px;">
+      <h2>Interactive motion demo</h2>
+      <p>
+        Use the sliders to change the initial conditions. The graph and the animated particle update automatically.
+        The moving dot follows the position function, while the information boxes show the most important results.
+      </p>
+
+      <div class="controls">
+        <div>
+          <label for="x0">Initial position x₀</label>
+          <input id="x0" type="range" min="-5" max="10" step="0.5" value="0" />
+          <div class="value" id="x0Val">0.0 m</div>
+        </div>
+        <div>
+          <label for="v0">Initial velocity v₀</label>
+          <input id="v0" type="range" min="-2" max="10" step="0.5" value="5" />
+          <div class="value" id="v0Val">5.0 m/s</div>
+        </div>
+        <div>
+          <label for="a">Acceleration a</label>
+          <input id="a" type="range" min="-5" max="5" step="0.5" value="-2" />
+          <div class="value" id="aVal">-2.0 m/s²</div>
+        </div>
+        <div>
+          <label for="time">Current time t</label>
+          <input id="time" type="range" min="0" max="6" step="0.02" value="0" />
+          <div class="value" id="timeVal">0.00 s</div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-box">
+          <div class="label">Position</div>
+          <div class="big" id="xNow">0.00 m</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">Velocity</div>
+          <div class="big" id="vNow">5.00 m/s</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">Acceleration</div>
+          <div class="big" id="aNow">-2.00 m/s²</div>
+        </div>
+      </div>
+
+      <div class="summary" style="margin-top:14px;">
+        <div class="summary-box">
+          <div class="label">Stopping time</div>
+          <div class="big" id="tStop">2.50 s</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">Maximum velocity</div>
+          <div class="big" id="vMax">5.00 m/s</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">Maximum displacement</div>
+          <div class="big" id="xMax">6.25 m</div>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="motionCanvas" width="1100" height="520"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:#60a5fa"></span> Position x(t)</div>
+        <div class="legend-item"><span class="swatch" style="background:#34d399"></span> Velocity v(t)</div>
+        <div class="legend-item"><span class="swatch" style="background:#fbbf24"></span> Acceleration a(t)</div>
+        <div class="legend-item"><span class="swatch" style="background:#fb7185"></span> Moving object</div>
+      </div>
+    </section>
+
+    <section class="explain-grid">
+      <div class="card">
+        <h2>Position function</h2>
+        <div class="formula">x(t) = x₀ + v₀t + 1/2 at²</div>
+        <p>
+          This tells us where the object is at time <strong>t</strong>.
+          The <strong>x₀</strong> part is the starting position, the <strong>v₀t</strong> part shows motion due to initial velocity,
+          and the <strong>1/2 at²</strong> part shows the effect of acceleration.
+        </p>
+      </div>
+      <div class="card">
+        <h2>Velocity function</h2>
+        <div class="formula">v(t) = v₀ + at</div>
+        <p>
+          Velocity changes linearly with time. If <strong>a &gt; 0</strong>, the object speeds up.
+          If <strong>a &lt; 0</strong>, the object slows down. In our main example, acceleration is negative, so velocity decreases.
+        </p>
+      </div>
+      <div class="card">
+        <h2>Acceleration function</h2>
+        <div class="formula">a(t) = a</div>
+        <p>
+          Acceleration is constant in uniformly accelerated motion. That is why the acceleration graph is a horizontal line.
+          A constant negative value means the object is continuously losing speed.
+        </p>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:24px;">
+      <h2>Main example explained clearly</h2>
+      <div class="formula">x(t) = 5t - t²</div>
+      <div class="formula">v(t) = 5 - 2t</div>
+      <div class="formula">a(t) = -2</div>
+      <p>
+        At the beginning, the object moves forward because the initial velocity is positive.
+        But the constant negative acceleration reduces the velocity every second.
+        After <strong>2.5 s</strong>, the velocity becomes zero, so the object stops for a moment.
+        At that same moment, the position reaches its highest value, which is <strong>6.25 m</strong>.
+      </p>
+      <p>
+        This is why the position graph is a parabola with a highest point, the velocity graph is a decreasing straight line,
+        and the acceleration graph is a constant horizontal line.
+      </p>
+    </section>
+
+    <p class="footer-note">
+      Tip for presentation: move the time slider slowly and explain how position, velocity, and acceleration are connected through derivatives.
+    </p>
+  </div>
+
+  <script>
+    const x0Input = document.getElementById('x0');
+    const v0Input = document.getElementById('v0');
+    const aInput = document.getElementById('a');
+    const timeInput = document.getElementById('time');
+
+    const x0Val = document.getElementById('x0Val');
+    const v0Val = document.getElementById('v0Val');
+    const aVal = document.getElementById('aVal');
+    const timeVal = document.getElementById('timeVal');
+
+    const xNow = document.getElementById('xNow');
+    const vNow = document.getElementById('vNow');
+    const aNow = document.getElementById('aNow');
+    const tStop = document.getElementById('tStop');
+    const vMax = document.getElementById('vMax');
+    const xMax = document.getElementById('xMax');
+
+    const canvas = document.getElementById('motionCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function positionAt(t, x0, v0, a) {
+      return x0 + v0 * t + 0.5 * a * t * t;
+    }
+
+    function velocityAt(t, v0, a) {
+      return v0 + a * t;
+    }
+
+    function formatNum(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function updateText() {
+      const x0 = parseFloat(x0Input.value);
+      const v0 = parseFloat(v0Input.value);
+      const a = parseFloat(aInput.value);
+      const t = parseFloat(timeInput.value);
+
+      x0Val.textContent = `${x0.toFixed(1)} m`;
+      v0Val.textContent = `${v0.toFixed(1)} m/s`;
+      aVal.textContent = `${a.toFixed(1)} m/s²`;
+      timeVal.textContent = `${t.toFixed(2)} s`;
+
+      const x = positionAt(t, x0, v0, a);
+      const v = velocityAt(t, v0, a);
+
+      xNow.textContent = `${formatNum(x)} m`;
+      vNow.textContent = `${formatNum(v)} m/s`;
+      aNow.textContent = `${formatNum(a)} m/s²`;
+
+      let stopText = 'No stop';
+      let vmaxText = 'Depends';
+      let xmaxText = 'Depends';
+
+      if (a !== 0) {
+        const ts = -v0 / a;
+        if (ts >= 0) {
+          stopText = `${formatNum(ts)} s`;
+          xmaxText = `${formatNum(positionAt(ts, x0, v0, a))} m`;
+        } else {
+          xmaxText = 'No turning point';
+        }
+      } else {
+        stopText = v0 === 0 ? 'Always at rest' : 'Never stops';
+        xmaxText = v0 > 0 ? 'No maximum' : `${formatNum(x0)} m`;
+      }
+
+      if (a < 0) {
+        vmaxText = `${formatNum(v0)} m/s at t = 0 s`;
+      } else if (a === 0) {
+        vmaxText = `${formatNum(v0)} m/s (constant)`;
+      } else {
+        vmaxText = 'Increases with time';
+      }
+
+      tStop.textContent = stopText;
+      vMax.textContent = vmaxText;
+      xMax.textContent = xmaxText;
+    }
+
+    function drawAxes(x, y, w, h, yMin, yMax, title) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.fillStyle = 'rgba(191,208,238,0.9)';
+      ctx.font = '600 15px Inter, Arial';
+      ctx.fillText(title, 0, -12);
+
+      ctx.strokeStyle = 'rgba(148,163,184,0.25)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const gy = (h / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, gy);
+        ctx.lineTo(w, gy);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 6; i++) {
+        const gx = (w / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(gx, 0);
+        ctx.lineTo(gx, h);
+        ctx.stroke();
+      }
+
+      const zeroY = yMax === yMin ? h / 2 : h - ((0 - yMin) / (yMax - yMin)) * h;
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(0, zeroY);
+      ctx.lineTo(w, zeroY);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(191,208,238,0.75)';
+      ctx.font = '12px Inter, Arial';
+      ctx.fillText(`t`, w - 10, zeroY - 8);
+      ctx.fillText(`${yMax.toFixed(1)}`, 6, 14);
+      ctx.fillText(`${yMin.toFixed(1)}`, 6, h - 6);
+      ctx.restore();
+    }
+
+    function drawCurve(x, y, w, h, values, yMin, yMax, color, currentIndex) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      values.forEach((val, i) => {
+        const px = (i / (values.length - 1)) * w;
+        const py = h - ((val - yMin) / (yMax - yMin || 1)) * h;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+      if (currentIndex != null) {
+        const val = values[currentIndex];
+        const px = (currentIndex / (values.length - 1)) * w;
+        const py = h - ((val - yMin) / (yMax - yMin || 1)) * h;
+        ctx.fillStyle = '#fb7185';
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawMotionLine(x, y, w, currentX, minX, maxX) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = 'rgba(191,208,238,0.9)';
+      ctx.font = '600 15px Inter, Arial';
+      ctx.fillText('Animated motion along the x-axis', 0, -12);
+
+      ctx.strokeStyle = 'rgba(148,163,184,0.45)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 40);
+      ctx.lineTo(w, 40);
+      ctx.stroke();
+
+      for (let i = 0; i <= 8; i++) {
+        const px = (w / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(px, 30);
+        ctx.lineTo(px, 50);
+        ctx.stroke();
+      }
+
+      const dotX = ((currentX - minX) / ((maxX - minX) || 1)) * w;
+      ctx.fillStyle = '#fb7185';
+      ctx.beginPath();
+      ctx.arc(dotX, 40, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '13px Inter, Arial';
+      ctx.fillText(`x = ${currentX.toFixed(2)} m`, Math.min(Math.max(dotX - 30, 0), w - 80), 72);
+      ctx.restore();
+    }
+
+    function draw() {
+      const x0 = parseFloat(x0Input.value);
+      const v0 = parseFloat(v0Input.value);
+      const a = parseFloat(aInput.value);
+      const tCurrent = parseFloat(timeInput.value);
+      const tMax = 6;
+      const n = 240;
+
+      const ts = Array.from({ length: n }, (_, i) => (i / (n - 1)) * tMax);
+      const xs = ts.map(t => positionAt(t, x0, v0, a));
+      const vs = ts.map(t => velocityAt(t, v0, a));
+      const as = ts.map(() => a);
+
+      const xMin = Math.min(...xs) - 1;
+      const xMaxVal = Math.max(...xs) + 1;
+      const vMin = Math.min(...vs) - 1;
+      const vMaxVal = Math.max(...vs) + 1;
+      const aMin = Math.min(-1, a - 1);
+      const aMaxVal = Math.max(1, a + 1);
+
+      const currentIndex = Math.round((tCurrent / tMax) * (n - 1));
+      const currentX = positionAt(tCurrent, x0, v0, a);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawMotionLine(40, 48, 1020, currentX, xMin, xMaxVal);
+      drawAxes(40, 130, 300, 150, xMin, xMaxVal, 'Position x(t)');
+      drawCurve(40, 130, 300, 150, xs, xMin, xMaxVal, '#60a5fa', currentIndex);
+
+      drawAxes(400, 130, 300, 150, vMin, vMaxVal, 'Velocity v(t)');
+      drawCurve(400, 130, 300, 150, vs, vMin, vMaxVal, '#34d399', currentIndex);
+
+      drawAxes(760, 130, 300, 150, aMin, aMaxVal, 'Acceleration a(t)');
+      drawCurve(760, 130, 300, 150, as, aMin, aMaxVal, '#fbbf24', currentIndex);
+
+      ctx.fillStyle = 'rgba(191,208,238,0.85)';
+      ctx.font = '15px Inter, Arial';
+      ctx.fillText('Current formulas for the selected values:', 40, 340);
+      ctx.fillStyle = '#eef5ff';
+      ctx.font = '600 18px Cambria Math, Times New Roman, serif';
+      ctx.fillText(`x(t) = ${x0.toFixed(1)} + ${v0.toFixed(1)}t + 1/2(${a.toFixed(1)})t²`, 40, 372);
+      ctx.fillText(`v(t) = ${v0.toFixed(1)} + (${a.toFixed(1)})t`, 40, 404);
+      ctx.fillText(`a(t) = ${a.toFixed(1)}`, 40, 436);
+
+      ctx.fillStyle = 'rgba(191,208,238,0.82)';
+      ctx.font = '14px Inter, Arial';
+      ctx.fillText('Red dots mark the current time on each graph.', 40, 474);
+    }
+
+    function refresh() {
+      updateText();
+      draw();
+    }
+
+    [x0Input, v0Input, aInput, timeInput].forEach(input => {
+      input.addEventListener('input', refresh);
+    });
+
+    let autoTime = 0;
+    let playing = true;
+
+    function animate() {
+      if (playing) {
+        autoTime += 0.012;
+        if (autoTime > parseFloat(timeInput.max)) autoTime = 0;
+        timeInput.value = autoTime.toFixed(2);
+        refresh();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener('click', () => {
+      playing = !playing;
+    });
+
+    refresh();
+    animate();
+  </script>
+</body>
+</html>
