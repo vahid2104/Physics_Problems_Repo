@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circular Motion Explanation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #020617, #0f172a);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1200px, 92%);
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      color: white;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+    }
+
+    p {
+      color: var(--text);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 1.05rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+
+    .canvas-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 560px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 560px;
+      background: radial-gradient(circle at center, #0b1220 0%, #060c17 100%);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 0 30px rgba(56, 189, 248, 0.06);
+    }
+
+    .controls {
+      display: grid;
+      gap: 16px;
+    }
+
+    .control-group {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #f8fafc;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: bold;
+      background: var(--accent);
+      color: #082f49;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    button.secondary {
+      background: #334155;
+      color: white;
+    }
+
+    .toggle-btn {
+      color: white;
+    }
+
+    .toggle-r.active {
+      background: #0ea5e9;
+    }
+
+    .toggle-v.active {
+      background: #16a34a;
+    }
+
+    .toggle-a.active {
+      background: #dc2626;
+    }
+
+    .toggle-btn.inactive {
+      background: #475569;
+      color: #cbd5e1;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    .dot-r { background: var(--accent); }
+    .dot-v { background: var(--green); }
+    .dot-a { background: var(--red); }
+    .dot-path { background: var(--yellow); }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 24px;
+    }
+
+    .formula {
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      font-family: "Courier New", monospace;
+      color: #dbeafe;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .green {
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    .red {
+      color: var(--red);
+      font-weight: bold;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .mini-card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .footer-note {
+      margin-top: 28px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-wrap {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="panel">
+        <h1>Circular Motion</h1>
+        <p class="subtitle">
+          This interactive page explains the motion of a body moving on a circle of radius <span class="highlight">R</span>
+          with angular velocity <span class="highlight">ω</span>.
+        </p>
+
+        <div class="controls">
+          <div class="control-group">
+            <label for="radiusSlider">Radius R: <span class="value" id="radiusValue">120</span></label>
+            <input type="range" id="radiusSlider" min="60" max="180" value="120" />
+          </div>
+
+          <div class="control-group">
+            <label for="omegaSlider">Angular Velocity ω: <span class="value" id="omegaValue">1.20</span></label>
+            <input type="range" id="omegaSlider" min="0.2" max="3" step="0.05" value="1.2" />
+          </div>
+
+          <div class="control-group">
+            <label for="scaleSlider">Vector Scale: <span class="value" id="scaleValue">1.00</span></label>
+            <input type="range" id="scaleSlider" min="0.4" max="1.8" step="0.05" value="1.0" />
+          </div>
+
+          <div class="buttons">
+            <button id="playPauseBtn">Pause</button>
+            <button id="resetBtn" class="secondary">Reset</button>
+          </div>
+
+          <div class="control-group">
+            <label>Vector Visibility</label>
+            <div class="buttons">
+              <button id="toggleRBtn" class="toggle-btn toggle-r active">Show r</button>
+              <button id="toggleVBtn" class="toggle-btn toggle-v active">Show v</button>
+              <button id="toggleABtn" class="toggle-btn toggle-a active">Show a</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item"><span class="dot dot-path"></span> Circular path</div>
+          <div class="legend-item"><span class="dot dot-r"></span> Position vector r</div>
+          <div class="legend-item"><span class="dot dot-v"></span> Velocity vector v</div>
+          <div class="legend-item"><span class="dot dot-a"></span> Acceleration vector a</div>
+        </div>
+      </div>
+
+      <div class="panel canvas-wrap">
+        <canvas id="motionCanvas" width="560" height="560"></canvas>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <h2>1. Mathematical Model</h2>
+        <p>
+          In uniform circular motion, the angular position changes linearly with time:
+        </p>
+        <div class="formula">θ(t) = ωt</div>
+
+        <p>
+          If the center of the circle is at the origin, then the position vector is:
+        </p>
+        <div class="formula">r(t) = (R cos(ωt), R sin(ωt))</div>
+
+        <p>
+          The velocity vector is the derivative of the position:
+        </p>
+        <div class="formula">v(t) = dr/dt = (-Rω sin(ωt), Rω cos(ωt))</div>
+
+        <p>
+          The acceleration vector is the derivative of the velocity:
+        </p>
+        <div class="formula">a(t) = dv/dt = (-Rω² cos(ωt), -Rω² sin(ωt))</div>
+      </div>
+
+      <div class="panel">
+        <h2>2. Magnitudes</h2>
+        <p>
+          The magnitudes of the vectors stay:
+        </p>
+        <div class="formula">|r(t)| = R
+|v(t)| = Rω
+|a(t)| = Rω²</div>
+
+        <p>
+          This means:
+        </p>
+        <ul>
+          <li>The object always stays at the same distance from the center.</li>
+          <li>The speed is constant in uniform circular motion.</li>
+          <li>The acceleration has constant magnitude, but its direction changes continuously.</li>
+        </ul>
+
+        <p>
+          Another important formula is:
+        </p>
+        <div class="formula">|a| = v² / R</div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <h2>3. Why is the acceleration centripetal?</h2>
+        <p>
+          From the formula of acceleration:
+        </p>
+        <div class="formula">a(t) = (-Rω² cos(ωt), -Rω² sin(ωt))</div>
+
+        <p>
+          We can factor out <span class="highlight">-ω²</span>:
+        </p>
+        <div class="formula">a(t) = -ω² (R cos(ωt), R sin(ωt))</div>
+
+        <p>
+          But
+        </p>
+        <div class="formula">(R cos(ωt), R sin(ωt)) = r(t)</div>
+
+        <p>
+          Therefore:
+        </p>
+        <div class="formula">a(t) = -ω² r(t)</div>
+
+        <p>
+          This shows that acceleration always points in the opposite direction of the position vector.
+          Since the position vector points outward from the center to the body, the acceleration points
+          <span class="red">inward toward the center</span>.
+        </p>
+        <p>
+          That is why the acceleration is called <span class="red">centripetal acceleration</span>.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h2>4. Interpretation of the vectors</h2>
+        <ul>
+          <li><span class="highlight">r</span> points from the center of the circle to the particle.</li>
+          <li><span class="green">v</span> is tangent to the circle, so it shows the direction of motion.</li>
+          <li><span class="red">a</span> points toward the center of the circle.</li>
+        </ul>
+
+        <p>
+          In circular motion:
+        </p>
+        <div class="formula">v ⟂ r
+a ∥ -r</div>
+
+        <p>
+          So:
+        </p>
+        <ul>
+          <li>Velocity is perpendicular to the radius.</li>
+          <li>Acceleration is opposite to the radius direction.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card-list">
+      <div class="mini-card">
+        <h2>Live Values</h2>
+        <p><strong>Time:</strong> <span id="timeText">0.00</span> s</p>
+        <p><strong>θ(t) = ωt:</strong> <span id="thetaText">0.00</span> rad</p>
+        <p><strong>Position r(t):</strong> <span id="rText">(0, 0)</span></p>
+        <p><strong>Velocity v(t):</strong> <span id="vText">(0, 0)</span></p>
+        <p><strong>Acceleration a(t):</strong> <span id="aText">(0, 0)</span></p>
+        <p><strong>|r|:</strong> <span id="rMagText">0</span></p>
+        <p><strong>|v|:</strong> <span id="vMagText">0</span></p>
+        <p><strong>|a|:</strong> <span id="aMagText">0</span></p>
+      </div>
+
+      <div class="mini-card">
+        <h2>Final Summary</h2>
+        <div class="formula">r(t) = (R cos(ωt), R sin(ωt))
+
+v(t) = (-Rω sin(ωt), Rω cos(ωt))
+
+a(t) = (-Rω² cos(ωt), -Rω² sin(ωt))
+
+|r| = R
+|v| = Rω
+|a| = Rω²
+
+a(t) = -ω²r(t)</div>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      This animation is designed to make the geometry and formulas of circular motion easy to understand.
+    </p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("motionCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const radiusSlider = document.getElementById("radiusSlider");
+    const omegaSlider = document.getElementById("omegaSlider");
+    const scaleSlider = document.getElementById("scaleSlider");
+
+    const radiusValue = document.getElementById("radiusValue");
+    const omegaValue = document.getElementById("omegaValue");
+    const scaleValue = document.getElementById("scaleValue");
+
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const toggleRBtn = document.getElementById("toggleRBtn");
+    const toggleVBtn = document.getElementById("toggleVBtn");
+    const toggleABtn = document.getElementById("toggleABtn");
+
+    const timeText = document.getElementById("timeText");
+    const thetaText = document.getElementById("thetaText");
+    const rText = document.getElementById("rText");
+    const vText = document.getElementById("vText");
+    const aText = document.getElementById("aText");
+    const rMagText = document.getElementById("rMagText");
+    const vMagText = document.getElementById("vMagText");
+    const aMagText = document.getElementById("aMagText");
+
+    let t = 0;
+    let running = true;
+    let showR = true;
+    let showV = true;
+    let showA = true;
+    let lastTime = performance.now();
+
+    function updateLabels() {
+      radiusValue.textContent = radiusSlider.value;
+      omegaValue.textContent = Number(omegaSlider.value).toFixed(2);
+      scaleValue.textContent = Number(scaleSlider.value).toFixed(2);
+    }
+
+    function updateToggleButton(button, isActive) {
+      button.classList.remove("active", "inactive");
+      if (isActive) {
+        button.classList.add("active");
+      } else {
+        button.classList.add("inactive");
+      }
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, label) {
+      const headLength = 12;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const angle = Math.atan2(dy, dx);
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 18px Arial";
+      ctx.fillText(label, x2 + 8, y2 - 8);
+    }
+
+    function draw() {
+      const W = canvas.width;
+      const H = canvas.height;
+      const cx = W / 2;
+      const cy = H / 2;
+
+      const R = Number(radiusSlider.value);
+      const omega = Number(omegaSlider.value);
+      const vectorScale = Number(scaleSlider.value);
+
+      const theta = omega * t;
+
+      const x = R * Math.cos(theta);
+      const y = R * Math.sin(theta);
+
+      const vx = -R * omega * Math.sin(theta);
+      const vy = R * omega * Math.cos(theta);
+
+      const ax = -R * omega * omega * Math.cos(theta);
+      const ay = -R * omega * omega * Math.sin(theta);
+
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
+      ctx.lineWidth = 1;
+
+      for (let i = 40; i < W; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, H);
+        ctx.stroke();
+      }
+
+      for (let j = 40; j < H; j += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(W, j);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
+      ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      ctx.moveTo(0, cy);
+      ctx.lineTo(W, cy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, H);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      const px = cx + x;
+      const py = cy - y;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(px, py, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (showR) {
+        drawArrow(cx, cy, px, py, "#38bdf8", "r");
+      }
+
+      if (showV) {
+        const vScale = 0.35 * vectorScale;
+        drawArrow(px, py, px + vx * vScale, py - vy * vScale, "#22c55e", "v");
+      }
+
+      if (showA) {
+        const aScale = 0.18 * vectorScale;
+        drawArrow(px, py, px + ax * aScale, py - ay * aScale, "#ef4444", "a");
+
+        ctx.setLineDash([6, 6]);
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(cx, cy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "16px Arial";
+      ctx.fillText("O", cx + 10, cy - 10);
+      ctx.fillText("P", px + 10, py - 10);
+
+      const rMag = R;
+      const vMag = R * omega;
+      const aMag = R * omega * omega;
+
+      timeText.textContent = t.toFixed(2);
+      thetaText.textContent = theta.toFixed(2);
+      rText.textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
+      vText.textContent = `(${vx.toFixed(2)}, ${vy.toFixed(2)})`;
+      aText.textContent = `(${ax.toFixed(2)}, ${ay.toFixed(2)})`;
+      rMagText.textContent = rMag.toFixed(2);
+      vMagText.textContent = vMag.toFixed(2);
+      aMagText.textContent = aMag.toFixed(2);
+    }
+
+    function animate(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      if (running) {
+        t += dt;
+      }
+
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    playPauseBtn.addEventListener("click", () => {
+      running = !running;
+      playPauseBtn.textContent = running ? "Pause" : "Play";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      t = 0;
+      draw();
+    });
+
+    toggleRBtn.addEventListener("click", () => {
+      showR = !showR;
+      updateToggleButton(toggleRBtn, showR);
+      draw();
+    });
+
+    toggleVBtn.addEventListener("click", () => {
+      showV = !showV;
+      updateToggleButton(toggleVBtn, showV);
+      draw();
+    });
+
+    toggleABtn.addEventListener("click", () => {
+      showA = !showA;
+      updateToggleButton(toggleABtn, showA);
+      draw();
+    });
+
+    [radiusSlider, omegaSlider, scaleSlider].forEach(slider => {
+      slider.addEventListener("input", () => {
+        updateLabels();
+        draw();
+      });
+    });
+
+    updateLabels();
+    updateToggleButton(toggleRBtn, showR);
+    updateToggleButton(toggleVBtn, showV);
+    updateToggleButton(toggleABtn, showA);
+
+    draw();
+    requestAnimationFrame((now) => {
+      lastTime = now;
+      animate(now);
+    });
+  </script>
+</body>
+</html>

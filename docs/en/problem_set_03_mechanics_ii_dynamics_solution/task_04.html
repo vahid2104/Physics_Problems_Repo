@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 4 – Conservation of Energy</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:#111827cc;
+      --text:#e5e7eb;
+      --muted:#cbd5e1;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --accent3:#f59e0b;
+      --danger:#ef4444;
+      --white:#ffffff;
+      --shadow:0 15px 35px rgba(0,0,0,0.25);
+      --radius:22px;
+    }
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .floating-bg{
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .bubble{
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(56,189,248,0.08);
+      animation: float 16s infinite linear;
+    }
+
+    .bubble:nth-child(1){ width:120px; height:120px; left:8%; top:80%; animation-duration:18s; }
+    .bubble:nth-child(2){ width:200px; height:200px; left:75%; top:85%; animation-duration:22s; }
+    .bubble:nth-child(3){ width:90px; height:90px; left:55%; top:90%; animation-duration:14s; }
+    .bubble:nth-child(4){ width:140px; height:140px; left:30%; top:88%; animation-duration:20s; }
+    .bubble:nth-child(5){ width:70px; height:70px; left:90%; top:78%; animation-duration:12s; }
+
+    @keyframes float {
+      from { transform: translateY(0) scale(1); opacity: 0.25; }
+      to   { transform: translateY(-120vh) scale(1.25); opacity: 0; }
+    }
+
+    .container{
+      width:min(1100px, 92%);
+      margin: 40px auto 80px;
+    }
+
+    .hero{
+      text-align:center;
+      padding: 40px 20px 30px;
+      animation: fadeUp 1s ease;
+    }
+
+    .hero h1{
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      color: var(--white);
+      margin-bottom: 10px;
+      text-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    }
+
+    .hero p{
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .card{
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-top: 24px;
+      opacity: 0;
+      transform: translateY(35px);
+      animation: fadeUp 0.9s ease forwards;
+    }
+
+    .card:nth-of-type(2){ animation-delay: 0.15s; }
+    .card:nth-of-type(3){ animation-delay: 0.3s; }
+    .card:nth-of-type(4){ animation-delay: 0.45s; }
+    .card:nth-of-type(5){ animation-delay: 0.6s; }
+    .card:nth-of-type(6){ animation-delay: 0.75s; }
+
+    @keyframes fadeUp {
+      to{
+        opacity:1;
+        transform: translateY(0);
+      }
+    }
+
+    h2{
+      color: var(--accent);
+      margin-bottom: 14px;
+      font-size: 1.7rem;
+    }
+
+    h3{
+      color: var(--accent3);
+      margin: 18px 0 10px;
+      font-size: 1.2rem;
+    }
+
+    p, li{
+      color: var(--text);
+      font-size: 1.02rem;
+    }
+
+    ul{
+      padding-left: 22px;
+      margin-top: 10px;
+    }
+
+    .formula{
+      background: rgba(255,255,255,0.06);
+      border-left: 5px solid var(--accent2);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 14px 0;
+      font-family: "Courier New", monospace;
+      font-size: 1.05rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      animation: glow 2.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow{
+      from{ box-shadow: 0 0 0 rgba(34,197,94,0.1); }
+      to{ box-shadow: 0 0 18px rgba(34,197,94,0.18); }
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px){
+      .grid{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .fall-demo{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding: 10px 0;
+    }
+
+    .tower{
+      position: relative;
+      width: 170px;
+      height: 380px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 18px;
+      background: linear-gradient(to top, rgba(34,197,94,0.14), rgba(56,189,248,0.05));
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
+    }
+
+    .ground{
+      position:absolute;
+      bottom:0;
+      width:100%;
+      height:24px;
+      background: linear-gradient(90deg, #14532d, #22c55e);
+    }
+
+    .height-label{
+      position:absolute;
+      left:10px;
+      top:10px;
+      font-size: 0.95rem;
+      color:#d1fae5;
+      background: rgba(0,0,0,0.25);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    .ball{
+      position:absolute;
+      left:50%;
+      top:28px;
+      transform: translateX(-50%);
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      background: radial-gradient(circle at 35% 30%, #fff, #38bdf8 45%, #0284c7);
+      box-shadow: 0 0 18px rgba(56,189,248,0.65);
+      animation: drop 3s ease-in-out infinite;
+    }
+
+    @keyframes drop{
+      0%   { top:28px; transform: translateX(-50%) scale(1); }
+      45%  { top:255px; transform: translateX(-50%) scale(1.04); }
+      50%  { top:300px; transform: translateX(-50%) scale(0.92); }
+      55%  { top:285px; transform: translateX(-50%) scale(1.02); }
+      100% { top:28px; transform: translateX(-50%) scale(1); }
+    }
+
+    .energy-bars{
+      margin-top: 18px;
+    }
+
+    .bar-wrap{
+      margin: 14px 0;
+    }
+
+    .bar-label{
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .bar{
+      width:100%;
+      height:18px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .fill{
+      height:100%;
+      border-radius: 999px;
+      animation: pulseBar 3s ease-in-out infinite;
+    }
+
+    .kinetic{ width:75%; background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .potential{ width:25%; background: linear-gradient(90deg, #22c55e, #10b981); }
+    .total{ width:100%; background: linear-gradient(90deg, #38bdf8, #6366f1); }
+
+    @keyframes pulseBar{
+      0%,100%{ filter: brightness(1); }
+      50%{ filter: brightness(1.18); }
+    }
+
+    .steps{
+      counter-reset: step;
+      display:grid;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .step{
+      position: relative;
+      padding: 18px 18px 18px 58px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.06);
+      transform: translateX(-18px);
+      opacity: 0;
+      animation: slideIn 0.7s ease forwards;
+    }
+
+    .step:nth-child(1){ animation-delay: .15s; }
+    .step:nth-child(2){ animation-delay: .3s; }
+    .step:nth-child(3){ animation-delay: .45s; }
+    .step:nth-child(4){ animation-delay: .6s; }
+    .step:nth-child(5){ animation-delay: .75s; }
+
+    .step::before{
+      counter-increment: step;
+      content: counter(step);
+      position:absolute;
+      left:16px;
+      top:16px;
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      background: var(--accent);
+      color:#001018;
+      font-weight:bold;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow: 0 0 14px rgba(56,189,248,0.4);
+    }
+
+    @keyframes slideIn{
+      to{
+        opacity:1;
+        transform: translateX(0);
+      }
+    }
+
+    .highlight{
+      color: var(--accent3);
+      font-weight: bold;
+    }
+
+    .final-box{
+      background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(34,197,94,0.10));
+      border: 1px solid rgba(56,189,248,0.22);
+      border-radius: 18px;
+      padding: 22px;
+      margin-top: 16px;
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes breathe{
+      0%,100%{ transform: scale(1); }
+      50%{ transform: scale(1.01); }
+    }
+
+    .compare{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 800px){
+      .compare{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mini-card{
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .footer{
+      text-align:center;
+      color: var(--muted);
+      margin-top: 30px;
+      padding-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .math{
+      color: #dbeafe;
+      font-weight: bold;
+    }
+
+    .blink{
+      animation: blink 1.4s infinite;
+    }
+
+    @keyframes blink{
+      0%,100%{ opacity:1; }
+      50%{ opacity:0.45; }
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-bg">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
+
+  <div class="container">
+    <section class="hero">
+      <h1>Problem 4 – Conservation of Energy</h1>
+      <p>
+        A body falls from a height <span class="math">h₀</span> without air resistance.
+        We solve the task step by step using a simple explanation and animated presentation.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <div>
+          <h2>What do we want to find?</h2>
+          <ul>
+            <li>The total energy <span class="math">E(h) = T(h) + U(h)</span></li>
+            <li>The velocity as a function of height <span class="math">v(h)</span></li>
+            <li>Comparison with Newton’s second law</li>
+            <li>The height where kinetic energy is 75% of total energy</li>
+          </ul>
+        </div>
+
+        <div class="fall-demo">
+          <div class="tower">
+            <div class="height-label">falling body</div>
+            <div class="ball"></div>
+            <div class="ground"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Total energy</h2>
+      <p>
+        The total mechanical energy is the sum of:
+      </p>
+      <ul>
+        <li><span class="highlight">kinetic energy</span> <span class="math">T(h)</span></li>
+        <li><span class="highlight">potential energy</span> <span class="math">U(h)</span></li>
+      </ul>
+
+      <div class="steps">
+        <div class="step">
+          So we write:
+          <div class="formula">E(h) = T(h) + U(h)</div>
+        </div>
+
+        <div class="step">
+          The kinetic energy is:
+          <div class="formula">T(h) = (1/2) m v(h)^2</div>
+        </div>
+
+        <div class="step">
+          The gravitational potential energy is:
+          <div class="formula">U(h) = mgh</div>
+        </div>
+
+        <div class="step">
+          Therefore:
+          <div class="formula">E(h) = (1/2) m v(h)^2 + mgh</div>
+        </div>
+
+        <div class="step">
+          Since there is no air resistance, the total energy stays constant.
+        </div>
+      </div>
+
+      <h3>Initial energy</h3>
+      <p>
+        If the body starts from rest at height <span class="math">h₀</span>, then initially
+        <span class="math">v = 0</span>.
+      </p>
+
+      <div class="formula">E₀ = mgh₀</div>
+
+      <p>So at any height <span class="math">h</span>:</p>
+      <div class="formula">(1/2) m v(h)^2 + mgh = mgh₀</div>
+    </section>
+
+    <section class="card">
+      <h2>2. Velocity as a function of height</h2>
+
+      <div class="steps">
+        <div class="step">
+          Start from conservation of energy:
+          <div class="formula">(1/2) m v(h)^2 + mgh = mgh₀</div>
+        </div>
+
+        <div class="step">
+          Subtract <span class="math">mgh</span> from both sides:
+          <div class="formula">(1/2) m v(h)^2 = mg(h₀ - h)</div>
+        </div>
+
+        <div class="step">
+          Divide by <span class="math">m</span>:
+          <div class="formula">(1/2) v(h)^2 = g(h₀ - h)</div>
+        </div>
+
+        <div class="step">
+          Multiply by 2:
+          <div class="formula">v(h)^2 = 2g(h₀ - h)</div>
+        </div>
+
+        <div class="step">
+          Take the square root:
+          <div class="formula">v(h) = √[2g(h₀ - h)]</div>
+        </div>
+      </div>
+
+      <div class="final-box">
+        <p><strong>Therefore, the velocity as a function of height is:</strong></p>
+        <div class="formula">v(h) = √[2g(h₀ - h)]</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3. Compare with Newton’s second law</h2>
+
+      <div class="compare">
+        <div class="mini-card">
+          <h3>Using Newton’s second law</h3>
+          <p>The only force is gravity:</p>
+          <div class="formula">F = mg</div>
+
+          <p>From Newton’s second law:</p>
+          <div class="formula">ma = mg</div>
+
+          <p>So the acceleration is:</p>
+          <div class="formula">a = g</div>
+        </div>
+
+        <div class="mini-card">
+          <h3>Using kinematics</h3>
+          <p>For falling distance <span class="math">s = h₀ - h</span>:</p>
+          <div class="formula">v² = v₀² + 2as</div>
+
+          <p>The body starts from rest, so <span class="math">v₀ = 0</span>.</p>
+          <div class="formula">v² = 2g(h₀ - h)</div>
+
+          <p>Therefore:</p>
+          <div class="formula">v(h) = √[2g(h₀ - h)]</div>
+        </div>
+      </div>
+
+      <div class="final-box">
+        <p>
+          Both methods give the <span class="highlight">same result</span>.
+        </p>
+        <div class="formula">v(h) = √[2g(h₀ - h)]</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>4. At what height is kinetic energy 75% of the total energy?</h2>
+
+      <p>We want:</p>
+      <div class="formula">T = 0.75 E</div>
+
+      <p>The total energy is constant and equal to:</p>
+      <div class="formula">E = mgh₀</div>
+
+      <p>So:</p>
+      <div class="formula">T = 0.75 mgh₀</div>
+
+      <p>But the kinetic energy also equals the lost potential energy:</p>
+      <div class="formula">T = mg(h₀ - h)</div>
+
+      <p>Now set them equal:</p>
+      <div class="formula">mg(h₀ - h) = 0.75 mgh₀</div>
+
+      <div class="steps">
+        <div class="step">
+          Cancel <span class="math">mg</span> from both sides:
+          <div class="formula">h₀ - h = 0.75 h₀</div>
+        </div>
+
+        <div class="step">
+          Solve for <span class="math">h</span>:
+          <div class="formula">h = h₀ - 0.75h₀</div>
+        </div>
+
+        <div class="step">
+          Therefore:
+          <div class="formula">h = 0.25 h₀ = h₀ / 4</div>
+        </div>
+      </div>
+
+      <div class="energy-bars">
+        <div class="bar-wrap">
+          <div class="bar-label">Total energy = 100%</div>
+          <div class="bar"><div class="fill total"></div></div>
+        </div>
+
+        <div class="bar-wrap">
+          <div class="bar-label">Kinetic energy = 75%</div>
+          <div class="bar"><div class="fill kinetic"></div></div>
+        </div>
+
+        <div class="bar-wrap">
+          <div class="bar-label">Potential energy = 25%</div>
+          <div class="bar"><div class="fill potential"></div></div>
+        </div>
+      </div>
+
+      <div class="final-box">
+        <p>
+          The kinetic energy is 75% of the total energy when the body is at height
+        </p>
+        <div class="formula">h = h₀ / 4</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Final answers</h2>
+
+      <div class="formula">E(h) = (1/2) m v(h)^2 + mgh</div>
+      <div class="formula">E(h) = mgh₀   (constant)</div>
+      <div class="formula">v(h) = √[2g(h₀ - h)]</div>
+      <div class="formula">h = h₀ / 4</div>
+
+      <p style="margin-top:14px;">
+        So the body speeds up as it falls, and both methods
+        <span class="highlight">energy conservation</span> and
+        <span class="highlight">Newton’s second law</span>
+        give the same answer.
+      </p>
+
+      <p style="margin-top:12px;">
+        <span class="blink">●</span> At 75% kinetic energy, only 25% of the original potential energy remains.
+      </p>
+    </section>
+
+    <div class="footer">
+      Made as a single HTML presentation with simple animations and step-by-step explanation.
+    </div>
+  </div>
+</body>
+</html>

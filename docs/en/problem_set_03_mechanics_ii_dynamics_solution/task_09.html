@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 9 – Potential and Conservative Field</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --accent-2: #22d3ee;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(34,211,238,0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(96,165,250,0.14), transparent 30%),
+        linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(60px);
+      opacity: 0.22;
+      pointer-events: none;
+      animation: floatGlow 9s ease-in-out infinite;
+    }
+
+    .hero::before {
+      width: 280px;
+      height: 280px;
+      background: var(--accent);
+      top: 10%;
+      left: -60px;
+    }
+
+    .hero::after {
+      width: 340px;
+      height: 340px;
+      background: var(--accent-2);
+      bottom: 5%;
+      right: -80px;
+      animation-delay: -3s;
+    }
+
+    @keyframes floatGlow {
+      0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+      50% { transform: translateY(-18px) translateX(14px) scale(1.08); }
+    }
+
+    .hero-card {
+      max-width: 1100px;
+      width: 100%;
+      background: rgba(17,24,39,0.72);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: var(--shadow);
+      animation: fadeUp 1s ease;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(96,165,250,0.12);
+      border: 1px solid rgba(96,165,250,0.25);
+      color: #bfdbfe;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 70px);
+      line-height: 1.05;
+      margin: 0 0 14px;
+    }
+
+    .lead {
+      max-width: 780px;
+      font-size: clamp(18px, 2.2vw, 22px);
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .formula-big {
+      margin-top: 18px;
+      font-size: clamp(20px, 3vw, 32px);
+      background: linear-gradient(90deg, rgba(96,165,250,0.16), rgba(34,211,238,0.12));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      text-decoration: none;
+      color: white;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: linear-gradient(90deg, #2563eb, #0891b2); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .container {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto 60px;
+    }
+
+    .section {
+      margin-top: 28px;
+      background: rgba(17,24,39,0.82);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    h2 {
+      font-size: clamp(24px, 4vw, 34px);
+      margin: 0 0 18px;
+    }
+
+    h3 {
+      font-size: 22px;
+      margin: 22px 0 12px;
+      color: #dbeafe;
+    }
+
+    p, li {
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 17px;
+    }
+
+    ul {
+      padding-left: 22px;
+      margin: 10px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .span-6 { grid-column: span 6; }
+    .span-5 { grid-column: span 5; }
+    .span-7 { grid-column: span 7; }
+    .span-12 { grid-column: span 12; }
+
+    .math {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: clamp(20px, 2.6vw, 28px);
+      line-height: 1.6;
+      background: rgba(2,6,23,0.35);
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+      overflow-x: auto;
+    }
+
+    .step {
+      padding: 16px;
+      border-left: 4px solid var(--accent);
+      background: rgba(96,165,250,0.07);
+      border-radius: 14px;
+      margin: 12px 0;
+    }
+
+    .highlight {
+      color: #93c5fd;
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .field label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(15,23,42,0.9);
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: rgba(96,165,250,0.7);
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+
+    .primary {
+      background: linear-gradient(90deg, #2563eb, #06b6d4);
+      color: white;
+    }
+
+    .ghost {
+      background: rgba(255,255,255,0.05);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(52,211,153,0.12);
+      border: 1px solid rgba(52,211,153,0.22);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--good);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.45; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    canvas {
+      width: 100%;
+      background: radial-gradient(circle at center, rgba(15,23,42,0.95), rgba(2,6,23,1));
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: block;
+    }
+
+    #motionCanvas {
+      height: 520px;
+    }
+
+    .energy-boxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .energy {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .energy .label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .energy .value {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 800;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px 20px 50px;
+    }
+
+    .typed::after {
+      content: "|";
+      animation: blink 0.9s steps(1) infinite;
+      margin-left: 4px;
+      color: #93c5fd;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      50.1%, 100% { opacity: 0; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+      .span-6, .span-5, .span-7 { grid-column: span 12; }
+      .hero-card { padding: 24px; }
+      .section { padding: 20px; }
+      #motionCanvas { height: 380px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-card">
+      <div class="badge">Physics • Mechanics • Conservative Field</div>
+      <h1 id="typeTarget"></h1>
+      <p class="lead">
+        We are given the potential energy
+        <span class="highlight">U(x,y) = (k/2)(x² + y²)</span>.
+        This page explains the force, equations of motion, type of motion, total energy,
+        and the geometric trajectory with animations.
+      </p>
+      <div class="formula-big">
+        U(x,y) = <span style="color:#7dd3fc;">k/2</span> (x² + y²)
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#solution">See solution</a>
+        <a class="btn btn-secondary" href="#simulation">Open simulation</a>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+    <section class="section" id="solution">
+      <h2>Step 1 – Determine the force</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <p>For a conservative field, the force is the negative gradient of the potential:</p>
+          <div class="math">
+            F⃗ = −∇U
+          </div>
+          <div class="step">
+            <strong>Compute the partial derivatives:</strong><br><br>
+            ∂U/∂x = kx<br>
+            ∂U/∂y = ky
+          </div>
+          <div class="math">
+            ∇U = (kx, ky)
+            <br><br>
+            F⃗ = −(kx, ky) = (−kx, −ky)
+          </div>
+        </div>
+        <div class="card span-6">
+          <h3>Conclusion</h3>
+          <div class="math">
+            F⃗(x,y) = (−kx, −ky)
+          </div>
+          <p>
+            The force always points <span class="highlight">toward the origin</span>.
+            So it is a restoring force, like a spring in two dimensions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Step 2 – Write the equations of motion</h2>
+      <div class="grid">
+        <div class="card span-7">
+          <p>From Newton’s second law:</p>
+          <div class="math">
+            m a⃗ = F⃗
+          </div>
+          <p>Since</p>
+          <div class="math">
+            a⃗ = (x¨, y¨)
+          </div>
+          <p>we get</p>
+          <div class="math">
+            m(x¨, y¨) = (−kx, −ky)
+          </div>
+          <p>So each coordinate satisfies:</p>
+          <div class="math">
+            mx¨ = −kx
+            <br>
+            my¨ = −ky
+          </div>
+        </div>
+        <div class="card span-5">
+          <h3>Simplified form</h3>
+          <div class="math">
+            x¨ + (k/m)x = 0
+            <br><br>
+            y¨ + (k/m)y = 0
+          </div>
+          <p>
+            If we define
+            <span class="highlight">ω = √(k/m)</span>, then:
+          </p>
+          <div class="math">
+            x¨ + ω²x = 0
+            <br>
+            y¨ + ω²y = 0
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Step 3 – Solve the equations</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <p>Each equation is the equation of simple harmonic motion.</p>
+          <div class="math">
+            x(t) = A cos(ωt) + B sin(ωt)
+            <br><br>
+            y(t) = C cos(ωt) + D sin(ωt)
+          </div>
+          <p>
+            Here <span class="highlight">A, B, C, D</span> depend on the initial conditions.
+          </p>
+        </div>
+        <div class="card span-6">
+          <h3>Meaning</h3>
+          <ul>
+            <li>
+              Motion in the <strong>x</strong>-direction is harmonic.
+            </li>
+            <li>
+              Motion in the <strong>y</strong>-direction is harmonic.
+            </li>
+            <li>
+              The full motion is the combination of both oscillations.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Step 4 – Determine the type of motion</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <div class="math">
+            ω = √(k/m)
+          </div>
+          <p>
+            Both coordinates oscillate with the same angular frequency.
+            Therefore the particle performs
+            <span class="highlight">two-dimensional harmonic motion</span>.
+          </p>
+        </div>
+        <div class="card span-6">
+          <h3>Geometric trajectory</h3>
+          <ul>
+            <li>Usually the trajectory is an <strong>ellipse</strong>.</li>
+            <li>In a special case, it can be a <strong>circle</strong>.</li>
+            <li>In another special case, it can be a <strong>straight line</strong>.</li>
+          </ul>
+          <p>
+            In all cases, the motion is centered around the origin.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Step 5 – Determine the total energy</h2>
+      <div class="grid">
+        <div class="card span-7">
+          <p>The total mechanical energy is</p>
+          <div class="math">
+            E = T + U
+          </div>
+          <p>The kinetic energy is</p>
+          <div class="math">
+            T = (1/2)m(ẋ² + ẏ²)
+          </div>
+          <p>The potential energy is</p>
+          <div class="math">
+            U = (k/2)(x² + y²)
+          </div>
+          <p>So the total energy is</p>
+          <div class="math">
+            E = (1/2)m(ẋ² + ẏ²) + (k/2)(x² + y²)
+          </div>
+        </div>
+        <div class="card span-5">
+          <h3>Important fact</h3>
+          <p>
+            Because the force comes from a potential,
+            the field is <span class="highlight">conservative</span>.
+          </p>
+          <div class="math">
+            E = constant
+          </div>
+          <p>
+            The energy changes form between kinetic and potential,
+            but the total stays the same.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Step 6 – Final answers</h2>
+      <div class="card span-12">
+        <div class="math">
+          F⃗(x,y) = (−kx, −ky)
+          <br><br>
+          x¨ + (k/m)x = 0
+          <br>
+          y¨ + (k/m)y = 0
+          <br><br>
+          x(t) = A cos(ωt) + B sin(ωt)
+          <br>
+          y(t) = C cos(ωt) + D sin(ωt)
+          <br><br>
+          ω = √(k/m)
+          <br><br>
+          E = (1/2)m(ẋ² + ẏ²) + (k/2)(x² + y²)
+        </div>
+        <div class="step">
+          <strong>Interpretation:</strong>
+          The particle oscillates around the origin. The trajectory is usually an ellipse,
+          with special cases of a circle or a straight line.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="simulation">
+      <h2>Animated simulation</h2>
+      <div class="grid">
+        <div class="card span-7">
+          <canvas id="motionCanvas" width="900" height="520"></canvas>
+        </div>
+        <div class="card span-5">
+          <div class="status"><span class="dot"></span> Live motion</div>
+
+          <div class="controls">
+            <div class="field">
+              <label for="k">k</label>
+              <input id="k" type="number" step="0.1" value="2" />
+            </div>
+            <div class="field">
+              <label for="m">m</label>
+              <input id="m" type="number" step="0.1" value="1" />
+            </div>
+            <div class="field">
+              <label for="x0">x(0)</label>
+              <input id="x0" type="number" step="0.1" value="2" />
+            </div>
+            <div class="field">
+              <label for="y0">y(0)</label>
+              <input id="y0" type="number" step="0.1" value="1" />
+            </div>
+            <div class="field">
+              <label for="vx0">vx(0)</label>
+              <input id="vx0" type="number" step="0.1" value="0" />
+            </div>
+            <div class="field">
+              <label for="vy0">vy(0)</label>
+              <input id="vy0" type="number" step="0.1" value="2" />
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <button class="primary" id="applyBtn">Apply values</button>
+            <button class="ghost" id="playPauseBtn">Pause</button>
+            <button class="ghost" id="resetBtn">Reset</button>
+          </div>
+
+          <div class="energy-boxes">
+            <div class="energy">
+              <div class="label">Angular frequency</div>
+              <div class="value" id="omegaVal">1.414</div>
+              <div class="small">ω = √(k/m)</div>
+            </div>
+            <div class="energy">
+              <div class="label">Kinetic energy</div>
+              <div class="value" id="TVal">0.00</div>
+              <div class="small">T = (1/2)m(vx² + vy²)</div>
+            </div>
+            <div class="energy">
+              <div class="label">Potential energy</div>
+              <div class="value" id="UVal">0.00</div>
+              <div class="small">U = (k/2)(x² + y²)</div>
+            </div>
+            <div class="energy">
+              <div class="label">Total energy</div>
+              <div class="value" id="EVal">0.00</div>
+              <div class="small">E = T + U</div>
+            </div>
+          </div>
+
+          <div class="step" id="equationBox">
+            x(t) = A cos(ωt) + B sin(ωt)<br>
+            y(t) = C cos(ωt) + D sin(ωt)
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">
+    Interactive explanation of Problem 9 – Potential and conservative field
+  </div>
+
+  <script>
+    const typeText = "Problem 9 – Potential and Conservative Field";
+    const typeTarget = document.getElementById("typeTarget");
+    let typeIndex = 0;
+
+    function typeWriter() {
+      if (typeIndex <= typeText.length) {
+        typeTarget.innerHTML = '<span class="typed">' + typeText.slice(0, typeIndex) + '</span>';
+        typeIndex++;
+        setTimeout(typeWriter, 42);
+      } else {
+        typeTarget.textContent = typeText;
+      }
+    }
+    typeWriter();
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.section').forEach(section => observer.observe(section));
+
+    const canvas = document.getElementById('motionCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const inputs = {
+      k: document.getElementById('k'),
+      m: document.getElementById('m'),
+      x0: document.getElementById('x0'),
+      y0: document.getElementById('y0'),
+      vx0: document.getElementById('vx0'),
+      vy0: document.getElementById('vy0')
+    };
+
+    const omegaVal = document.getElementById('omegaVal');
+    const TVal = document.getElementById('TVal');
+    const UVal = document.getElementById('UVal');
+    const EVal = document.getElementById('EVal');
+    const equationBox = document.getElementById('equationBox');
+    const applyBtn = document.getElementById('applyBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let params = {
+      k: 2,
+      m: 1,
+      x0: 2,
+      y0: 1,
+      vx0: 0,
+      vy0: 2
+    };
+
+    let omega = Math.sqrt(params.k / params.m);
+    let time = 0;
+    let running = true;
+    let lastFrame = performance.now();
+    let trace = [];
+
+    function readInputs() {
+      params.k = Math.max(0.0001, parseFloat(inputs.k.value) || 2);
+      params.m = Math.max(0.0001, parseFloat(inputs.m.value) || 1);
+      params.x0 = parseFloat(inputs.x0.value) || 0;
+      params.y0 = parseFloat(inputs.y0.value) || 0;
+      params.vx0 = parseFloat(inputs.vx0.value) || 0;
+      params.vy0 = parseFloat(inputs.vy0.value) || 0;
+      omega = Math.sqrt(params.k / params.m);
+      time = 0;
+      trace = [];
+      updateInfo(0);
+    }
+
+    function stateAt(t) {
+      const x = params.x0 * Math.cos(omega * t) + (params.vx0 / omega) * Math.sin(omega * t);
+      const y = params.y0 * Math.cos(omega * t) + (params.vy0 / omega) * Math.sin(omega * t);
+      const vx = -params.x0 * omega * Math.sin(omega * t) + params.vx0 * Math.cos(omega * t);
+      const vy = -params.y0 * omega * Math.sin(omega * t) + params.vy0 * Math.cos(omega * t);
+      return { x, y, vx, vy };
+    }
+
+    function updateInfo(t) {
+      const s = stateAt(t);
+      const T = 0.5 * params.m * (s.vx * s.vx + s.vy * s.vy);
+      const U = 0.5 * params.k * (s.x * s.x + s.y * s.y);
+      const E = T + U;
+
+      omegaVal.textContent = omega.toFixed(3);
+      TVal.textContent = T.toFixed(3);
+      UVal.textContent = U.toFixed(3);
+      EVal.textContent = E.toFixed(3);
+
+      equationBox.innerHTML = `
+        <strong>Current equations:</strong><br><br>
+        x(t) = ${params.x0.toFixed(2)} cos(${omega.toFixed(3)}t) + ${(params.vx0 / omega).toFixed(2)} sin(${omega.toFixed(3)}t)<br>
+        y(t) = ${params.y0.toFixed(2)} cos(${omega.toFixed(3)}t) + ${(params.vy0 / omega).toFixed(2)} sin(${omega.toFixed(3)}t)
+      `;
+    }
+
+    function drawGrid(cx, cy, scale) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+      ctx.lineWidth = 1;
+      for (let i = -10; i <= 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, cy + i * scale);
+        ctx.lineTo(canvas.width, cy + i * scale);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + i * scale, 0);
+        ctx.lineTo(cx + i * scale, canvas.height);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawAxes(cx, cy) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.38)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, cy);
+      ctx.lineTo(canvas.width, cy);
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, canvas.height);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawArrow(x1, y1, x2, y2, color) {
+      const headLength = 10;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const angle = Math.atan2(dy, dx);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2.2;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function animate(now) {
+      const dt = Math.min(0.03, (now - lastFrame) / 1000);
+      lastFrame = now;
+      if (running) time += dt;
+
+      const s = stateAt(time);
+      updateInfo(time);
+
+      const amp = Math.max(
+        1,
+        Math.abs(params.x0),
+        Math.abs(params.y0),
+        Math.abs(params.vx0 / omega),
+        Math.abs(params.vy0 / omega)
+      );
+      const scale = Math.min(canvas.width, canvas.height) * 0.32 / amp;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGrid(cx, cy, scale);
+      drawAxes(cx, cy);
+
+      const px = cx + s.x * scale;
+      const py = cy - s.y * scale;
+
+      trace.push({ x: px, y: py });
+      if (trace.length > 1000) trace.shift();
+
+      ctx.save();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.95)';
+      ctx.beginPath();
+      for (let i = 0; i < trace.length; i++) {
+        const p = trace[i];
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.save();
+      const glow = ctx.createRadialGradient(px, py, 2, px, py, 18);
+      glow.addColorStop(0, 'rgba(96,165,250,0.95)');
+      glow.addColorStop(1, 'rgba(96,165,250,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(px, py, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = '#60a5fa';
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const forceScale = 0.18;
+      const velScale = 0.18;
+      drawArrow(px, py, px + (params.m * s.vx) * velScale * scale, py - (params.m * s.vy) * velScale * scale, '#34d399');
+      drawArrow(px, py, px + (-params.k * s.x) * forceScale * scale, py - (-params.k * s.y) * forceScale * scale, '#f87171');
+
+      ctx.save();
+      ctx.fillStyle = '#34d399';
+      ctx.font = '14px Inter, Arial';
+      ctx.fillText('velocity', px + 12, py - 16);
+      ctx.fillStyle = '#f87171';
+      ctx.fillText('force', px + 12, py + 18);
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.78)';
+      ctx.font = '14px Inter, Arial';
+      ctx.fillText('origin', cx + 10, cy - 10);
+      ctx.restore();
+
+      requestAnimationFrame(animate);
+    }
+
+    applyBtn.addEventListener('click', readInputs);
+
+    playPauseBtn.addEventListener('click', () => {
+      running = !running;
+      playPauseBtn.textContent = running ? 'Pause' : 'Play';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      time = 0;
+      trace = [];
+      updateInfo(0);
+    });
+
+    readInputs();
+    requestAnimationFrame((t) => {
+      lastFrame = t;
+      animate(t);
+    });
+  </script>
+</body>
+</html>

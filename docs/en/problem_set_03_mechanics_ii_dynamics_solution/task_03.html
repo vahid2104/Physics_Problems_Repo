@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 3 – Work of a Variable Force</title>
+  <style>
+    :root {
+      --bg1: #0f172a;
+      --bg2: #111827;
+      --panel: rgba(255,255,255,0.08);
+      --panel-border: rgba(255,255,255,0.12);
+      --text: #e5eefc;
+      --muted: #b7c4dd;
+      --accent: #60a5fa;
+      --accent2: #34d399;
+      --accent3: #fbbf24;
+      --danger: #f87171;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(52,211,153,0.12), transparent 24%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 60px;
+    }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 24px;
+      align-items: center;
+      padding: 24px 0 12px;
+    }
+
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 34px;
+      animation: riseIn 1s ease both;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(96,165,250,0.14);
+      border: 1px solid rgba(96,165,250,0.28);
+      color: #d7e7ff;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2.1rem, 4vw, 4rem);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 700px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      color: white;
+      box-shadow: 0 12px 30px rgba(59,130,246,0.28);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .sim-card {
+      padding: 18px;
+      animation: floatIn 1.2s ease both 0.2s;
+    }
+
+    .sim-title {
+      margin: 4px 0 14px;
+      font-size: 1.08rem;
+      color: #d9e9ff;
+      font-weight: 700;
+    }
+
+    .sim-desc {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .sim-canvas-wrap {
+      background: linear-gradient(180deg, rgba(9,15,30,0.9), rgba(15,23,42,0.88));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .sim-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background:
+        radial-gradient(circle at top, rgba(96,165,250,0.08), transparent 35%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+
+    .controls {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .control-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+    }
+
+    .control-box label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.92rem;
+      color: #dce7fb;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+
+    .control-box .value {
+      color: #8fd3ff;
+      font-weight: 700;
+      min-width: 54px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #60a5fa;
+      cursor: pointer;
+    }
+
+    .control-buttons {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .live-readout {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .readout {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .readout .label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .readout .num {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ebf4ff;
+    }
+
+    .section {
+      margin-top: 28px;
+      padding: 30px;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: 0.8s ease;
+    }
+
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+    }
+
+    .section p, .section li {
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .step-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px;
+      height: 100%;
+      transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .step-box:hover {
+      transform: translateY(-4px);
+      border-color: rgba(96,165,250,0.35);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(52,211,153,0.12);
+      color: #c7f9e7;
+      border: 1px solid rgba(52,211,153,0.2);
+      font-size: 0.82rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .math {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(10,16,30,0.92), rgba(18,28,48,0.94));
+      border: 1px solid rgba(96,165,250,0.16);
+      overflow-x: auto;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .formula {
+      font-family: "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+      color: #f2f7ff;
+      font-size: 1.18rem;
+      line-height: 1.8;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .formula strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .formula .op {
+      color: #9dd0ff;
+    }
+
+    .formula-line {
+      opacity: 0;
+      transform: translateX(-16px);
+      animation: revealLine 0.8s ease forwards;
+    }
+
+    .formula-line:nth-child(1) { animation-delay: 0.1s; }
+    .formula-line:nth-child(2) { animation-delay: 0.35s; }
+    .formula-line:nth-child(3) { animation-delay: 0.6s; }
+    .formula-line:nth-child(4) { animation-delay: 0.85s; }
+    .formula-line:nth-child(5) { animation-delay: 1.1s; }
+
+    .graph-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 18px;
+    }
+
+    .graph-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    canvas.graph {
+      width: 100%;
+      height: 320px;
+      display: block;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(15,23,42,0.7), rgba(17,24,39,0.9));
+    }
+
+    .small-note {
+      color: #dbeafe;
+      font-size: 0.95rem;
+      margin-top: 12px;
+      line-height: 1.65;
+    }
+
+    .mini-controls {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mini-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .mini-box label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+      color: #dce7fb;
+      margin-bottom: 8px;
+    }
+
+    .mini-value {
+      color: #93c5fd;
+      font-weight: 700;
+    }
+
+    .graph-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      grid-column: 1 / -1;
+    }
+
+    .explain-box {
+      margin-top: 12px;
+      background: rgba(8,12,24,0.56);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #dce8fb;
+      line-height: 1.65;
+      font-size: 0.94rem;
+      min-height: 86px;
+    }
+
+    .final-box {
+      padding: 24px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(96,165,250,0.15), rgba(52,211,153,0.1));
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .summary-list {
+      margin: 12px 0 0;
+      padding-left: 18px;
+    }
+
+    .floating-dot {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(96,165,250,0.5);
+      filter: blur(1px);
+      animation: drift linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(35px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(40px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes revealLine {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes drift {
+      from { transform: translateY(100vh) scale(0.7); opacity: 0; }
+      10% { opacity: 1; }
+      to { transform: translateY(-15vh) scale(1.3); opacity: 0; }
+    }
+
+    @media (max-width: 980px) {
+      .hero, .grid-2, .graph-grid, .controls, .live-readout, .mini-controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .wrapper { width: min(100% - 18px, 1180px); }
+      .hero-card, .section, .sim-card { padding: 22px; }
+      .formula { font-size: 1.02rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="wrapper">
+    <section class="hero">
+      <div class="hero-card glass">
+        <div class="eyebrow">Physics presentation • Variable force</div>
+        <h1>Problem 3 – Work of a Variable Force</h1>
+        <p class="subtitle">
+          We study the one-dimensional force <strong>F(x) = -kx</strong>. This page explains the full solution step by step,
+          with an interactive spring animation, live controls, work calculation, potential energy, and interactive graphs of
+          <strong>F(x)</strong> and <strong>U(x)</strong>.
+        </p>
+
+        <div class="math">
+          <div class="formula">
+            <div><strong>Given force:</strong> F(x) = −kx</div>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#step1">Start explanation</a>
+          <button class="btn btn-secondary" id="scrollSim">Go to simulation</button>
+        </div>
+      </div>
+
+      <div class="sim-card glass" id="simSection">
+        <div class="sim-title">Interactive spring–mass animation</div>
+        <div class="sim-desc">
+          Change <strong>k</strong>, <strong>m</strong>, amplitude, and speed. The motion updates immediately, so the animation depends on your values.
+        </div>
+
+        <div class="sim-canvas-wrap">
+          <canvas id="simCanvas" class="sim-canvas" width="560" height="360"></canvas>
+        </div>
+
+        <div class="controls">
+          <div class="control-box">
+            <label for="kRange">
+              <span>Spring constant k</span>
+              <span class="value" id="kVal">2.0</span>
+            </label>
+            <input id="kRange" type="range" min="0.5" max="8" step="0.1" value="2.0">
+          </div>
+
+          <div class="control-box">
+            <label for="mRange">
+              <span>Mass m</span>
+              <span class="value" id="mVal">1.0</span>
+            </label>
+            <input id="mRange" type="range" min="0.5" max="6" step="0.1" value="1.0">
+          </div>
+
+          <div class="control-box">
+            <label for="aRange">
+              <span>Amplitude A</span>
+              <span class="value" id="aVal">1.6</span>
+            </label>
+            <input id="aRange" type="range" min="0.3" max="3.0" step="0.1" value="1.6">
+          </div>
+
+          <div class="control-box">
+            <label for="speedRange">
+              <span>Animation speed</span>
+              <span class="value" id="speedVal">1.0×</span>
+            </label>
+            <input id="speedRange" type="range" min="0.2" max="3" step="0.1" value="1.0">
+          </div>
+
+          <div class="control-buttons">
+            <button class="btn btn-primary" id="playPauseBtn">Pause animation</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset time</button>
+          </div>
+        </div>
+
+        <div class="live-readout">
+          <div class="readout">
+            <div class="label">Position x(t)</div>
+            <div class="num" id="xOut">0.00</div>
+          </div>
+          <div class="readout">
+            <div class="label">Velocity v(t)</div>
+            <div class="num" id="vOut">0.00</div>
+          </div>
+          <div class="readout">
+            <div class="label">Force F(t)</div>
+            <div class="num" id="fOut">0.00</div>
+          </div>
+          <div class="readout">
+            <div class="label">ω = √(k/m)</div>
+            <div class="num" id="wOut">0.00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="step1">
+      <h2>1. Equation of motion</h2>
+      <div class="grid-2">
+        <div class="step-box">
+          <div class="tag">Start from Newton’s second law</div>
+          <p>In one dimension, Newton’s second law is:</p>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line">F = ma</div>
+              <div class="formula-line">a = d<span class="op">²</span>x / dt<span class="op">²</span></div>
+              <div class="formula-line">m(d<span class="op">²</span>x / dt<span class="op">²</span>) = F(x)</div>
+              <div class="formula-line">m(d<span class="op">²</span>x / dt<span class="op">²</span>) = −kx</div>
+              <div class="formula-line"><strong>d<span class="op">²</span>x / dt<span class="op">²</span> + (k/m)x = 0</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="tag">Meaning</div>
+          <p>
+            The force is proportional to position, but with a minus sign. That means the force always points back toward
+            the origin. This is called a <strong>restoring force</strong>.
+          </p>
+          <p>
+            So the body does not keep moving away forever. Instead, it oscillates around <strong>x = 0</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="step2">
+      <h2>2. Solve the equation of motion</h2>
+      <div class="grid-2">
+        <div class="step-box">
+          <div class="tag">Define angular frequency</div>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line">ω = √(k/m)</div>
+              <div class="formula-line">Then the equation becomes:</div>
+              <div class="formula-line">d<span class="op">²</span>x / dt<span class="op">²</span> + ω<span class="op">²</span>x = 0</div>
+            </div>
+          </div>
+          <p>This is the standard equation of simple harmonic motion.</p>
+        </div>
+
+        <div class="step-box">
+          <div class="tag">General solution</div>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line">x(t) = A cos(ωt) + B sin(ωt)</div>
+              <div class="formula-line">So:</div>
+              <div class="formula-line"><strong>x(t) = A cos(√(k/m) t) + B sin(√(k/m) t)</strong></div>
+            </div>
+          </div>
+          <p>
+            The constants <strong>A</strong> and <strong>B</strong> depend on the initial position and initial velocity.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="step3">
+      <h2>3. Work done from 0 to x₀</h2>
+      <div class="grid-2">
+        <div class="step-box">
+          <div class="tag">Formula for variable force</div>
+          <p>In one dimension, work done by a variable force is:</p>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line">W = ∫<sub>0</sub><sup>x₀</sup> F(x) dx</div>
+              <div class="formula-line">W = ∫<sub>0</sub><sup>x₀</sup> (−kx) dx</div>
+              <div class="formula-line">W = −k ∫<sub>0</sub><sup>x₀</sup> x dx</div>
+              <div class="formula-line">W = −k [x<span class="op">²</span>/2]<sub>0</sub><sup>x₀</sup></div>
+              <div class="formula-line"><strong>W = −(1/2)kx₀<span class="op">²</span></strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="tag">Interpret the sign</div>
+          <p>
+            The work is <strong>negative</strong>. That happens because when the body moves to the right, the force points to the left.
+            So the force opposes the displacement.
+          </p>
+          <p>
+            In simple words: the spring resists being stretched.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="step4">
+      <h2>4. Interpret the result as potential energy</h2>
+      <div class="grid-2">
+        <div class="step-box">
+          <div class="tag">Conservative force idea</div>
+          <p>For a conservative force, the change in potential energy is:</p>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line">ΔU = −W</div>
+              <div class="formula-line">ΔU = (1/2)kx₀<span class="op">²</span></div>
+            </div>
+          </div>
+          <p>If we choose <strong>U(0) = 0</strong>, then the potential energy function becomes:</p>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line"><strong>U(x) = (1/2)kx<span class="op">²</span></strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="tag">Meaning</div>
+          <p>
+            At the origin, the potential energy is minimum. As the object moves farther from the origin,
+            the potential energy increases.
+          </p>
+          <p>
+            So the spring stores more energy when it is stretched or compressed more.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="step5">
+      <h2>5. Verify that F = −dU/dx</h2>
+      <div class="grid-2">
+        <div class="step-box">
+          <div class="tag">Differentiate U(x)</div>
+          <div class="math">
+            <div class="formula">
+              <div class="formula-line">U(x) = (1/2)kx<span class="op">²</span></div>
+              <div class="formula-line">dU/dx = d/dx [(1/2)kx<span class="op">²</span>]</div>
+              <div class="formula-line">dU/dx = kx</div>
+              <div class="formula-line">−dU/dx = −kx</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="tag">Conclusion</div>
+          <p>But the given force is:</p>
+          <div class="math">
+            <div class="formula">F(x) = −kx</div>
+          </div>
+          <p>Therefore:</p>
+          <div class="math">
+            <div class="formula"><strong>F(x) = −dU/dx</strong></div>
+          </div>
+          <p>The relationship is verified correctly.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="step6">
+      <h2>6. Graphs of F(x) and U(x)</h2>
+      <p>
+        Now both graphs are also interactive. You can change the values and actively explain what happens when x becomes positive,
+        negative, or zero.
+      </p>
+
+      <div class="graph-grid">
+        <div class="graph-card">
+          <h3>Interactive graph of F(x) = −kx</h3>
+          <canvas id="forceCanvas" class="graph" width="520" height="320"></canvas>
+
+          <div class="mini-controls">
+            <div class="mini-box">
+              <label>
+                <span>k value</span>
+                <span class="mini-value" id="forceKVal">1.5</span>
+              </label>
+              <input id="forceKRange" type="range" min="0.5" max="5" step="0.1" value="1.5">
+            </div>
+
+            <div class="mini-box">
+              <label>
+                <span>current x</span>
+                <span class="mini-value" id="forceXVal">1.0</span>
+              </label>
+              <input id="forceXRange" type="range" min="-4" max="4" step="0.1" value="1.0">
+            </div>
+
+            <div class="mini-box">
+              <label>
+                <span>animation speed</span>
+                <span class="mini-value" id="forceSpeedVal">1.0×</span>
+              </label>
+              <input id="forceSpeedRange" type="range" min="0.2" max="3" step="0.1" value="1.0">
+            </div>
+
+            <div class="graph-buttons">
+              <button class="btn btn-primary" id="forcePlayBtn">Pause graph</button>
+              <button class="btn btn-secondary" id="forceAutoBtn">Auto move: ON</button>
+            </div>
+          </div>
+
+          <div class="explain-box" id="forceExplain">
+            Waiting for values...
+          </div>
+        </div>
+
+        <div class="graph-card">
+          <h3>Interactive graph of U(x) = 1/2 kx²</h3>
+          <canvas id="energyCanvas" class="graph" width="520" height="320"></canvas>
+
+          <div class="mini-controls">
+            <div class="mini-box">
+              <label>
+                <span>k value</span>
+                <span class="mini-value" id="energyKVal">1.5</span>
+              </label>
+              <input id="energyKRange" type="range" min="0.5" max="5" step="0.1" value="1.5">
+            </div>
+
+            <div class="mini-box">
+              <label>
+                <span>current x</span>
+                <span class="mini-value" id="energyXVal">1.0</span>
+              </label>
+              <input id="energyXRange" type="range" min="-4" max="4" step="0.1" value="1.0">
+            </div>
+
+            <div class="mini-box">
+              <label>
+                <span>animation speed</span>
+                <span class="mini-value" id="energySpeedVal">1.0×</span>
+              </label>
+              <input id="energySpeedRange" type="range" min="0.2" max="3" step="0.1" value="1.0">
+            </div>
+
+            <div class="graph-buttons">
+              <button class="btn btn-primary" id="energyPlayBtn">Pause graph</button>
+              <button class="btn btn-secondary" id="energyAutoBtn">Auto move: ON</button>
+            </div>
+          </div>
+
+          <div class="explain-box" id="energyExplain">
+            Waiting for values...
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section glass" id="final">
+      <h2>Final answers</h2>
+      <div class="final-box">
+        <div class="math">
+          <div class="formula">
+            <div><strong>m(d²x/dt²) = −kx</strong></div>
+            <div><strong>d²x/dt² + (k/m)x = 0</strong></div>
+            <div><strong>x(t) = A cos(√(k/m) t) + B sin(√(k/m) t)</strong></div>
+            <div><strong>W = −(1/2)kx₀²</strong></div>
+            <div><strong>U(x) = (1/2)kx²</strong></div>
+            <div><strong>F(x) = −dU/dx</strong></div>
+          </div>
+        </div>
+
+        <ul class="summary-list">
+          <li>The motion is simple harmonic motion.</li>
+          <li>The force is a restoring force.</li>
+          <li>The work from 0 to x₀ is negative.</li>
+          <li>The corresponding potential energy is quadratic in x.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const sections = document.querySelectorAll('.section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.16 });
+    sections.forEach(section => observer.observe(section));
+
+    for (let i = 0; i < 18; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'floating-dot';
+      dot.style.left = Math.random() * 100 + 'vw';
+      dot.style.animationDuration = (10 + Math.random() * 16) + 's';
+      dot.style.animationDelay = (Math.random() * 8) + 's';
+      dot.style.opacity = 0.4 + Math.random() * 0.4;
+      document.body.appendChild(dot);
+    }
+
+    document.getElementById('scrollSim').addEventListener('click', () => {
+      document.getElementById('simSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // -------- FIRST ANIMATION --------
+    const simCanvas = document.getElementById('simCanvas');
+    const sctx = simCanvas.getContext('2d');
+
+    const kRange = document.getElementById('kRange');
+    const mRange = document.getElementById('mRange');
+    const aRange = document.getElementById('aRange');
+    const speedRange = document.getElementById('speedRange');
+
+    const kVal = document.getElementById('kVal');
+    const mVal = document.getElementById('mVal');
+    const aVal = document.getElementById('aVal');
+    const speedVal = document.getElementById('speedVal');
+
+    const xOut = document.getElementById('xOut');
+    const vOut = document.getElementById('vOut');
+    const fOut = document.getElementById('fOut');
+    const wOut = document.getElementById('wOut');
+
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let simTime = 0;
+    let running = true;
+    let lastFrame = performance.now();
+
+    function getParams() {
+      return {
+        k: parseFloat(kRange.value),
+        m: parseFloat(mRange.value),
+        A: parseFloat(aRange.value),
+        speed: parseFloat(speedRange.value)
+      };
+    }
+
+    function updateLabels() {
+      const p = getParams();
+      kVal.textContent = p.k.toFixed(1);
+      mVal.textContent = p.m.toFixed(1);
+      aVal.textContent = p.A.toFixed(1);
+      speedVal.textContent = p.speed.toFixed(1) + '×';
+      wOut.textContent = Math.sqrt(p.k / p.m).toFixed(2);
+    }
+
+    [kRange, mRange, aRange, speedRange].forEach(el => {
+      el.addEventListener('input', updateLabels);
+    });
+
+    playPauseBtn.addEventListener('click', () => {
+      running = !running;
+      playPauseBtn.textContent = running ? 'Pause animation' : 'Play animation';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      simTime = 0;
+    });
+
+    function drawSpring(ctx, x1, x2, y, coils, amp) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      const len = x2 - x1;
+      const step = len / (coils * 2 + 2);
+      ctx.lineTo(x1 + step, y);
+      for (let i = 0; i < coils * 2; i++) {
+        const px = x1 + step * (i + 1);
+        const py = y + (i % 2 === 0 ? -amp : amp);
+        ctx.lineTo(px, py);
+      }
+      ctx.lineTo(x2 - step, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+    }
+
+    function drawArrow(ctx, x, y, length, direction, color) {
+      const sign = direction >= 0 ? 1 : -1;
+      const endX = x + sign * length;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(endX, y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(endX, y);
+      ctx.lineTo(endX - sign * 14, y - 8);
+      ctx.lineTo(endX - sign * 14, y + 8);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawSimulation(now) {
+      const p = getParams();
+      const dt = Math.min((now - lastFrame) / 1000, 0.03);
+      lastFrame = now;
+
+      if (running) simTime += dt * p.speed;
+
+      const w = simCanvas.width;
+      const h = simCanvas.height;
+      sctx.clearRect(0, 0, w, h);
+
+      const grad = sctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(13,20,38,1)');
+      grad.addColorStop(1, 'rgba(15,23,42,1)');
+      sctx.fillStyle = grad;
+      sctx.fillRect(0, 0, w, h);
+
+      sctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      sctx.lineWidth = 1;
+      for (let gx = 0; gx <= w; gx += 40) {
+        sctx.beginPath();
+        sctx.moveTo(gx, 0);
+        sctx.lineTo(gx, h);
+        sctx.stroke();
+      }
+      for (let gy = 0; gy <= h; gy += 40) {
+        sctx.beginPath();
+        sctx.moveTo(0, gy);
+        sctx.lineTo(w, gy);
+        sctx.stroke();
+      }
+
+      const omega = Math.sqrt(p.k / p.m);
+      const x = p.A * Math.cos(omega * simTime);
+      const v = -p.A * omega * Math.sin(omega * simTime);
+      const F = -p.k * x;
+
+      xOut.textContent = x.toFixed(2);
+      vOut.textContent = v.toFixed(2);
+      fOut.textContent = F.toFixed(2);
+      wOut.textContent = omega.toFixed(2);
+
+      const midY = 190;
+      const wallX = 52;
+      const eqX = 250;
+      const pxPerUnit = 65;
+      const massX = eqX + x * pxPerUnit;
+      const massY = midY - 36;
+      const massW = 82;
+      const massH = 72;
+      const springStart = wallX + 22;
+      const springEnd = massX;
+      const forceDirection = F === 0 ? 0 : Math.sign(F);
+
+      sctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      sctx.lineWidth = 7;
+      sctx.lineCap = 'round';
+      sctx.beginPath();
+      sctx.moveTo(40, midY + 38);
+      sctx.lineTo(w - 40, midY + 38);
+      sctx.stroke();
+
+      const wallGrad = sctx.createLinearGradient(wallX, 80, wallX + 22, 280);
+      wallGrad.addColorStop(0, '#9fb2c9');
+      wallGrad.addColorStop(1, '#64748b');
+      sctx.fillStyle = wallGrad;
+      sctx.fillRect(wallX, 90, 22, 150);
+
+      sctx.strokeStyle = 'rgba(251,191,36,0.55)';
+      sctx.setLineDash([6, 8]);
+      sctx.lineWidth = 2;
+      sctx.beginPath();
+      sctx.moveTo(eqX + massW / 2, 42);
+      sctx.lineTo(eqX + massW / 2, 320);
+      sctx.stroke();
+      sctx.setLineDash([]);
+
+      sctx.fillStyle = '#fde68a';
+      sctx.font = 'bold 14px Inter, Arial';
+      sctx.fillText('equilibrium x = 0', eqX - 24, 32);
+
+      sctx.strokeStyle = '#60a5fa';
+      sctx.lineWidth = 4;
+      sctx.shadowColor = 'rgba(96,165,250,0.4)';
+      sctx.shadowBlur = 12;
+      drawSpring(sctx, springStart, springEnd, midY, 10, 18);
+      sctx.shadowBlur = 0;
+
+      const massGrad = sctx.createLinearGradient(massX, massY, massX + massW, massY + massH);
+      massGrad.addColorStop(0, '#34d399');
+      massGrad.addColorStop(1, '#059669');
+      sctx.fillStyle = massGrad;
+      sctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      sctx.lineWidth = 2;
+      sctx.beginPath();
+      sctx.roundRect(massX, massY, massW, massH, 18);
+      sctx.fill();
+      sctx.stroke();
+
+      sctx.fillStyle = 'white';
+      sctx.font = 'bold 26px Inter, Arial';
+      sctx.fillText('m', massX + 31, massY + 44);
+
+      const centerMass = massX + massW / 2;
+      sctx.strokeStyle = '#fbbf24';
+      sctx.fillStyle = '#fbbf24';
+      sctx.lineWidth = 3;
+      sctx.beginPath();
+      sctx.moveTo(eqX + massW / 2, 288);
+      sctx.lineTo(centerMass, 288);
+      sctx.stroke();
+      if (Math.abs(centerMass - (eqX + massW / 2)) > 8) {
+        const dir = centerMass > (eqX + massW / 2) ? 1 : -1;
+        sctx.beginPath();
+        sctx.moveTo(centerMass, 288);
+        sctx.lineTo(centerMass - dir * 12, 281);
+        sctx.lineTo(centerMass - dir * 12, 295);
+        sctx.closePath();
+        sctx.fill();
+      }
+      sctx.font = 'bold 15px Inter, Arial';
+      sctx.fillText('x', (centerMass + eqX + massW / 2) / 2 - 4, 278);
+
+      if (forceDirection !== 0) {
+        drawArrow(sctx, centerMass, massY - 18, Math.min(75, 22 + Math.abs(F) * 16), forceDirection, '#f87171');
+        sctx.fillStyle = '#fecaca';
+        sctx.font = 'bold 14px Inter, Arial';
+        sctx.fillText('F = −kx', centerMass - 26, massY - 30);
+      }
+
+      sctx.fillStyle = '#dce8fb';
+      sctx.font = '600 15px Inter, Arial';
+      sctx.fillText('x(t) = A cos(ωt)', 26, 28);
+      sctx.fillText('ω = √(k/m)', 26, 50);
+
+      sctx.fillStyle = 'rgba(8,12,24,0.72)';
+      sctx.beginPath();
+      sctx.roundRect(w - 170, 18, 138, 104, 14);
+      sctx.fill();
+
+      sctx.fillStyle = '#eaf2ff';
+      sctx.font = '600 13px Inter, Arial';
+      sctx.fillText('Live values', w - 146, 40);
+      sctx.font = '13px Inter, Arial';
+      sctx.fillText('x = ' + x.toFixed(2), w - 146, 63);
+      sctx.fillText('v = ' + v.toFixed(2), w - 146, 83);
+      sctx.fillText('F = ' + F.toFixed(2), w - 146, 103);
+
+      requestAnimationFrame(drawSimulation);
+    }
+
+    updateLabels();
+    requestAnimationFrame((t) => {
+      lastFrame = t;
+      drawSimulation(t);
+    });
+
+    // -------- INTERACTIVE SECTION 6 --------
+    const forceCanvas = document.getElementById('forceCanvas');
+    const energyCanvas = document.getElementById('energyCanvas');
+    const fctx = forceCanvas.getContext('2d');
+    const ectx = energyCanvas.getContext('2d');
+
+    const forceKRange = document.getElementById('forceKRange');
+    const forceXRange = document.getElementById('forceXRange');
+    const forceSpeedRange = document.getElementById('forceSpeedRange');
+    const forceKVal = document.getElementById('forceKVal');
+    const forceXVal = document.getElementById('forceXVal');
+    const forceSpeedVal = document.getElementById('forceSpeedVal');
+    const forceExplain = document.getElementById('forceExplain');
+    const forcePlayBtn = document.getElementById('forcePlayBtn');
+    const forceAutoBtn = document.getElementById('forceAutoBtn');
+
+    const energyKRange = document.getElementById('energyKRange');
+    const energyXRange = document.getElementById('energyXRange');
+    const energySpeedRange = document.getElementById('energySpeedRange');
+    const energyKVal = document.getElementById('energyKVal');
+    const energyXVal = document.getElementById('energyXVal');
+    const energySpeedVal = document.getElementById('energySpeedVal');
+    const energyExplain = document.getElementById('energyExplain');
+    const energyPlayBtn = document.getElementById('energyPlayBtn');
+    const energyAutoBtn = document.getElementById('energyAutoBtn');
+
+    let forceGraphPlaying = true;
+    let forceGraphAuto = true;
+    let forceGraphT = 0;
+
+    let energyGraphPlaying = true;
+    let energyGraphAuto = true;
+    let energyGraphT = 0;
+
+    function drawAxes(ctx, w, h, labelX, labelY) {
+      ctx.clearRect(0, 0, w, h);
+
+      const grad = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, Math.max(w,h));
+      grad.addColorStop(0, 'rgba(96,165,250,0.06)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= w; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= h; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      const ox = w / 2;
+      const oy = h / 2;
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(30, oy);
+      ctx.lineTo(w - 20, oy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ox, h - 24);
+      ctx.lineTo(ox, 20);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(229,238,252,0.9)';
+      ctx.font = '14px Inter, Arial';
+      ctx.fillText(labelX, w - 18, oy - 8);
+      ctx.fillText(labelY, ox + 10, 18);
+      ctx.fillText('0', ox + 8, oy + 18);
+    }
+
+    function updateSection6Labels() {
+      forceKVal.textContent = parseFloat(forceKRange.value).toFixed(1);
+      forceXVal.textContent = parseFloat(forceXRange.value).toFixed(1);
+      forceSpeedVal.textContent = parseFloat(forceSpeedRange.value).toFixed(1) + '×';
+
+      energyKVal.textContent = parseFloat(energyKRange.value).toFixed(1);
+      energyXVal.textContent = parseFloat(energyXRange.value).toFixed(1);
+      energySpeedVal.textContent = parseFloat(energySpeedRange.value).toFixed(1) + '×';
+    }
+
+    [forceKRange, forceXRange, forceSpeedRange, energyKRange, energyXRange, energySpeedRange]
+      .forEach(el => el.addEventListener('input', updateSection6Labels));
+
+    forcePlayBtn.addEventListener('click', () => {
+      forceGraphPlaying = !forceGraphPlaying;
+      forcePlayBtn.textContent = forceGraphPlaying ? 'Pause graph' : 'Play graph';
+    });
+
+    forceAutoBtn.addEventListener('click', () => {
+      forceGraphAuto = !forceGraphAuto;
+      forceAutoBtn.textContent = forceGraphAuto ? 'Auto move: ON' : 'Auto move: OFF';
+    });
+
+    energyPlayBtn.addEventListener('click', () => {
+      energyGraphPlaying = !energyGraphPlaying;
+      energyPlayBtn.textContent = energyGraphPlaying ? 'Pause graph' : 'Play graph';
+    });
+
+    energyAutoBtn.addEventListener('click', () => {
+      energyGraphAuto = !energyGraphAuto;
+      energyAutoBtn.textContent = energyGraphAuto ? 'Auto move: ON' : 'Auto move: OFF';
+    });
+
+    function explainForce(k, x) {
+      const F = -k * x;
+      let relationText = '';
+      if (x > 0) relationText = `x is positive, so F = -kx becomes negative. The force points to the left, back toward the origin.`;
+      else if (x < 0) relationText = `x is negative, so F = -kx becomes positive. The force points to the right, back toward the origin.`;
+      else relationText = `x = 0, so F = 0. At the equilibrium point, there is no restoring force.`;
+
+      return `
+        <strong>Current values:</strong> x = ${x.toFixed(2)}, k = ${k.toFixed(2)}, F = ${F.toFixed(2)}.<br>
+        ${relationText}<br>
+        <strong>Main idea:</strong> the sign of the force is always opposite to the sign of x.
+      `;
+    }
+
+    function explainEnergy(k, x) {
+      const U = 0.5 * k * x * x;
+      let relationText = '';
+      if (x > 0) relationText = `x is positive, but U stays positive because x² is positive.`;
+      else if (x < 0) relationText = `x is negative, but U is still positive because squaring x makes it positive.`;
+      else relationText = `x = 0 gives U = 0, which is the minimum potential energy.`;
+
+      return `
+        <strong>Current values:</strong> x = ${x.toFixed(2)}, k = ${k.toFixed(2)}, U = ${U.toFixed(2)}.<br>
+        ${relationText}<br>
+        <strong>Main idea:</strong> potential energy depends on x², so the graph is symmetric on both sides of the origin.
+      `;
+    }
+
+    function drawForceGraphInteractive() {
+      const w = forceCanvas.width;
+      const h = forceCanvas.height;
+      drawAxes(fctx, w, h, 'x', 'F');
+
+      const ox = w / 2;
+      const oy = h / 2;
+      const scaleX = 55;
+      const scaleY = 28;
+
+      const k = parseFloat(forceKRange.value);
+      const xCurrent = parseFloat(forceXRange.value);
+
+      fctx.beginPath();
+      let started = false;
+      for (let i = 0; i <= 240; i++) {
+        const x = -4 + 8 * (i / 240);
+        const y = -k * x;
+        const px = ox + x * scaleX;
+        const py = oy - y * scaleY;
+        if (!started) {
+          fctx.moveTo(px, py);
+          started = true;
+        } else {
+          fctx.lineTo(px, py);
+        }
+      }
+      fctx.strokeStyle = '#f87171';
+      fctx.lineWidth = 4;
+      fctx.shadowColor = 'rgba(248,113,113,0.35)';
+      fctx.shadowBlur = 14;
+      fctx.stroke();
+      fctx.shadowBlur = 0;
+
+      const yCurrent = -k * xCurrent;
+      const px = ox + xCurrent * scaleX;
+      const py = oy - yCurrent * scaleY;
+
+      fctx.strokeStyle = 'rgba(251,191,36,0.6)';
+      fctx.setLineDash([6, 6]);
+      fctx.beginPath();
+      fctx.moveTo(px, oy);
+      fctx.lineTo(px, py);
+      fctx.stroke();
+
+      fctx.beginPath();
+      fctx.moveTo(ox, py);
+      fctx.lineTo(px, py);
+      fctx.stroke();
+      fctx.setLineDash([]);
+
+      fctx.beginPath();
+      fctx.arc(px, py, 7, 0, Math.PI * 2);
+      fctx.fillStyle = '#fecaca';
+      fctx.fill();
+
+      fctx.fillStyle = '#e5eefc';
+      fctx.font = 'bold 14px Inter, Arial';
+      fctx.fillText(`x = ${xCurrent.toFixed(2)}`, px + 10, oy - 10);
+      fctx.fillText(`F = ${yCurrent.toFixed(2)}`, px + 10, py - 10);
+
+      forceExplain.innerHTML = explainForce(k, xCurrent);
+    }
+
+    function drawEnergyGraphInteractive() {
+      const w = energyCanvas.width;
+      const h = energyCanvas.height;
+      drawAxes(ectx, w, h, 'x', 'U');
+
+      const ox = w / 2;
+      const oy = h - 48;
+      const scaleX = 55;
+      const scaleY = 18;
+
+      const k = parseFloat(energyKRange.value);
+      const xCurrent = parseFloat(energyXRange.value);
+
+      ectx.beginPath();
+      let started = false;
+      for (let i = 0; i <= 260; i++) {
+        const x = -4 + 8 * (i / 260);
+        const y = 0.5 * k * x * x;
+        const px = ox + x * scaleX;
+        const py = oy - y * scaleY;
+        if (!started) {
+          ectx.moveTo(px, py);
+          started = true;
+        } else {
+          ectx.lineTo(px, py);
+        }
+      }
+      ectx.strokeStyle = '#34d399';
+      ectx.lineWidth = 4;
+      ectx.shadowColor = 'rgba(52,211,153,0.35)';
+      ectx.shadowBlur = 14;
+      ectx.stroke();
+      ectx.shadowBlur = 0;
+
+      const yCurrent = 0.5 * k * xCurrent * xCurrent;
+      const px = ox + xCurrent * scaleX;
+      const py = oy - yCurrent * scaleY;
+
+      ectx.strokeStyle = 'rgba(251,191,36,0.6)';
+      ectx.setLineDash([6, 6]);
+      ectx.beginPath();
+      ectx.moveTo(px, oy);
+      ectx.lineTo(px, py);
+      ectx.stroke();
+
+      ectx.beginPath();
+      ectx.moveTo(ox, py);
+      ectx.lineTo(px, py);
+      ectx.stroke();
+      ectx.setLineDash([]);
+
+      ectx.beginPath();
+      ectx.arc(px, py, 7, 0, Math.PI * 2);
+      ectx.fillStyle = '#bbf7d0';
+      ectx.fill();
+
+      ectx.fillStyle = '#e5eefc';
+      ectx.font = 'bold 14px Inter, Arial';
+      ectx.fillText(`x = ${xCurrent.toFixed(2)}`, px + 10, oy - 10);
+      ectx.fillText(`U = ${yCurrent.toFixed(2)}`, px + 10, py - 10);
+
+      energyExplain.innerHTML = explainEnergy(k, xCurrent);
+    }
+
+    function animateSection6() {
+      if (forceGraphPlaying && forceGraphAuto) {
+        forceGraphT += 0.018 * parseFloat(forceSpeedRange.value);
+        const x = 4 * Math.sin(forceGraphT);
+        forceXRange.value = x.toFixed(2);
+      }
+
+      if (energyGraphPlaying && energyGraphAuto) {
+        energyGraphT += 0.018 * parseFloat(energySpeedRange.value);
+        const x = 4 * Math.sin(energyGraphT);
+        energyXRange.value = x.toFixed(2);
+      }
+
+      updateSection6Labels();
+      drawForceGraphInteractive();
+      drawEnergyGraphInteractive();
+
+      requestAnimationFrame(animateSection6);
+    }
+
+    updateSection6Labels();
+    animateSection6();
+  </script>
+</body>
+</html>

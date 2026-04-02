@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inclined Plane with Friction</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:#ffffff;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --text:#0f172a;
+      --muted:#475569;
+      --light:#e2e8f0;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+    }
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:#fff;
+      line-height:1.6;
+      overflow-x:hidden;
+    }
+
+    .container{
+      width:min(1100px,92%);
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hero{
+      text-align:center;
+      padding:30px 20px 50px;
+      animation:fadeInDown 1s ease;
+    }
+
+    .hero h1{
+      font-size:2.4rem;
+      margin-bottom:12px;
+      color:#f8fafc;
+    }
+
+    .hero p{
+      font-size:1.05rem;
+      color:#cbd5e1;
+      max-width:800px;
+      margin:0 auto;
+    }
+
+    .card{
+      background:var(--card);
+      color:var(--text);
+      border-radius:20px;
+      padding:28px;
+      margin:24px 0;
+      box-shadow:0 20px 45px rgba(0,0,0,0.22);
+      animation:fadeUp 1s ease both;
+    }
+
+    .card h2{
+      font-size:1.7rem;
+      margin-bottom:16px;
+      color:#0f172a;
+    }
+
+    .card h3{
+      font-size:1.2rem;
+      margin:18px 0 10px;
+      color:#1d4ed8;
+    }
+
+    .card p{
+      margin:10px 0;
+      color:#1e293b;
+    }
+
+    .card ul{
+      margin:10px 0 10px 22px;
+    }
+
+    .card li{
+      margin:8px 0;
+      color:#1e293b;
+    }
+
+    .formula{
+      background:#f8fafc;
+      border-left:6px solid var(--accent);
+      padding:14px 16px;
+      margin:16px 0;
+      border-radius:12px;
+      font-family:"Courier New", monospace;
+      font-size:1rem;
+      overflow-x:auto;
+      animation:glowPulse 2.5s infinite;
+    }
+
+    .highlight{
+      background:linear-gradient(90deg,#e0f2fe,#dcfce7);
+      border:2px solid #bae6fd;
+      padding:16px;
+      border-radius:14px;
+      margin-top:16px;
+      font-weight:bold;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:24px;
+    }
+
+    @media(max-width:900px){
+      .grid-2{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .diagram-wrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px 0;
+      overflow-x:auto;
+    }
+
+    .diagram{
+      width:520px;
+      max-width:100%;
+      height:320px;
+      position:relative;
+    }
+
+    .ground{
+      position:absolute;
+      width:380px;
+      height:8px;
+      background:#94a3b8;
+      left:60px;
+      bottom:35px;
+      border-radius:10px;
+    }
+
+    .incline{
+      position:absolute;
+      width:300px;
+      height:8px;
+      background:#f59e0b;
+      left:110px;
+      bottom:120px;
+      transform:rotate(-28deg);
+      transform-origin:left center;
+      border-radius:10px;
+      box-shadow:0 0 10px rgba(245,158,11,.35);
+    }
+
+    .block{
+      position:absolute;
+      width:60px;
+      height:60px;
+      background:linear-gradient(135deg,#38bdf8,#2563eb);
+      border-radius:12px;
+      left:214px;
+      bottom:160px;
+      transform:rotate(-28deg);
+      box-shadow:0 10px 20px rgba(37,99,235,.35);
+      animation:slideBlock 4s ease-in-out infinite;
+    }
+
+    .label{
+      position:absolute;
+      background:rgba(255,255,255,.9);
+      color:#0f172a;
+      padding:6px 10px;
+      border-radius:10px;
+      font-size:.9rem;
+      font-weight:bold;
+      box-shadow:0 4px 10px rgba(0,0,0,.08);
+    }
+
+    .force{
+      position:absolute;
+      height:4px;
+      border-radius:10px;
+      transform-origin:left center;
+    }
+
+    .force::after{
+      content:"";
+      position:absolute;
+      right:-8px;
+      top:-4px;
+      border-left:10px solid currentColor;
+      border-top:6px solid transparent;
+      border-bottom:6px solid transparent;
+    }
+
+    .gravity{
+      width:0;
+      height:85px;
+      border-left:4px solid var(--danger);
+      left:250px;
+      bottom:150px;
+      animation:forcePulse 1.8s infinite;
+    }
+
+    .gravity::after{
+      content:"";
+      position:absolute;
+      left:-7px;
+      bottom:-10px;
+      border-top:12px solid var(--danger);
+      border-left:8px solid transparent;
+      border-right:8px solid transparent;
+    }
+
+    .friction{
+      width:85px;
+      background:var(--warning);
+      color:var(--warning);
+      left:212px;
+      bottom:184px;
+      transform:rotate(152deg);
+      animation:forcePulse 2.1s infinite;
+    }
+
+    .normal{
+      width:75px;
+      background:var(--accent2);
+      color:var(--accent2);
+      left:245px;
+      bottom:190px;
+      transform:rotate(-118deg);
+      animation:forcePulse 2.4s infinite;
+    }
+
+    .steps{
+      counter-reset:step;
+    }
+
+    .step{
+      position:relative;
+      padding-left:56px;
+      margin:20px 0;
+    }
+
+    .step::before{
+      counter-increment:step;
+      content:counter(step);
+      position:absolute;
+      left:0;
+      top:0;
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#0ea5e9,#2563eb);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+      box-shadow:0 8px 18px rgba(37,99,235,.3);
+    }
+
+    .final-box{
+      background:linear-gradient(135deg,#dbeafe,#dcfce7);
+      color:#0f172a;
+      border-radius:18px;
+      padding:22px;
+      border:2px solid #bfdbfe;
+    }
+
+    .footer{
+      text-align:center;
+      padding:20px;
+      color:#cbd5e1;
+      font-size:.95rem;
+    }
+
+    .reveal{
+      opacity:0;
+      transform:translateY(35px);
+      transition:all .8s ease;
+    }
+
+    .reveal.active{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    @keyframes fadeInDown{
+      from{opacity:0; transform:translateY(-25px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+
+    @keyframes fadeUp{
+      from{opacity:0; transform:translateY(30px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+
+    @keyframes glowPulse{
+      0%,100%{box-shadow:0 0 0 rgba(56,189,248,0);}
+      50%{box-shadow:0 0 20px rgba(56,189,248,.2);}
+    }
+
+    @keyframes forcePulse{
+      0%,100%{opacity:1;}
+      50%{opacity:.55;}
+    }
+
+    @keyframes slideBlock{
+      0%{left:214px; bottom:160px;}
+      50%{left:278px; bottom:125px;}
+      100%{left:214px; bottom:160px;}
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:.96rem;
+    }
+
+    .title-line{
+      width:110px;
+      height:4px;
+      margin:12px auto 0;
+      background:linear-gradient(90deg,#38bdf8,#22c55e);
+      border-radius:999px;
+    }
+
+    .equation-title{
+      color:#0f172a;
+      font-weight:bold;
+      margin-top:10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Problem 2 – Inclined Plane with Friction</h1>
+      <p>
+        A body of mass <b>m</b> slides down an inclined plane of angle <b>α</b>.
+        The coefficient of kinetic friction is <b>μ</b>.
+        We will find the forces, acceleration, time of descent, final velocity,
+        and check the energy balance step by step.
+      </p>
+      <div class="title-line"></div>
+    </section>
+
+    <section class="card reveal">
+      <h2>1. Force Diagram</h2>
+      <p>Three forces act on the body while it slides down the incline:</p>
+      <ul>
+        <li><b>Weight</b> = mg, acting vertically downward.</li>
+        <li><b>Normal force</b> = N, acting perpendicular to the plane.</li>
+        <li><b>Friction force</b> = F<sub>f</sub>, acting up the plane because it opposes motion.</li>
+      </ul>
+
+      <div class="diagram-wrap">
+        <div class="diagram">
+          <div class="ground"></div>
+          <div class="incline"></div>
+          <div class="block"></div>
+
+          <div class="force gravity"></div>
+          <div class="force friction"></div>
+          <div class="force normal"></div>
+
+          <div class="label" style="left:258px; bottom:78px;">mg</div>
+          <div class="label" style="left:145px; bottom:235px;">Friction</div>
+          <div class="label" style="left:315px; bottom:218px;">Normal</div>
+          <div class="label" style="left:360px; bottom:85px;">α</div>
+        </div>
+      </div>
+
+      <div class="formula">N = mg cos(α)</div>
+      <div class="formula">F<sub>f</sub> = μN = μmg cos(α)</div>
+    </section>
+
+    <section class="card reveal">
+      <h2>2. Resolve Gravity Into Components</h2>
+      <p>
+        We choose axes:
+      </p>
+      <ul>
+        <li>One axis <b>along the plane</b>.</li>
+        <li>One axis <b>perpendicular to the plane</b>.</li>
+      </ul>
+
+      <p>Then the weight mg is split into two components:</p>
+
+      <div class="formula">Parallel to the plane: mg sin(α)</div>
+      <div class="formula">Perpendicular to the plane: mg cos(α)</div>
+
+      <p class="small">
+        The parallel component pulls the body downward along the plane.
+        The perpendicular component presses the body into the surface.
+      </p>
+    </section>
+
+    <section class="card reveal">
+      <h2>3. Derive the Acceleration</h2>
+
+      <div class="steps">
+        <div class="step">
+          <h3>Step 1: Write the forces along the plane</h3>
+          <p>Down the plane: <b>mg sin(α)</b></p>
+          <p>Up the plane: <b>μmg cos(α)</b></p>
+        </div>
+
+        <div class="step">
+          <h3>Step 2: Net force along the plane</h3>
+          <div class="formula">F<sub>net</sub> = mg sin(α) - μmg cos(α)</div>
+        </div>
+
+        <div class="step">
+          <h3>Step 3: Apply Newton’s second law</h3>
+          <div class="formula">ma = mg sin(α) - μmg cos(α)</div>
+        </div>
+
+        <div class="step">
+          <h3>Step 4: Divide by m</h3>
+          <div class="formula">a = g sin(α) - μg cos(α)</div>
+        </div>
+      </div>
+
+      <div class="highlight">
+        Final acceleration:
+        <div class="formula">a = g [sin(α) - μ cos(α)]</div>
+      </div>
+    </section>
+
+    <section class="card reveal">
+      <h2>4. Condition for Sliding</h2>
+      <p>For the body to really move downward, the acceleration must be positive:</p>
+      <div class="formula">a &gt; 0</div>
+      <div class="formula">g [sin(α) - μ cos(α)] &gt; 0</div>
+      <div class="formula">sin(α) - μ cos(α) &gt; 0</div>
+      <div class="formula">tan(α) &gt; μ</div>
+
+      <p class="small">
+        So the body slides down only if the slope is steep enough compared with friction.
+      </p>
+    </section>
+
+    <section class="card reveal">
+      <h2>5. Distance Along the Plane</h2>
+      <p>
+        The problem gives the vertical height <b>h</b>, but the body moves along the incline.
+        Let the distance along the plane be <b>s</b>.
+      </p>
+
+      <div class="formula">sin(α) = h / s</div>
+      <div class="formula">s = h / sin(α)</div>
+
+      <p>This is the actual path traveled by the body.</p>
+    </section>
+
+    <section class="card reveal">
+      <h2>6. Time of Descent</h2>
+      <p>Assume the body starts from rest. Then:</p>
+      <div class="formula">s = (1/2)at²</div>
+
+      <p>Substitute:</p>
+      <div class="formula">h / sin(α) = (1/2) g [sin(α) - μ cos(α)] t²</div>
+
+      <p>Solve for t²:</p>
+      <div class="formula">
+        t² = 2h / { g sin(α)[sin(α) - μ cos(α)] }
+      </div>
+
+      <div class="highlight">
+        Time of descent:
+        <div class="formula">
+          t = √{ 2h / [ g sin(α)(sin(α) - μ cos(α)) ] }
+        </div>
+      </div>
+    </section>
+
+    <section class="card reveal">
+      <h2>7. Final Velocity</h2>
+      <p>Use the constant-acceleration formula:</p>
+      <div class="formula">v² = 2as</div>
+
+      <p>Substitute the expressions for a and s:</p>
+      <div class="formula">
+        v² = 2 · g[sin(α) - μ cos(α)] · h/sin(α)
+      </div>
+
+      <div class="formula">
+        v² = 2gh[sin(α) - μ cos(α)] / sin(α)
+      </div>
+
+      <div class="highlight">
+        Final velocity:
+        <div class="formula">
+          v = √{ 2gh[sin(α) - μ cos(α)] / sin(α) }
+        </div>
+      </div>
+
+      <p class="small">Its direction is down the plane.</p>
+    </section>
+
+    <section class="card reveal">
+      <h2>8. Check with Energy Balance</h2>
+
+      <div class="grid-2">
+        <div>
+          <h3>Initial Energy</h3>
+          <div class="formula">E<sub>i</sub> = mgh</div>
+          <p>The body starts from rest, so initial kinetic energy is zero.</p>
+        </div>
+
+        <div>
+          <h3>Final Energy</h3>
+          <div class="formula">E<sub>f</sub> = (1/2)mv²</div>
+          <p>At the bottom, the height is zero, so potential energy becomes zero.</p>
+        </div>
+      </div>
+
+      <h3>Work of friction</h3>
+      <div class="formula">W<sub>f</sub> = -F<sub>f</sub>s</div>
+      <div class="formula">W<sub>f</sub> = -μmg cos(α) · h/sin(α)</div>
+
+      <h3>Energy equation</h3>
+      <div class="formula">E<sub>i</sub> + W<sub>f</sub> = E<sub>f</sub></div>
+      <div class="formula">
+        mgh - μmg cos(α) · h/sin(α) = (1/2)mv²
+      </div>
+
+      <div class="formula">
+        v² = 2gh[sin(α) - μ cos(α)] / sin(α)
+      </div>
+
+      <div class="highlight">
+        The same formula is obtained, so the result is consistent with the energy balance.
+      </div>
+    </section>
+
+    <section class="card reveal">
+      <h2>Final Answers</h2>
+      <div class="final-box">
+        <p><b>Forces acting on the body:</b></p>
+        <div class="formula">Weight = mg</div>
+        <div class="formula">Normal force = N = mg cos(α)</div>
+        <div class="formula">Friction force = F<sub>f</sub> = μmg cos(α)</div>
+
+        <p class="equation-title">Acceleration</p>
+        <div class="formula">a = g [sin(α) - μ cos(α)]</div>
+
+        <p class="equation-title">Distance along the plane</p>
+        <div class="formula">s = h / sin(α)</div>
+
+        <p class="equation-title">Time of descent</p>
+        <div class="formula">
+          t = √{ 2h / [ g sin(α)(sin(α) - μ cos(α)) ] }
+        </div>
+
+        <p class="equation-title">Final velocity</p>
+        <div class="formula">
+          v = √{ 2gh[sin(α) - μ cos(α)] / sin(α) }
+        </div>
+
+        <p class="equation-title">Energy check</p>
+        <div class="formula">Result is consistent with energy balance ✅</div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Animated HTML presentation for the inclined plane with friction
+    </div>
+  </div>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+
+    function showOnScroll() {
+      const trigger = window.innerHeight * 0.88;
+      reveals.forEach(el => {
+        const top = el.getBoundingClientRect().top;
+        if (top < trigger) {
+          el.classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', showOnScroll);
+    window.addEventListener('load', showOnScroll);
+  </script>
+</body>
+</html>

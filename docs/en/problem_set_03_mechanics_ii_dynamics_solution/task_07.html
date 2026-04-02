@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 7 – Vertical Throw with Drag</title>
+  <style>
+    :root {
+      --bg1: #0f172a;
+      --bg2: #1e293b;
+      --panel: rgba(255,255,255,0.08);
+      --panel-strong: rgba(255,255,255,0.12);
+      --text: #e5eefc;
+      --muted: #bfd0ef;
+      --accent: #60a5fa;
+      --accent2: #22d3ee;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(50px);
+      opacity: 0.28;
+      animation: floatOrb 12s ease-in-out infinite;
+    }
+
+    .orb.one {
+      width: 260px;
+      height: 260px;
+      background: var(--accent);
+      top: 5%;
+      left: -60px;
+    }
+
+    .orb.two {
+      width: 320px;
+      height: 320px;
+      background: var(--accent2);
+      right: -80px;
+      top: 30%;
+      animation-delay: -4s;
+    }
+
+    .orb.three {
+      width: 240px;
+      height: 240px;
+      background: #8b5cf6;
+      left: 20%;
+      bottom: -60px;
+      animation-delay: -8s;
+    }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+      50% { transform: translateY(-25px) translateX(20px) scale(1.08); }
+    }
+
+    .container {
+      width: min(1100px, 92%);
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    header.hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 60px 0 30px;
+    }
+
+    .hero-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(96,165,250,0.15);
+      border: 1px solid rgba(96,165,250,0.3);
+      color: #dbeafe;
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.08rem;
+      max-width: 58ch;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      text-decoration: none;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+      transition: transform 0.25s ease, background 0.25s ease;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      background: rgba(255,255,255,0.14);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #07111f;
+      font-weight: bold;
+      border: none;
+    }
+
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .simulation-box {
+      width: 100%;
+      max-width: 360px;
+      height: 420px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(14,165,233,0.20), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(255,255,255,0.06);
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: linear-gradient(180deg, #14532d, #052e16);
+    }
+
+    .trajectory {
+      position: absolute;
+      left: 50%;
+      bottom: 70px;
+      width: 2px;
+      height: 280px;
+      transform: translateX(-50%);
+      background: repeating-linear-gradient(to top, rgba(255,255,255,0.0) 0 14px, rgba(255,255,255,0.20) 14px 16px);
+    }
+
+    .ball {
+      position: absolute;
+      left: 50%;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      bottom: 70px;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #60a5fa 45%, #1d4ed8 80%);
+      box-shadow: 0 0 20px rgba(96,165,250,0.75);
+      animation: riseAndFall 4s ease-in-out infinite;
+    }
+
+    @keyframes riseAndFall {
+      0%   { bottom: 70px; }
+      20%  { bottom: 250px; }
+      40%  { bottom: 350px; }
+      55%  { bottom: 325px; }
+      72%  { bottom: 220px; }
+      100% { bottom: 70px; }
+    }
+
+    .drag-lines {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .drag-lines span {
+      position: absolute;
+      width: 48px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.55), rgba(255,255,255,0));
+      animation: wind 2.2s linear infinite;
+      opacity: 0.7;
+    }
+
+    .drag-lines span:nth-child(1) { top: 18%; left: 8%; animation-delay: 0s; }
+    .drag-lines span:nth-child(2) { top: 33%; left: 70%; animation-delay: -0.6s; }
+    .drag-lines span:nth-child(3) { top: 48%; left: 18%; animation-delay: -1.2s; }
+    .drag-lines span:nth-child(4) { top: 63%; left: 62%; animation-delay: -0.9s; }
+    .drag-lines span:nth-child(5) { top: 78%; left: 26%; animation-delay: -1.6s; }
+
+    @keyframes wind {
+      0% { transform: translateX(-20px); opacity: 0; }
+      30% { opacity: 0.8; }
+      100% { transform: translateX(30px); opacity: 0; }
+    }
+
+    nav.sticky-nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.72);
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+
+    nav.sticky-nav .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 0;
+      justify-content: center;
+    }
+
+    nav.sticky-nav a {
+      color: #dbeafe;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      transition: background 0.25s ease, transform 0.25s ease;
+      font-size: 0.95rem;
+    }
+
+    nav.sticky-nav a:hover {
+      background: rgba(255,255,255,0.11);
+      transform: translateY(-2px);
+    }
+
+    section {
+      padding: 80px 0;
+    }
+
+    .section-title {
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+      margin-bottom: 10px;
+    }
+
+    .section-intro {
+      color: var(--muted);
+      max-width: 70ch;
+      margin-bottom: 28px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+      color: #f8fbff;
+    }
+
+    .equation {
+      font-family: "Times New Roman", serif;
+      background: rgba(255,255,255,0.06);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+
+    .step {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: 0.8s ease;
+    }
+
+    .step.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .highlight {
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .compare-box {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .mini-box {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .pill {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(52,211,153,0.14);
+      border: 1px solid rgba(52,211,153,0.25);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+      margin-top: 14px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+
+    th {
+      background: rgba(255,255,255,0.10);
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .formula-box {
+      font-size: 1.05rem;
+      padding: 20px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(96,165,250,0.15), rgba(34,211,238,0.08));
+      border: 1px solid rgba(96,165,250,0.25);
+    }
+
+    .code-block {
+      white-space: pre-wrap;
+      font-family: Consolas, Monaco, monospace;
+      background: #08101d;
+      color: #c8f1ff;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow-x: auto;
+    }
+
+    .chart-wrap {
+      background: rgba(255,255,255,0.04);
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    canvas {
+      width: 100%;
+      height: 360px;
+      display: block;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    }
+
+    .result-list div {
+      margin: 10px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    footer {
+      padding: 40px 0 70px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .hero-card,
+      .grid.two,
+      .compare-box {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-card {
+        padding: 26px;
+      }
+
+      .simulation-box {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
+
+  <header class="hero">
+    <div class="container">
+      <div class="hero-card step">
+        <div>
+          <div class="badge">Physics Presentation • Problem 7</div>
+          <h1>Vertical Throw with Drag</h1>
+          <p class="subtitle">
+            A clean animated presentation of the equation of motion, analytical solution,
+            maximum height, comparison with the no-drag case, and numerical simulation.
+          </p>
+          <div class="equation">
+            <strong>Given:</strong><br>
+            m dv/dt = -mg - kv,<br>
+            v(0) = v₀, &nbsp; x(0) = 0
+          </div>
+          <div class="hero-buttons">
+            <a class="btn primary" href="#problem">Start Explanation</a>
+            <a class="btn" href="#simulation">See Simulation</a>
+            <a class="btn" href="#final">Final Answers</a>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="simulation-box">
+            <div class="drag-lines">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="trajectory"></div>
+            <div class="ball"></div>
+            <div class="ground"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sticky-nav">
+    <div class="container">
+      <a href="#problem">Problem</a>
+      <a href="#velocity">Velocity</a>
+      <a href="#position">Position</a>
+      <a href="#maxheight">Maximum Height</a>
+      <a href="#compare">Compare</a>
+      <a href="#simulation">Numerical Simulation</a>
+      <a href="#final">Final Answers</a>
+    </div>
+  </nav>
+
+  <section id="problem">
+    <div class="container">
+      <div class="step card">
+        <h2 class="section-title">1. The problem</h2>
+        <p class="section-intro">
+          We study a body thrown vertically upward while gravity and air resistance act on it.
+          The drag force is proportional to the velocity, so the equation is linear.
+        </p>
+        <div class="equation">
+          m dv/dt = -mg - kv
+        </div>
+        <p>
+          The term <span class="highlight">-mg</span> is gravity, and the term
+          <span class="highlight">-kv</span> is drag. Both act downward while the object moves upward.
+        </p>
+        <div class="equation">
+          dv/dt + (k/m)v = -g
+        </div>
+        <p>
+          This is a <strong>first-order linear differential equation</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="velocity">
+    <div class="container">
+      <h2 class="section-title step">2. Solve for the velocity</h2>
+      <p class="section-intro step">
+        We solve the equation step by step: first the homogeneous part, then a particular solution,
+        and finally apply the initial condition.
+      </p>
+
+      <div class="grid two">
+        <div class="card step">
+          <h3>Homogeneous equation</h3>
+          <div class="equation">
+            dv/dt + (k/m)v = 0
+          </div>
+          <p>Its solution is</p>
+          <div class="equation">
+            v<sub>h</sub>(t) = Ce<sup>-(k/m)t</sup>
+          </div>
+        </div>
+
+        <div class="card step">
+          <h3>Particular solution</h3>
+          <p>Because the right side is constant, we try a constant solution:</p>
+          <div class="equation">
+            v<sub>p</sub> = A
+          </div>
+          <p>Substitute into the equation:</p>
+          <div class="equation">
+            (k/m)A = -g &nbsp; ⇒ &nbsp; A = -mg/k
+          </div>
+        </div>
+      </div>
+
+      <div class="card step" style="margin-top:22px;">
+        <h3>General solution and initial condition</h3>
+        <div class="equation">
+          v(t) = Ce<sup>-(k/m)t</sup> - mg/k
+        </div>
+        <p>Use the condition <strong>v(0) = v₀</strong>:</p>
+        <div class="equation">
+          v₀ = C - mg/k &nbsp; ⇒ &nbsp; C = v₀ + mg/k
+        </div>
+        <div class="formula-box">
+          <strong>Final velocity formula:</strong><br><br>
+          v(t) = (v₀ + mg/k)e<sup>-(k/m)t</sup> - mg/k
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="position">
+    <div class="container">
+      <h2 class="section-title step">3. Solve for the position</h2>
+      <p class="section-intro step">
+        Since velocity is the derivative of position, we integrate the velocity function.
+      </p>
+
+      <div class="card step">
+        <div class="equation">
+          dx/dt = v(t)
+        </div>
+        <div class="equation">
+          x(t) = ∫[(v₀ + mg/k)e<sup>-(k/m)t</sup> - mg/k] dt
+        </div>
+        <p>After integration we get</p>
+        <div class="equation">
+          x(t) = -(m/k)(v₀ + mg/k)e<sup>-(k/m)t</sup> - (mg/k)t + C₁
+        </div>
+        <p>Now use the condition <strong>x(0) = 0</strong>.</p>
+        <div class="equation">
+          C₁ = (m/k)(v₀ + mg/k)
+        </div>
+        <div class="formula-box">
+          <strong>Final position formula:</strong><br><br>
+          x(t) = (m/k)(v₀ + mg/k)(1 - e<sup>-(k/m)t</sup>) - (mg/k)t
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="maxheight">
+    <div class="container">
+      <h2 class="section-title step">4. Maximum height</h2>
+      <p class="section-intro step">
+        The maximum height happens when the upward velocity becomes zero.
+      </p>
+
+      <div class="grid two">
+        <div class="card step">
+          <h3>Time to reach the top</h3>
+          <div class="equation">
+            v(t) = 0
+          </div>
+          <div class="equation">
+            (v₀ + mg/k)e<sup>-(k/m)t</sup> - mg/k = 0
+          </div>
+          <div class="equation">
+            e<sup>-(k/m)t</sup> = mg / (kv₀ + mg)
+          </div>
+          <div class="formula-box">
+            t<sub>max</sub> = (m/k) ln(1 + kv₀/(mg))
+          </div>
+        </div>
+
+        <div class="card step">
+          <h3>Maximum height</h3>
+          <p>Substitute <strong>t = t<sub>max</sub></strong> into the position formula.</p>
+          <div class="formula-box">
+            x<sub>max</sub> = mv₀/k - (m²g/k²) ln(1 + kv₀/(mg))
+          </div>
+          <div class="pill">This is smaller than the no-drag case.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <div class="container">
+      <h2 class="section-title step">5. Compare with motion without drag</h2>
+      <p class="section-intro step">
+        If there is no drag, the only force is gravity. Then the formulas become much simpler.
+      </p>
+
+      <div class="compare-box">
+        <div class="mini-box step">
+          <h3>With drag</h3>
+          <div class="equation">
+            v(t) = (v₀ + mg/k)e<sup>-(k/m)t</sup> - mg/k
+          </div>
+          <div class="equation">
+            x<sub>max</sub> = mv₀/k - (m²g/k²)ln(1 + kv₀/(mg))
+          </div>
+          <p>
+            The speed decreases faster, so the body reaches a lower height and stops rising earlier.
+          </p>
+        </div>
+
+        <div class="mini-box step">
+          <h3>Without drag</h3>
+          <div class="equation">
+            v(t) = v₀ - gt
+          </div>
+          <div class="equation">
+            x(t) = v₀t - (1/2)gt²
+          </div>
+          <div class="equation">
+            x<sub>max</sub> = v₀² / (2g)
+          </div>
+          <p>
+            The object rises higher because there is no extra resistive force.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="simulation">
+    <div class="container">
+      <h2 class="section-title step">6. Numerical simulation</h2>
+      <p class="section-intro step">
+        We use Euler’s method with example values to compare the numerical result with the exact analytical solution.
+      </p>
+
+      <div class="grid two">
+        <div class="card step">
+          <h3>Chosen numerical values</h3>
+          <div class="equation">
+            m = 1 kg, &nbsp; g = 9.81 m/s², &nbsp; k = 0.5 kg/s, &nbsp; v₀ = 20 m/s
+          </div>
+          <div class="equation">
+            Δt = 0.1 s
+          </div>
+          <h3>Euler formulas</h3>
+          <div class="equation">
+            v<sub>n+1</sub> = v<sub>n</sub> + Δt(-g - (k/m)v<sub>n</sub>)
+          </div>
+          <div class="equation">
+            x<sub>n+1</sub> = x<sub>n</sub> + Δt v<sub>n</sub>
+          </div>
+        </div>
+
+        <div class="card step">
+          <h3>Analytical formulas for these values</h3>
+          <div class="equation">
+            v(t) = 39.62e<sup>-0.5t</sup> - 19.62
+          </div>
+          <div class="equation">
+            x(t) = 79.24(1 - e<sup>-0.5t</sup>) - 19.62t
+          </div>
+          <div class="equation">
+            t<sub>max</sub> ≈ 1.405 s
+          </div>
+          <div class="equation">
+            x<sub>max</sub> ≈ 12.26 m
+          </div>
+        </div>
+      </div>
+
+      <div class="card step" style="margin-top:22px;">
+        <h3>Table of numerical values</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>t (s)</th>
+              <th>v<sub>num</sub> (m/s)</th>
+              <th>x<sub>num</sub> (m)</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="card step" style="margin-top:22px;">
+        <h3>Animated comparison chart</h3>
+        <p>
+          The blue curve shows the analytical height. The cyan dots show the Euler numerical points.
+        </p>
+        <div class="chart-wrap">
+          <canvas id="chart" width="1000" height="360"></canvas>
+        </div>
+      </div>
+
+      <div class="card step" style="margin-top:22px;">
+        <h3>Pseudocode</h3>
+        <div class="code-block">Given: m, g, k, v0, dt
+Set: t = 0, x = 0, v = v0
+
+Repeat:
+    store (t, x, v)
+    v_new = v + dt * (-g - (k/m) * v)
+    x_new = x + dt * v
+    v = v_new
+    x = x_new
+    t = t + dt
+until v becomes negative after the top point</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="final">
+    <div class="container">
+      <h2 class="section-title step">7. Final answers</h2>
+      <p class="section-intro step">
+        These are the main formulas and conclusions of the task.
+      </p>
+
+      <div class="card step">
+        <div class="result-list">
+          <div><strong>Velocity:</strong> v(t) = (v₀ + mg/k)e<sup>-(k/m)t</sup> - mg/k</div>
+          <div><strong>Position:</strong> x(t) = (m/k)(v₀ + mg/k)(1 - e<sup>-(k/m)t</sup>) - (mg/k)t</div>
+          <div><strong>Time of maximum height:</strong> t<sub>max</sub> = (m/k)ln(1 + kv₀/(mg))</div>
+          <div><strong>Maximum height:</strong> x<sub>max</sub> = mv₀/k - (m²g/k²)ln(1 + kv₀/(mg))</div>
+          <div><strong>Without drag:</strong> x<sub>max</sub> = v₀²/(2g)</div>
+          <div><strong>Conclusion:</strong> drag lowers the maximum height and the numerical solution agrees well with the analytical one.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Task 7 explanation
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.14 });
+
+    document.querySelectorAll('.step').forEach(el => observer.observe(el));
+
+    const m = 1;
+    const g = 9.81;
+    const k = 0.5;
+    const v0 = 20;
+    const dt = 0.1;
+
+    function vAnalytical(t) {
+      return (v0 + (m * g) / k) * Math.exp(-(k / m) * t) - (m * g) / k;
+    }
+
+    function xAnalytical(t) {
+      return (m / k) * (v0 + (m * g) / k) * (1 - Math.exp(-(k / m) * t)) - (m * g / k) * t;
+    }
+
+    const numerical = [];
+    let t = 0;
+    let x = 0;
+    let v = v0;
+
+    for (let i = 0; i < 15; i++) {
+      numerical.push({
+        t: t,
+        v: v,
+        x: x
+      });
+      const vNew = v + dt * (-g - (k / m) * v);
+      const xNew = x + dt * v;
+      v = vNew;
+      x = xNew;
+      t += dt;
+    }
+
+    const tbody = document.getElementById('table-body');
+    numerical.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row.t.toFixed(1)}</td>
+        <td>${row.v.toFixed(3)}</td>
+        <td>${row.x.toFixed(3)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+
+    const chartPadding = { left: 70, right: 30, top: 25, bottom: 50 };
+    const chartWidth = canvas.width - chartPadding.left - chartPadding.right;
+    const chartHeight = canvas.height - chartPadding.top - chartPadding.bottom;
+
+    const tMax = 3.0;
+    const yMax = 22;
+
+    function mapX(t) {
+      return chartPadding.left + (t / tMax) * chartWidth;
+    }
+
+    function mapY(y) {
+      return chartPadding.top + chartHeight - (y / yMax) * chartHeight;
+    }
+
+    function drawAxes() {
+      ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(chartPadding.left, chartPadding.top);
+      ctx.lineTo(chartPadding.left, chartPadding.top + chartHeight);
+      ctx.lineTo(chartPadding.left + chartWidth, chartPadding.top + chartHeight);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = '16px Arial';
+      ctx.fillText('Height x(t) [m]', 14, 24);
+      ctx.fillText('Time t [s]', canvas.width - 110, canvas.height - 14);
+
+      ctx.font = '13px Arial';
+      for (let i = 0; i <= 6; i++) {
+        const tx = i * 0.5;
+        const xPos = mapX(tx);
+        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx.beginPath();
+        ctx.moveTo(xPos, chartPadding.top);
+        ctx.lineTo(xPos, chartPadding.top + chartHeight);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(tx.toFixed(1), xPos - 9, chartPadding.top + chartHeight + 20);
+      }
+
+      for (let i = 0; i <= 5; i++) {
+        const hy = i * 5;
+        const yPos = mapY(hy);
+        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx.beginPath();
+        ctx.moveTo(chartPadding.left, yPos);
+        ctx.lineTo(chartPadding.left + chartWidth, yPos);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(hy.toFixed(0), 34, yPos + 4);
+      }
+    }
+
+    function drawLegend() {
+      const x0 = canvas.width - 230;
+      const y0 = 32;
+
+      ctx.fillStyle = 'rgba(15,23,42,0.65)';
+      ctx.fillRect(x0 - 12, y0 - 18, 210, 58);
+
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x0 + 34, y0);
+      ctx.stroke();
+      ctx.fillStyle = '#e5eefc';
+      ctx.fillText('Analytical solution', x0 + 44, y0 + 4);
+
+      ctx.fillStyle = '#22d3ee';
+      ctx.beginPath();
+      ctx.arc(x0 + 17, y0 + 24, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e5eefc';
+      ctx.fillText('Euler numerical points', x0 + 44, y0 + 28);
+    }
+
+    let progress = 0;
+
+    function drawChart() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawAxes();
+      drawLegend();
+
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      const samples = 250;
+      let first = true;
+      for (let i = 0; i <= samples * progress; i++) {
+        const tt = (i / samples) * tMax;
+        const yy = Math.max(0, xAnalytical(tt));
+        const px = mapX(tt);
+        const py = mapY(yy);
+        if (first) {
+          ctx.moveTo(px, py);
+          first = false;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#22d3ee';
+      numerical.forEach(p => {
+        if (p.t / tMax <= progress) {
+          ctx.beginPath();
+          ctx.arc(mapX(p.t), mapY(Math.max(0, p.x)), 4.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      progress += 0.006;
+      if (progress > 1.02) progress = 0;
+      requestAnimationFrame(drawChart);
+    }
+
+    drawChart();
+  </script>
+</body>
+</html>

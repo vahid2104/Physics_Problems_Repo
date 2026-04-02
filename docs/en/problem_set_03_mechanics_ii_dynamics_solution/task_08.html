@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonic Oscillator – Animated Explanation</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --accent:#2563eb;
+      --accent2:#7c3aed;
+      --good:#059669;
+      --line:#cbd5e1;
+      --shadow:0 12px 30px rgba(0,0,0,0.18);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:#fff;
+      overflow-x:hidden;
+    }
+
+    .hero{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      padding:40px 20px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      filter:blur(40px);
+      opacity:0.25;
+      animation:floatBlob 10s ease-in-out infinite;
+    }
+
+    .hero::before{
+      width:260px;
+      height:260px;
+      background:#3b82f6;
+      top:8%;
+      left:10%;
+    }
+
+    .hero::after{
+      width:320px;
+      height:320px;
+      background:#8b5cf6;
+      bottom:5%;
+      right:8%;
+      animation-delay:2s;
+    }
+
+    @keyframes floatBlob{
+      0%,100%{transform:translateY(0) scale(1);}
+      50%{transform:translateY(-25px) scale(1.08);}
+    }
+
+    .hero h1{
+      font-size:clamp(2rem,5vw,4rem);
+      margin:0 0 10px;
+      z-index:1;
+      animation:fadeUp 1s ease forwards;
+    }
+
+    .hero p{
+      max-width:850px;
+      line-height:1.7;
+      font-size:1.1rem;
+      color:#e2e8f0;
+      z-index:1;
+      animation:fadeUp 1.3s ease forwards;
+    }
+
+    .equation-main{
+      margin-top:24px;
+      font-size:clamp(1.4rem,3vw,2.4rem);
+      font-weight:bold;
+      background:rgba(255,255,255,0.08);
+      padding:18px 28px;
+      border:1px solid rgba(255,255,255,0.15);
+      border-radius:18px;
+      backdrop-filter:blur(8px);
+      z-index:1;
+      animation:fadeUp 1.6s ease forwards;
+    }
+
+    .scroll-btn{
+      margin-top:28px;
+      padding:14px 24px;
+      border:none;
+      border-radius:999px;
+      background:#fff;
+      color:#0f172a;
+      font-weight:bold;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      transition:transform .25s ease, box-shadow .25s ease;
+      z-index:1;
+      animation:fadeUp 1.9s ease forwards;
+    }
+
+    .scroll-btn:hover{
+      transform:translateY(-3px) scale(1.03);
+      box-shadow:0 18px 35px rgba(0,0,0,0.28);
+    }
+
+    @keyframes fadeUp{
+      from{
+        opacity:0;
+        transform:translateY(30px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+      padding:40px 18px 80px;
+    }
+
+    .section{
+      background:var(--card);
+      color:var(--text);
+      margin:28px 0;
+      border-radius:24px;
+      padding:28px;
+      box-shadow:var(--shadow);
+      opacity:0;
+      transform:translateY(40px);
+      transition:all .8s ease;
+    }
+
+    .section.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .section h2{
+      margin-top:0;
+      color:#0f172a;
+      font-size:1.8rem;
+    }
+
+    .section h3{
+      color:var(--accent);
+      margin-top:24px;
+    }
+
+    .math{
+      background:#eff6ff;
+      border-left:5px solid var(--accent);
+      padding:14px 16px;
+      margin:14px 0;
+      border-radius:12px;
+      font-family:"Courier New", monospace;
+      overflow-x:auto;
+      color:#0f172a;
+      white-space:pre-wrap;
+    }
+
+    .explain{
+      line-height:1.75;
+      color:#1e293b;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:24px;
+    }
+
+    @media (max-width:900px){
+      .grid-2{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .canvas-card{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:20px;
+      padding:18px;
+    }
+
+    .mini-title{
+      font-weight:bold;
+      margin-bottom:12px;
+      color:#0f172a;
+    }
+
+    canvas{
+      width:100%;
+      max-width:100%;
+      background:#fff;
+      border-radius:16px;
+      border:1px solid #cbd5e1;
+      display:block;
+    }
+
+    .controls{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .controls button{
+      border:none;
+      background:var(--accent);
+      color:#fff;
+      padding:10px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:bold;
+      transition:transform .2s ease, opacity .2s ease;
+    }
+
+    .controls button:hover{
+      transform:translateY(-2px);
+      opacity:.92;
+    }
+
+    .controls button.secondary{
+      background:var(--accent2);
+    }
+
+    .controls button.green{
+      background:var(--good);
+    }
+
+    .note{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:.96rem;
+      line-height:1.6;
+    }
+
+    .step-list{
+      counter-reset:item;
+      padding-left:0;
+      margin:0;
+    }
+
+    .step-list li{
+      list-style:none;
+      margin:14px 0;
+      padding:14px 14px 14px 52px;
+      background:#f8fafc;
+      border-radius:14px;
+      position:relative;
+      line-height:1.7;
+      border:1px solid #e2e8f0;
+    }
+
+    .step-list li::before{
+      counter-increment:item;
+      content:counter(item);
+      position:absolute;
+      left:14px;
+      top:14px;
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      background:var(--accent);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+    }
+
+    .final-box{
+      background:linear-gradient(135deg,#eff6ff,#f5f3ff);
+      border:1px solid #dbeafe;
+      border-radius:20px;
+      padding:20px;
+    }
+
+    .pill{
+      display:inline-block;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#dbeafe;
+      color:#1d4ed8;
+      font-weight:bold;
+      margin:6px 8px 6px 0;
+    }
+
+    .footer{
+      text-align:center;
+      color:#cbd5e1;
+      padding:10px 20px 50px;
+      font-size:.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <h1>Problem 8 – Harmonic Oscillator</h1>
+    <p>
+      Animated explanation of the equation
+      <strong>mẍ + kx = 0</strong>,
+      including the solution, natural frequency, energy conservation,
+      and phase-space interpretation.
+    </p>
+    <div class="equation-main">mẍ + kx = 0</div>
+    <button class="scroll-btn" onclick="document.getElementById('content').scrollIntoView({behavior:'smooth'})">
+      Start Explanation
+    </button>
+  </section>
+
+  <main class="container" id="content">
+
+    <section class="section">
+      <h2>1. Solve the equation</h2>
+      <div class="explain">
+        We start with the differential equation:
+      </div>
+      <div class="math">mẍ + kx = 0</div>
+
+      <div class="explain">
+        Divide both sides by <strong>m</strong>:
+      </div>
+      <div class="math">ẍ + (k/m)x = 0</div>
+
+      <div class="explain">
+        Define the natural angular frequency:
+      </div>
+      <div class="math">ω₀² = k/m</div>
+
+      <div class="explain">
+        Then the equation becomes:
+      </div>
+      <div class="math">ẍ + ω₀²x = 0</div>
+
+      <div class="explain">
+        The general solution of this standard harmonic oscillator equation is:
+      </div>
+      <div class="math">x(t) = A cos(ω₀t) + B sin(ω₀t)</div>
+
+      <div class="explain">
+        where <strong>A</strong> and <strong>B</strong> are constants determined by initial conditions.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. Natural frequency</h2>
+      <div class="explain">
+        From the definition
+      </div>
+      <div class="math">ω₀² = k/m</div>
+
+      <div class="explain">
+        we get:
+      </div>
+      <div class="math">ω₀ = √(k/m)</div>
+
+      <div class="explain">
+        So the natural angular frequency is:
+      </div>
+      <div class="math">ω₀ = √(k/m)</div>
+
+      <div class="explain">
+        If we want the ordinary frequency in hertz, then:
+      </div>
+      <div class="math">f₀ = ω₀ / (2π) = (1 / 2π) √(k/m)</div>
+    </section>
+
+    <section class="section">
+      <h2>3. Energy as a function of time</h2>
+      <div class="explain">
+        The total mechanical energy is the sum of kinetic and potential energy.
+      </div>
+
+      <h3>Kinetic energy</h3>
+      <div class="math">T = ½ m (ẋ)²</div>
+
+      <h3>Potential energy</h3>
+      <div class="math">V = ½ k x²</div>
+
+      <h3>Total energy</h3>
+      <div class="math">E(t) = ½ m (ẋ(t))² + ½ k (x(t))²</div>
+
+      <div class="explain">
+        Using
+      </div>
+      <div class="math">x(t) = A cos(ω₀t) + B sin(ω₀t)</div>
+
+      <div class="explain">
+        its derivative is
+      </div>
+      <div class="math">ẋ(t) = -Aω₀ sin(ω₀t) + Bω₀ cos(ω₀t)</div>
+    </section>
+
+    <section class="section">
+      <h2>4. Show that energy is conserved</h2>
+      <ol class="step-list">
+        <li>Start with the total energy: <strong>E(t) = ½ m (ẋ)² + ½ k x²</strong>.</li>
+        <li>Differentiate with respect to time.</li>
+        <li>This gives: <strong>dE/dt = mẋẍ + kxẋ</strong>.</li>
+        <li>Factor out <strong>ẋ</strong>: <strong>dE/dt = ẋ(mẍ + kx)</strong>.</li>
+        <li>But the equation of motion says <strong>mẍ + kx = 0</strong>.</li>
+        <li>So <strong>dE/dt = 0</strong>.</li>
+        <li>Therefore the total energy is constant in time.</li>
+      </ol>
+
+      <div class="math">dE/dt = 0  ⟹  E(t) = constant</div>
+
+      <div class="explain">
+        So energy is conserved.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>5. Interpretation in phase space</h2>
+      <div class="explain">
+        In phase space, we use the coordinates:
+      </div>
+      <div class="math">(x, ẋ)</div>
+
+      <div class="explain">
+        The total energy is:
+      </div>
+      <div class="math">E = ½ m ẋ² + ½ k x²</div>
+
+      <div class="explain">
+        Multiply by 2:
+      </div>
+      <div class="math">2E = mẋ² + kx²</div>
+
+      <div class="explain">
+        Rearranging gives:
+      </div>
+      <div class="math">kx² + mẋ² = 2E</div>
+
+      <div class="explain">
+        This is the equation of an ellipse in the phase plane. So the oscillator moves on a closed curve.
+      </div>
+
+      <div class="final-box">
+        <span class="pill">Maximum x → velocity = 0</span>
+        <span class="pill">Maximum velocity → x = 0</span>
+        <span class="pill">Motion is periodic</span>
+        <span class="pill">Energy stays constant</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. Animation and visual explanation</h2>
+
+      <div class="grid-2">
+        <div class="canvas-card">
+          <div class="mini-title">Oscillation in time: x(t)</div>
+          <canvas id="oscCanvas" width="520" height="320"></canvas>
+          <div class="controls">
+            <button onclick="toggleAnimation()">Pause / Play</button>
+            <button class="secondary" onclick="resetAnimation()">Reset</button>
+          </div>
+          <div class="note">
+            This graph shows the displacement changing sinusoidally with time.
+          </div>
+        </div>
+
+        <div class="canvas-card">
+          <div class="mini-title">Phase space: (x, ẋ)</div>
+          <canvas id="phaseCanvas" width="520" height="320"></canvas>
+          <div class="controls">
+            <button class="green" onclick="toggleTrail()">Show / Hide Trail</button>
+          </div>
+          <div class="note">
+            The moving point traces an ellipse. This is the phase-space orbit of the harmonic oscillator.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>7. Final answers</h2>
+      <div class="math">x(t) = A cos(ω₀t) + B sin(ω₀t)</div>
+      <div class="math">ω₀ = √(k/m)</div>
+      <div class="math">f₀ = (1 / 2π) √(k/m)</div>
+      <div class="math">E(t) = ½ m (ẋ(t))² + ½ k (x(t))²</div>
+      <div class="math">dE/dt = 0  ⟹  energy is conserved</div>
+      <div class="math">kx² + mẋ² = 2E  ⟹  ellipse in phase space</div>
+
+      <div class="explain">
+        Therefore, the motion is a periodic back-and-forth oscillation with constant total energy,
+        and in phase space it appears as a closed ellipse.
+      </div>
+    </section>
+
+  </main>
+
+  <div class="footer">
+    Harmonic Oscillator Presentation • Pure HTML + CSS + JavaScript
+  </div>
+
+  <script>
+    const oscCanvas = document.getElementById("oscCanvas");
+    const oscCtx = oscCanvas.getContext("2d");
+
+    const phaseCanvas = document.getElementById("phaseCanvas");
+    const phaseCtx = phaseCanvas.getContext("2d");
+
+    let running = true;
+    let showTrail = true;
+    let t = 0;
+    const dt = 0.025;
+
+    const A = 1.0;
+    const B = 0.0;
+    const m = 1.0;
+    const k = 4.0;
+    const w0 = Math.sqrt(k / m);
+
+    const trail = [];
+
+    function xFunc(time){
+      return A * Math.cos(w0 * time) + B * Math.sin(w0 * time);
+    }
+
+    function vFunc(time){
+      return -A * w0 * Math.sin(w0 * time) + B * w0 * Math.cos(w0 * time);
+    }
+
+    function energy(time){
+      const x = xFunc(time);
+      const v = vFunc(time);
+      return 0.5 * m * v * v + 0.5 * k * x * x;
+    }
+
+    function drawOscillation(){
+      const w = oscCanvas.width;
+      const h = oscCanvas.height;
+
+      oscCtx.clearRect(0,0,w,h);
+
+      oscCtx.strokeStyle = "#cbd5e1";
+      oscCtx.lineWidth = 1;
+      oscCtx.beginPath();
+      oscCtx.moveTo(40, h/2);
+      oscCtx.lineTo(w-20, h/2);
+      oscCtx.stroke();
+
+      oscCtx.beginPath();
+      oscCtx.moveTo(40, 20);
+      oscCtx.lineTo(40, h-20);
+      oscCtx.stroke();
+
+      oscCtx.fillStyle = "#334155";
+      oscCtx.font = "14px Arial";
+      oscCtx.fillText("t", w-25, h/2 - 10);
+      oscCtx.fillText("x(t)", 10, 22);
+
+      oscCtx.strokeStyle = "#2563eb";
+      oscCtx.lineWidth = 3;
+      oscCtx.beginPath();
+
+      for(let px = 0; px <= w - 60; px++){
+        const time = px / 55;
+        const x = xFunc(time);
+        const py = h/2 - x * 90;
+        const canvasX = 40 + px;
+
+        if(px === 0){
+          oscCtx.moveTo(canvasX, py);
+        } else {
+          oscCtx.lineTo(canvasX, py);
+        }
+      }
+      oscCtx.stroke();
+
+      const movingX = 40 + (t * 55) % (w - 60);
+      const movingY = h/2 - xFunc(t) * 90;
+
+      oscCtx.fillStyle = "#7c3aed";
+      oscCtx.beginPath();
+      oscCtx.arc(movingX, movingY, 8, 0, Math.PI * 2);
+      oscCtx.fill();
+
+      oscCtx.fillStyle = "#0f172a";
+      oscCtx.font = "15px Arial";
+      oscCtx.fillText("x(t) = " + xFunc(t).toFixed(3), 52, 28);
+      oscCtx.fillText("E = " + energy(t).toFixed(3), 180, 28);
+    }
+
+    function drawPhaseSpace(){
+      const w = phaseCanvas.width;
+      const h = phaseCanvas.height;
+
+      phaseCtx.clearRect(0,0,w,h);
+
+      phaseCtx.strokeStyle = "#cbd5e1";
+      phaseCtx.lineWidth = 1;
+      phaseCtx.beginPath();
+      phaseCtx.moveTo(30, h/2);
+      phaseCtx.lineTo(w-20, h/2);
+      phaseCtx.stroke();
+
+      phaseCtx.beginPath();
+      phaseCtx.moveTo(w/2, 20);
+      phaseCtx.lineTo(w/2, h-20);
+      phaseCtx.stroke();
+
+      phaseCtx.fillStyle = "#334155";
+      phaseCtx.font = "14px Arial";
+      phaseCtx.fillText("x", w-20, h/2 - 10);
+      phaseCtx.fillText("ẋ", w/2 + 10, 20);
+
+      if(showTrail){
+        phaseCtx.strokeStyle = "#7c3aed";
+        phaseCtx.lineWidth = 2.5;
+        phaseCtx.beginPath();
+
+        for(let i = 0; i < trail.length; i++){
+          const p = trail[i];
+          const px = w/2 + p.x * 120;
+          const py = h/2 - p.v * 55;
+          if(i === 0){
+            phaseCtx.moveTo(px, py);
+          } else {
+            phaseCtx.lineTo(px, py);
+          }
+        }
+        phaseCtx.stroke();
+      }
+
+      const x = xFunc(t);
+      const v = vFunc(t);
+
+      const px = w/2 + x * 120;
+      const py = h/2 - v * 55;
+
+      phaseCtx.fillStyle = "#059669";
+      phaseCtx.beginPath();
+      phaseCtx.arc(px, py, 8, 0, Math.PI * 2);
+      phaseCtx.fill();
+
+      phaseCtx.fillStyle = "#0f172a";
+      phaseCtx.font = "15px Arial";
+      phaseCtx.fillText("x = " + x.toFixed(3), 18, 28);
+      phaseCtx.fillText("ẋ = " + v.toFixed(3), 120, 28);
+    }
+
+    function animate(){
+      if(running){
+        t += dt;
+
+        const x = xFunc(t);
+        const v = vFunc(t);
+
+        trail.push({x, v});
+        if(trail.length > 500){
+          trail.shift();
+        }
+      }
+
+      drawOscillation();
+      drawPhaseSpace();
+      requestAnimationFrame(animate);
+    }
+
+    function toggleAnimation(){
+      running = !running;
+    }
+
+    function resetAnimation(){
+      t = 0;
+      trail.length = 0;
+    }
+
+    function toggleTrail(){
+      showTrail = !showTrail;
+    }
+
+    const observer = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.classList.add("show");
+        }
+      });
+    }, {threshold:0.14});
+
+    document.querySelectorAll(".section").forEach(section=>{
+      observer.observe(section);
+    });
+
+    animate();
+  </script>
+</body>
+</html>
