@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Double Pendulum Ensemble – Deterministic Chaos</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 16px 0 8px 0;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    label, input, button, select {
+      font-size: 15px;
+    }
+
+    input {
+      width: 110px;
+      padding: 4px;
+    }
+
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    canvas {
+      background: #000;
+      border: 1px solid #444;
+      margin-bottom: 12px;
+    }
+
+    .info {
+      max-width: 900px;
+      line-height: 1.5;
+      padding: 0 16px 20px 16px;
+      font-size: 14px;
+    }
+
+    code {
+      background: #222;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Double Pendulum Ensemble (50 systems)</h1>
+
+  <div class="controls">
+    <label>
+      Perturbation scale Δθ₂ (rad):
+      <input id="perturbInput" type="number" step="0.0001" value="0.001" />
+    </label>
+
+    <label>
+      dt (s):
+      <select id="dtSelect">
+        <option value="0.01">0.01</option>
+        <option value="0.005" selected>0.005</option>
+        <option value="0.002">0.002</option>
+      </select>
+    </label>
+
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <canvas id="canvas" width="900" height="700"></canvas>
+
+  <div class="info">
+    <p>
+      This animation shows <b>50 double pendulums</b> with almost identical initial
+      conditions. Only <code>θ₂(0)</code> is slightly different for each one.
+      Because the system is chaotic, the trajectories diverge over time.
+    </p>
+    <p>
+      Suggested values for the perturbation scale:
+      <code>1e-4</code>, <code>1e-3</code>, <code>1e-2</code>.
+    </p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const perturbInput = document.getElementById("perturbInput");
+    const resetBtn = document.getElementById("resetBtn");
+    const dtSelect = document.getElementById("dtSelect");
+
+    const N = 50;
+
+    // Standardized physical parameters
+    const m1 = 1.0;
+    const m2 = 1.0;
+    const l1 = 1.0;
+    const l2 = 1.0;
+    const g = 9.81;
+
+    // Drawing scale in pixels per meter
+    const scale = 180;
+    const originX = canvas.width / 2;
+    const originY = 180;
+
+    let pendulums = [];
+    let dt = parseFloat(dtSelect.value);
+
+    function createColors(n) {
+      const colors = [];
+      for (let i = 0; i < n; i++) {
+        const hue = (360 * i) / n;
+        colors.push(`hsl(${hue}, 100%, 60%)`);
+      }
+      return colors;
+    }
+
+    const colors = createColors(N);
+
+    function derivatives(state) {
+      const [theta1, omega1, theta2, omega2] = state;
+
+      const delta = theta1 - theta2;
+
+      const den1 = l1 * (2 * m1 + m2 - m2 * Math.cos(2 * theta1 - 2 * theta2));
+      const den2 = l2 * (2 * m1 + m2 - m2 * Math.cos(2 * theta1 - 2 * theta2));
+
+      const dtheta1 = omega1;
+      const dtheta2 = omega2;
+
+      const domega1 =
+        (
+          -g * (2 * m1 + m2) * Math.sin(theta1)
+          - m2 * g * Math.sin(theta1 - 2 * theta2)
+          - 2 * Math.sin(delta) * m2 *
+            (
+              omega2 * omega2 * l2
+              + omega1 * omega1 * l1 * Math.cos(delta)
+            )
+        ) / den1;
+
+      const domega2 =
+        (
+          2 * Math.sin(delta) *
+          (
+            omega1 * omega1 * l1 * (m1 + m2)
+            + g * (m1 + m2) * Math.cos(theta1)
+            + omega2 * omega2 * l2 * m2 * Math.cos(delta)
+          )
+        ) / den2;
+
+      return [dtheta1, domega1, dtheta2, domega2];
+    }
+
+    function rk4Step(state, h) {
+      const k1 = derivatives(state);
+
+      const s2 = state.map((v, i) => v + 0.5 * h * k1[i]);
+      const k2 = derivatives(s2);
+
+      const s3 = state.map((v, i) => v + 0.5 * h * k2[i]);
+      const k3 = derivatives(s3);
+
+      const s4 = state.map((v, i) => v + h * k3[i]);
+      const k4 = derivatives(s4);
+
+      return state.map((v, i) =>
+        v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i])
+      );
+    }
+
+    function getPositions(theta1, theta2) {
+      const x1 = l1 * Math.sin(theta1);
+      const y1 = -l1 * Math.cos(theta1);
+
+      const x2 = x1 + l2 * Math.sin(theta2);
+      const y2 = y1 - l2 * Math.cos(theta2);
+
+      return { x1, y1, x2, y2 };
+    }
+
+    function totalEnergy(state) {
+      const [theta1, omega1, theta2, omega2] = state;
+
+      const T =
+        0.5 * (m1 + m2) * l1 * l1 * omega1 * omega1 +
+        0.5 * m2 * l2 * l2 * omega2 * omega2 +
+        m2 * l1 * l2 * omega1 * omega2 * Math.cos(theta1 - theta2);
+
+      const V =
+        -(m1 + m2) * g * l1 * Math.cos(theta1) -
+        m2 * g * l2 * Math.cos(theta2);
+
+      return T + V;
+    }
+
+    function initializePendulums() {
+      pendulums = [];
+      dt = parseFloat(dtSelect.value);
+
+      const perturbScale = parseFloat(perturbInput.value);
+
+      // Base initial conditions
+      const theta1_0 = Math.PI / 2;
+      const theta2_0 = Math.PI / 2;
+      const omega1_0 = 0;
+      const omega2_0 = 0;
+
+      for (let i = 0; i < N; i++) {
+        const shift = ((i - (N - 1) / 2) / ((N - 1) / 2)) * perturbScale;
+
+        const state = [theta1_0, omega1_0, theta2_0 + shift, omega2_0];
+
+        pendulums.push({
+          state,
+          color: colors[i],
+          trail: [],
+          E0: totalEnergy(state)
+        });
+      }
+    }
+
+    function update() {
+      for (const p of pendulums) {
+        p.state = rk4Step(p.state, dt);
+
+        const [theta1, , theta2] = p.state;
+        const pos = getPositions(theta1, theta2);
+
+        p.trail.push({ x: pos.x2, y: pos.y2 });
+        if (p.trail.length > 140) {
+          p.trail.shift();
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw pivot
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(originX, originY, 5, 0, 2 * Math.PI);
+      ctx.fill();
+
+      for (const p of pendulums) {
+        const [theta1, , theta2] = p.state;
+        const { x1, y1, x2, y2 } = getPositions(theta1, theta2);
+
+        const X1 = originX + scale * x1;
+        const Y1 = originY + scale * y1;
+        const X2 = originX + scale * x2;
+        const Y2 = originY + scale * y2;
+
+        // Trail of second mass
+        if (p.trail.length > 1) {
+          ctx.beginPath();
+          for (let i = 0; i < p.trail.length; i++) {
+            const tx = originX + scale * p.trail[i].x;
+            const ty = originY + scale * p.trail[i].y;
+            if (i === 0) ctx.moveTo(tx, ty);
+            else ctx.lineTo(tx, ty);
+          }
+          ctx.strokeStyle = p.color;
+          ctx.globalAlpha = 0.25;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+
+        // Rod 1
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(X1, Y1);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+
+        // Rod 2
+        ctx.beginPath();
+        ctx.moveTo(X1, Y1);
+        ctx.lineTo(X2, Y2);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+
+        // Mass 1
+        ctx.beginPath();
+        ctx.arc(X1, Y1, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+
+        // Mass 2
+        ctx.beginPath();
+        ctx.arc(X2, Y2, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+
+      // Show average relative energy drift
+      let driftSum = 0;
+      for (const p of pendulums) {
+        const E = totalEnergy(p.state);
+        const drift = Math.abs((E - p.E0) / p.E0);
+        driftSum += drift;
+      }
+      const avgDrift = driftSum / pendulums.length;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "16px Arial";
+      ctx.fillText(`dt = ${dt}`, 20, 30);
+      ctx.fillText(`Average |ΔE/E0| = ${avgDrift.toExponential(3)}`, 20, 55);
+    }
+
+    function animate() {
+      update();
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    resetBtn.addEventListener("click", initializePendulums);
+    dtSelect.addEventListener("change", initializePendulums);
+
+    initializePendulums();
+    animate();
+  </script>
+</body>
+</html>

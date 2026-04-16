@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chain of N Springs – Discrete Wave Model</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .controls label {
+      font-weight: bold;
+    }
+
+    .controls input,
+    .controls select,
+    .controls button {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .info {
+      max-width: 900px;
+      margin: 20px auto 0;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      line-height: 1.6;
+    }
+
+    code {
+      background: #eef;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chain of N Springs – Discrete Wave Model</h1>
+
+  <div class="controls">
+    <label>
+      N:
+      <select id="N">
+        <option value="20">20</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+      </select>
+    </label>
+
+    <label>
+      k:
+      <input type="number" id="k" value="1" step="0.1" min="0.1">
+    </label>
+
+    <label>
+      m:
+      <input type="number" id="m" value="1" step="0.1" min="0.1">
+    </label>
+
+    <label>
+      dt:
+      <input type="number" id="dt" value="0.02" step="0.005" min="0.001">
+    </label>
+
+    <label>
+      Disturbance amplitude:
+      <input type="number" id="A" value="40" step="5">
+    </label>
+
+    <button id="restartBtn">Restart simulation</button>
+  </div>
+
+  <canvas id="canvas" width="1000" height="420"></canvas>
+
+  <div class="info">
+    <p><strong>How it works:</strong> The masses are connected by springs. A local displacement is given near the center, and then the system evolves using the Euler-Cromer method.</p>
+    <p><strong>Observe:</strong> the pulse travels through the chain, reflects at the fixed ends, and changes speed when <code>k</code> or <code>m</code> changes.</p>
+    <p><strong>Main rule:</strong> propagation speed is approximately proportional to <code>sqrt(k/m)</code>.</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const NInput = document.getElementById("N");
+    const kInput = document.getElementById("k");
+    const mInput = document.getElementById("m");
+    const dtInput = document.getElementById("dt");
+    const AInput = document.getElementById("A");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let N, k, m, dt, A;
+    let x = [], v = [], a = [];
+    let baseX = [];
+    let centerY = canvas.height / 2;
+    let leftMargin = 60;
+    let rightMargin = 60;
+
+    function initSimulation() {
+      N = parseInt(NInput.value);
+      k = parseFloat(kInput.value);
+      m = parseFloat(mInput.value);
+      dt = parseFloat(dtInput.value);
+      A = parseFloat(AInput.value);
+
+      x = new Array(N).fill(0);
+      v = new Array(N).fill(0);
+      a = new Array(N).fill(0);
+      baseX = new Array(N);
+
+      const spacing = (canvas.width - leftMargin - rightMargin) / (N - 1);
+      for (let i = 0; i < N; i++) {
+        baseX[i] = leftMargin + i * spacing;
+      }
+
+      // Local Gaussian disturbance near the center
+      const i0 = Math.floor(N / 2);
+      const sigma = Math.max(2, N / 15);
+
+      for (let i = 0; i < N; i++) {
+        x[i] = A * Math.exp(-((i - i0) * (i - i0)) / (sigma * sigma));
+        v[i] = 0;
+      }
+    }
+
+    function computeAcceleration() {
+      for (let i = 0; i < N; i++) {
+        const left = (i === 0) ? 0 : x[i - 1];
+        const right = (i === N - 1) ? 0 : x[i + 1];
+        a[i] = (k / m) * (right - 2 * x[i] + left);
+      }
+    }
+
+    function stepSimulation() {
+      computeAcceleration();
+
+      for (let i = 0; i < N; i++) {
+        v[i] += a[i] * dt;
+        x[i] += v[i] * dt;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Guide line
+      ctx.strokeStyle = "#cccccc";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftMargin, centerY);
+      ctx.lineTo(canvas.width - rightMargin, centerY);
+      ctx.stroke();
+
+      // Springs/links
+      ctx.strokeStyle = "#2a6";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(baseX[0], centerY - x[0]);
+      for (let i = 1; i < N; i++) {
+        ctx.lineTo(baseX[i], centerY - x[i]);
+      }
+      ctx.stroke();
+
+      // Masses
+      for (let i = 0; i < N; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = "#1565c0";
+        ctx.arc(baseX[i], centerY - x[i], 5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      // Text
+      ctx.fillStyle = "#111";
+      ctx.font = "16px Arial";
+      ctx.fillText(`N = ${N}`, 20, 25);
+      ctx.fillText(`k = ${k}`, 20, 50);
+      ctx.fillText(`m = ${m}`, 20, 75);
+      ctx.fillText(`Approx. speed ~ sqrt(k/m) = ${Math.sqrt(k/m).toFixed(3)}`, 20, 100);
+    }
+
+    function animate() {
+      stepSimulation();
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    restartBtn.addEventListener("click", () => {
+      initSimulation();
+    });
+
+    initSimulation();
+    animate();
+  </script>
+</body>
+</html>

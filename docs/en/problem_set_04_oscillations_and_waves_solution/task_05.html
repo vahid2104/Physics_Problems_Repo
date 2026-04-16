@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beats and Superposition of Waves</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --card:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#22c55e;
+      --accent2:#38bdf8;
+      --accent3:#f59e0b;
+      --accent4:#f43f5e;
+      --border:#334155;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#0b1220,#111827);
+      color:var(--text);
+      line-height:1.45;
+    }
+    .container{
+      max-width:1400px;
+      margin:0 auto;
+      padding:20px;
+    }
+    h1,h2,h3{margin:0 0 12px 0}
+    h1{font-size:32px;color:#fff}
+    h2{font-size:24px;margin-top:20px;color:#fff}
+    h3{font-size:18px;color:#fff}
+    p, li{color:var(--text)}
+    .muted{color:var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns:380px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+    .panel, .card{
+      background:rgba(17,24,39,0.95);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.25);
+    }
+    .panel{
+      padding:18px;
+      position:sticky;
+      top:16px;
+    }
+    .card{
+      padding:18px;
+      margin-bottom:18px;
+    }
+    .controls{
+      display:grid;
+      gap:14px;
+    }
+    .control{
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.05);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+    .control label{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-weight:bold;
+      margin-bottom:8px;
+      color:#fff;
+    }
+    .control .value{
+      color:var(--accent2);
+      min-width:86px;
+      text-align:right;
+      font-weight:bold;
+    }
+    input[type="range"]{
+      width:100%;
+      cursor:pointer;
+    }
+    .button-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:6px;
+    }
+    button{
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:bold;
+      cursor:pointer;
+      color:#081018;
+      background:var(--accent);
+      transition:transform .15s ease, opacity .15s ease;
+    }
+    button:hover{
+      transform:translateY(-1px);
+      opacity:0.95;
+    }
+    button.secondary{background:var(--accent2)}
+    button.warning{background:var(--accent3)}
+    button.danger{background:var(--accent4);color:#fff}
+    canvas{
+      width:100%;
+      background:#020617;
+      border:1px solid var(--border);
+      border-radius:14px;
+      display:block;
+    }
+    .formula{
+      background:#020617;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+      overflow:auto;
+      font-family:"Courier New", monospace;
+      color:#dbeafe;
+      white-space:pre-wrap;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+    .stat{
+      background:#020617;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+    }
+    .stat .label{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:6px;
+    }
+    .stat .num{
+      font-size:22px;
+      font-weight:bold;
+      color:#fff;
+    }
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-top:12px;
+      font-size:14px;
+    }
+    .legend-item{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--text);
+    }
+    .swatch{
+      width:18px;
+      height:4px;
+      border-radius:4px;
+    }
+    .two-col{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .small{font-size:14px}
+    .step{
+      margin-bottom:16px;
+      padding:14px;
+      border-radius:12px;
+      background:#0b1220;
+      border:1px solid var(--border);
+    }
+    .step strong{color:#fff}
+    .footer-note{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:8px;
+    }
+    @media (max-width: 1050px){
+      .grid{grid-template-columns:1fr}
+      .panel{position:relative;top:0}
+      .two-col{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Superposition of Waves, Beats, and Envelope Animation</h1>
+    <p class="muted">
+      Interactive presentation of
+      <strong>y₁(x,t)=A sin(kx−ωt)</strong> and
+      <strong>y₂(x,t)=A sin(kx−(ω+Δω)t)</strong>.
+      You can change the parameters live, control animation speed, and watch the beats happen.
+    </p>
+
+    <div class="grid">
+      <aside class="panel">
+        <h3>Controls</h3>
+        <div class="controls">
+          <div class="control">
+            <label><span>Amplitude A</span><span class="value" id="AValue">1.00</span></label>
+            <input id="A" type="range" min="0.2" max="2.5" step="0.01" value="1.00">
+          </div>
+
+          <div class="control">
+            <label><span>Wave number k</span><span class="value" id="kValue">2.00</span></label>
+            <input id="k" type="range" min="0.5" max="8" step="0.01" value="2.00">
+          </div>
+
+          <div class="control">
+            <label><span>Angular frequency ω</span><span class="value" id="omegaValue">8.00</span></label>
+            <input id="omega" type="range" min="1" max="20" step="0.01" value="8.00">
+          </div>
+
+          <div class="control">
+            <label><span>Frequency difference Δω</span><span class="value" id="deltaOmegaValue">0.80</span></label>
+            <input id="deltaOmega" type="range" min="0.01" max="5" step="0.01" value="0.80">
+          </div>
+
+          <div class="control">
+            <label><span>Animation speed</span><span class="value" id="speedValue">1.00×</span></label>
+            <input id="speed" type="range" min="0.1" max="4" step="0.01" value="1.00">
+          </div>
+
+          <div class="control">
+            <label><span>Horizontal range</span><span class="value" id="xMaxValue">12.57</span></label>
+            <input id="xMax" type="range" min="6.28" max="31.42" step="0.01" value="12.57">
+          </div>
+
+          <div class="button-row">
+            <button id="playPauseBtn">Pause</button>
+            <button class="secondary" id="resetBtn">Reset time</button>
+            <button class="warning" id="presetBtn">Nice beats preset</button>
+            <button class="danger" id="toggleEnvelopeBtn">Hide envelope</button>
+          </div>
+
+          <div class="button-row">
+            <button class="secondary" id="toggleY1Btn">Hide y₁</button>
+            <button class="secondary" id="toggleY2Btn">Hide y₂</button>
+            <button class="secondary" id="toggleProbeBtn">Hide x=0 graph</button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Current time t</div>
+            <div class="num" id="tLive">0.00 s</div>
+          </div>
+          <div class="stat">
+            <div class="label">Beat frequency</div>
+            <div class="num" id="beatFreq">0.127 Hz</div>
+          </div>
+          <div class="stat">
+            <div class="label">Beat period</div>
+            <div class="num" id="beatPeriod">7.854 s</div>
+          </div>
+          <div class="stat">
+            <div class="label">Carrier angular freq.</div>
+            <div class="num" id="carrierFreq">8.400 rad/s</div>
+          </div>
+          <div class="stat">
+            <div class="label">Envelope at current t</div>
+            <div class="num" id="envNow">2.000</div>
+          </div>
+          <div class="stat">
+            <div class="label">y(0,t) live</div>
+            <div class="num" id="probeNow">0.000</div>
+          </div>
+        </div>
+
+        <p class="footer-note">
+          In this exact task both waves have the same <strong>k</strong>, so the envelope changes with <strong>time</strong> but does not travel through space.
+        </p>
+      </aside>
+
+      <main>
+        <section class="card">
+          <h2>1. Given waves</h2>
+          <div class="formula">
+y₁(x,t) = A sin(kx − ωt)
+
+y₂(x,t) = A sin(kx − (ω + Δω)t)
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>2. Product form of the resultant wave</h2>
+
+          <div class="step">
+            <strong>Step 1:</strong> Add the two waves:
+            <div class="formula">
+y = y₁ + y₂
+  = A sin(kx − ωt) + A sin(kx − (ω + Δω)t)
+            </div>
+          </div>
+
+          <div class="step">
+            <strong>Step 2:</strong> Use the identity
+            <div class="formula">
+sin α + sin β = 2 sin((α+β)/2) cos((α−β)/2)
+            </div>
+          </div>
+
+          <div class="step">
+            <strong>Step 3:</strong> Let
+            <div class="formula">
+α = kx − ωt
+β = kx − (ω + Δω)t
+            </div>
+          </div>
+
+          <div class="step">
+            <strong>Step 4:</strong> Compute the average and half-difference:
+            <div class="formula">
+(α+β)/2 = kx − (ω + Δω/2)t
+
+(α−β)/2 = (Δω/2)t
+            </div>
+          </div>
+
+          <div class="step">
+            <strong>Final product form:</strong>
+            <div class="formula" id="solutionFormula">
+y(x,t)=2A sin(kx−(ω+Δω/2)t) cos((Δω/2)t)
+            </div>
+            <p class="small">
+              The <strong>sine</strong> factor is the <strong>carrier</strong>, and the <strong>cosine</strong> factor is the <strong>envelope</strong>.
+            </p>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>3. Physical meaning</h2>
+          <div class="two-col">
+            <div class="step">
+              <strong>Carrier wave</strong><br>
+              This is the fast oscillation:
+              <div class="formula" id="carrierFormula">
+sin(kx−(ω+Δω/2)t)
+              </div>
+              It describes the rapid up-and-down motion of the medium.
+            </div>
+
+            <div class="step">
+              <strong>Envelope</strong><br>
+              This is the slow amplitude modulation:
+              <div class="formula" id="envelopeFormula">
+2A cos((Δω/2)t)
+              </div>
+              It tells us when the two waves add strongly and when they nearly cancel.
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>4. Beat frequency and beat period at x = 0</h2>
+          <div class="two-col">
+            <div class="step">
+              <strong>Beat frequency</strong>
+              <div class="formula">
+f_beats = Δω / (2π)
+              </div>
+              <div id="beatFreqExplain" class="small"></div>
+            </div>
+
+            <div class="step">
+              <strong>Beat period</strong>
+              <div class="formula">
+T_beats = 2π / Δω
+              </div>
+              <div id="beatPeriodExplain" class="small"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>5. Animation of the waves</h2>
+          <canvas id="waveCanvas" width="980" height="430"></canvas>
+          <div class="legend">
+            <div class="legend-item"><span class="swatch" style="background:#38bdf8"></span> y₁(x,t)</div>
+            <div class="legend-item"><span class="swatch" style="background:#22c55e"></span> y₂(x,t)</div>
+            <div class="legend-item"><span class="swatch" style="background:#f43f5e"></span> y(x,t)=y₁+y₂</div>
+            <div class="legend-item"><span class="swatch" style="background:#f59e0b"></span> envelope +</div>
+            <div class="legend-item"><span class="swatch" style="background:#f59e0b"></span> envelope −</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>6. Time graph at x = 0</h2>
+          <p class="muted">This graph shows the beats at one fixed point. The red signal oscillates quickly, while the orange envelope changes slowly.</p>
+          <canvas id="probeCanvas" width="980" height="320"></canvas>
+        </section>
+
+        <section class="card">
+          <h2>7. Live values used in the animation</h2>
+          <div class="formula" id="liveFormulas"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const controls = {
+      A: document.getElementById("A"),
+      k: document.getElementById("k"),
+      omega: document.getElementById("omega"),
+      deltaOmega: document.getElementById("deltaOmega"),
+      speed: document.getElementById("speed"),
+      xMax: document.getElementById("xMax")
+    };
+
+    const displays = {
+      AValue: document.getElementById("AValue"),
+      kValue: document.getElementById("kValue"),
+      omegaValue: document.getElementById("omegaValue"),
+      deltaOmegaValue: document.getElementById("deltaOmegaValue"),
+      speedValue: document.getElementById("speedValue"),
+      xMaxValue: document.getElementById("xMaxValue"),
+      tLive: document.getElementById("tLive"),
+      beatFreq: document.getElementById("beatFreq"),
+      beatPeriod: document.getElementById("beatPeriod"),
+      carrierFreq: document.getElementById("carrierFreq"),
+      envNow: document.getElementById("envNow"),
+      probeNow: document.getElementById("probeNow"),
+      beatFreqExplain: document.getElementById("beatFreqExplain"),
+      beatPeriodExplain: document.getElementById("beatPeriodExplain"),
+      liveFormulas: document.getElementById("liveFormulas"),
+      solutionFormula: document.getElementById("solutionFormula"),
+      carrierFormula: document.getElementById("carrierFormula"),
+      envelopeFormula: document.getElementById("envelopeFormula")
+    };
+
+    const waveCanvas = document.getElementById("waveCanvas");
+    const wctx = waveCanvas.getContext("2d");
+
+    const probeCanvas = document.getElementById("probeCanvas");
+    const pctx = probeCanvas.getContext("2d");
+
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const presetBtn = document.getElementById("presetBtn");
+    const toggleEnvelopeBtn = document.getElementById("toggleEnvelopeBtn");
+    const toggleY1Btn = document.getElementById("toggleY1Btn");
+    const toggleY2Btn = document.getElementById("toggleY2Btn");
+    const toggleProbeBtn = document.getElementById("toggleProbeBtn");
+
+    let running = true;
+    let showEnvelope = true;
+    let showY1 = true;
+    let showY2 = true;
+    let showProbe = true;
+    let t = 0;
+    let lastTimestamp = null;
+
+    const probeHistory = [];
+    const probeWindow = 14; // seconds shown in time graph
+
+    function val(id){
+      return parseFloat(controls[id].value);
+    }
+
+    function fmt(x, n = 3){
+      return Number(x).toFixed(n);
+    }
+
+    function y1(x, time){
+      return val("A") * Math.sin(val("k") * x - val("omega") * time);
+    }
+
+    function y2(x, time){
+      return val("A") * Math.sin(val("k") * x - (val("omega") + val("deltaOmega")) * time);
+    }
+
+    function totalWave(x, time){
+      return y1(x, time) + y2(x, time);
+    }
+
+    function envelope(time){
+      return 2 * val("A") * Math.cos(val("deltaOmega") * time / 2);
+    }
+
+    function resetTime(){
+      t = 0;
+      probeHistory.length = 0;
+      addProbeSample();
+      updateLabels();
+    }
+
+    function presetNiceBeats(){
+      controls.A.value = "1.00";
+      controls.k.value = "2.00";
+      controls.omega.value = "8.00";
+      controls.deltaOmega.value = "0.60";
+      controls.speed.value = "1.00";
+      controls.xMax.value = "12.57";
+      resetTime();
+      updateLabels();
+    }
+
+    function addProbeSample(){
+      probeHistory.push({
+        t: t,
+        y: totalWave(0, t),
+        env: Math.abs(envelope(t))
+      });
+
+      while (probeHistory.length > 0 && probeHistory[0].t < t - probeWindow) {
+        probeHistory.shift();
+      }
+    }
+
+    function updateLabels(){
+      displays.AValue.textContent = fmt(val("A"), 2);
+      displays.kValue.textContent = fmt(val("k"), 2);
+      displays.omegaValue.textContent = fmt(val("omega"), 2);
+      displays.deltaOmegaValue.textContent = fmt(val("deltaOmega"), 2);
+      displays.speedValue.textContent = fmt(val("speed"), 2) + "×";
+      displays.xMaxValue.textContent = fmt(val("xMax"), 2);
+
+      const deltaOmega = val("deltaOmega");
+      const beatFreq = deltaOmega / (2 * Math.PI);
+      const beatPeriod = (2 * Math.PI) / deltaOmega;
+      const carrier = val("omega") + deltaOmega / 2;
+      const envelopeNow = envelope(t);
+      const y0 = totalWave(0, t);
+
+      displays.beatFreq.textContent = fmt(beatFreq, 3) + " Hz";
+      displays.beatPeriod.textContent = fmt(beatPeriod, 3) + " s";
+      displays.carrierFreq.textContent = fmt(carrier, 3) + " rad/s";
+      displays.envNow.textContent = fmt(envelopeNow, 3);
+      displays.tLive.textContent = fmt(t, 2) + " s";
+      displays.probeNow.textContent = fmt(y0, 3);
+
+      displays.beatFreqExplain.innerHTML =
+        "For the current Δω = <strong>" + fmt(deltaOmega,2) +
+        "</strong>, we get <strong>f<sub>beats</sub> = Δω/(2π) = " +
+        fmt(beatFreq,3) + " Hz</strong>.";
+
+      displays.beatPeriodExplain.innerHTML =
+        "For the current Δω = <strong>" + fmt(deltaOmega,2) +
+        "</strong>, we get <strong>T<sub>beats</sub> = 2π/Δω = " +
+        fmt(beatPeriod,3) + " s</strong>.";
+
+      displays.solutionFormula.textContent =
+        "y(x,t)=2(" + fmt(val("A"),2) + ") sin((" + fmt(val("k"),2) + ")x−(" +
+        fmt(carrier,2) + ")t) cos((" + fmt(deltaOmega/2,2) + ")t)";
+
+      displays.carrierFormula.textContent =
+        "sin((" + fmt(val("k"),2) + ")x−(" + fmt(carrier,2) + ")t)";
+
+      displays.envelopeFormula.textContent =
+        "2(" + fmt(val("A"),2) + ") cos((" + fmt(deltaOmega/2,2) + ")t)";
+
+      displays.liveFormulas.textContent =
+`Current parameters:
+A = ${fmt(val("A"),2)}
+k = ${fmt(val("k"),2)}
+ω = ${fmt(val("omega"),2)}
+Δω = ${fmt(deltaOmega,2)}
+t = ${fmt(t,2)} s
+
+Waves:
+y₁(x,t) = ${fmt(val("A"),2)} sin(${fmt(val("k"),2)}x − ${fmt(val("omega"),2)}t)
+y₂(x,t) = ${fmt(val("A"),2)} sin(${fmt(val("k"),2)}x − ${fmt(val("omega")+deltaOmega,2)}t)
+
+Resultant wave:
+y(x,t) = 2·${fmt(val("A"),2)} sin(${fmt(val("k"),2)}x − ${fmt(carrier,2)}t) cos(${fmt(deltaOmega/2,2)}t)
+
+Beat values:
+f_beats = ${fmt(beatFreq,3)} Hz
+T_beats = ${fmt(beatPeriod,3)} s
+
+Envelope right now:
+E(t) = 2A cos((Δω/2)t) = ${fmt(envelopeNow,3)}
+
+Probe at x=0:
+y(0,t) = ${fmt(y0,3)}
+`;
+    }
+
+    function drawAxes(ctx, width, height, xLabel, yLabel){
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(50, height / 2);
+      ctx.lineTo(width - 20, height / 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(50, 20);
+      ctx.lineTo(50, height - 30);
+      ctx.stroke();
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "14px Arial";
+      ctx.fillText(xLabel, width - 38, height / 2 - 8);
+      ctx.fillText(yLabel, 14, 24);
+    }
+
+    function drawWaveScene(){
+      const width = waveCanvas.width;
+      const height = waveCanvas.height;
+      wctx.clearRect(0, 0, width, height);
+
+      drawAxes(wctx, width, height, "x", "y");
+
+      const xMin = 0;
+      const xMax = val("xMax");
+      const yMax = Math.max(2.8 * val("A"), 1.5);
+
+      function toCanvasX(x){
+        return 50 + (x - xMin) / (xMax - xMin) * (width - 70);
+      }
+
+      function toCanvasY(y){
+        return height / 2 - (y / yMax) * (height * 0.38);
+      }
+
+      function plotCurve(fn, color, lineWidth = 2){
+        wctx.beginPath();
+        wctx.strokeStyle = color;
+        wctx.lineWidth = lineWidth;
+        const N = 1200;
+
+        for(let i = 0; i <= N; i++){
+          const x = xMin + (xMax - xMin) * i / N;
+          const y = fn(x);
+          const cx = toCanvasX(x);
+          const cy = toCanvasY(y);
+          if(i === 0) wctx.moveTo(cx, cy);
+          else wctx.lineTo(cx, cy);
+        }
+        wctx.stroke();
+      }
+
+      if(showY1) plotCurve(x => y1(x, t), "#38bdf8", 1.8);
+      if(showY2) plotCurve(x => y2(x, t), "#22c55e", 1.8);
+      plotCurve(x => totalWave(x, t), "#f43f5e", 2.8);
+
+      if(showEnvelope){
+        const e = envelope(t);
+        plotCurve(() => e, "#f59e0b", 1.6);
+        plotCurve(() => -e, "#f59e0b", 1.6);
+      }
+
+      wctx.fillStyle = "#e5e7eb";
+      wctx.font = "16px Arial";
+      wctx.fillText("Wave superposition in space at the current time", 60, 28);
+
+      wctx.fillStyle = "#94a3b8";
+      wctx.font = "13px Arial";
+      wctx.fillText("Because both waves have the same k, the envelope depends only on time.", 60, 48);
+
+      const probeY = totalWave(0, t);
+      const px = toCanvasX(0);
+      const py = toCanvasY(probeY);
+
+      wctx.fillStyle = "#ffffff";
+      wctx.beginPath();
+      wctx.arc(px, py, 4, 0, 2 * Math.PI);
+      wctx.fill();
+
+      wctx.fillText("x = 0", px + 10, py - 10);
+
+      wctx.strokeStyle = "rgba(255,255,255,0.15)";
+      wctx.setLineDash([6,6]);
+      wctx.beginPath();
+      wctx.moveTo(px, 20);
+      wctx.lineTo(px, height - 30);
+      wctx.stroke();
+      wctx.setLineDash([]);
+    }
+
+    function drawProbeScene(){
+      const width = probeCanvas.width;
+      const height = probeCanvas.height;
+      pctx.clearRect(0, 0, width, height);
+
+      drawAxes(pctx, width, height, "time", "y(0,t)");
+
+      if(!showProbe){
+        pctx.fillStyle = "#cbd5e1";
+        pctx.font = "18px Arial";
+        pctx.fillText("The x = 0 graph is hidden.", 70, 60);
+        return;
+      }
+
+      const yMax = Math.max(2.8 * val("A"), 1.5);
+
+      function toCanvasX(timeValue){
+        const tMin = Math.max(0, t - probeWindow);
+        const tMax = Math.max(probeWindow, t);
+        return 50 + (timeValue - tMin) / (tMax - tMin) * (width - 70);
+      }
+
+      function toCanvasY(y){
+        return height / 2 - (y / yMax) * (height * 0.36);
+      }
+
+      pctx.fillStyle = "#e5e7eb";
+      pctx.font = "16px Arial";
+      pctx.fillText("Time signal at x = 0 (this is where you see the beats clearly)", 60, 28);
+
+      pctx.fillStyle = "#94a3b8";
+      pctx.font = "13px Arial";
+      pctx.fillText("Red = y(0,t), Orange = ± envelope amplitude", 60, 48);
+
+      if(probeHistory.length < 2){
+        pctx.fillStyle = "#cbd5e1";
+        pctx.font = "15px Arial";
+        pctx.fillText("Waiting for data...", 70, 80);
+        return;
+      }
+
+      pctx.beginPath();
+      pctx.strokeStyle = "#f43f5e";
+      pctx.lineWidth = 2.5;
+      for(let i = 0; i < probeHistory.length; i++){
+        const s = probeHistory[i];
+        const cx = toCanvasX(s.t);
+        const cy = toCanvasY(s.y);
+        if(i === 0) pctx.moveTo(cx, cy);
+        else pctx.lineTo(cx, cy);
+      }
+      pctx.stroke();
+
+      pctx.beginPath();
+      pctx.strokeStyle = "#f59e0b";
+      pctx.lineWidth = 1.4;
+      for(let i = 0; i < probeHistory.length; i++){
+        const s = probeHistory[i];
+        const cx = toCanvasX(s.t);
+        const cy = toCanvasY(s.env);
+        if(i === 0) pctx.moveTo(cx, cy);
+        else pctx.lineTo(cx, cy);
+      }
+      pctx.stroke();
+
+      pctx.beginPath();
+      pctx.strokeStyle = "#f59e0b";
+      pctx.lineWidth = 1.4;
+      for(let i = 0; i < probeHistory.length; i++){
+        const s = probeHistory[i];
+        const cx = toCanvasX(s.t);
+        const cy = toCanvasY(-s.env);
+        if(i === 0) pctx.moveTo(cx, cy);
+        else pctx.lineTo(cx, cy);
+      }
+      pctx.stroke();
+
+      const latest = probeHistory[probeHistory.length - 1];
+      const cx = toCanvasX(latest.t);
+      const cy = toCanvasY(latest.y);
+      pctx.fillStyle = "#ffffff";
+      pctx.beginPath();
+      pctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+      pctx.fill();
+    }
+
+    Object.values(controls).forEach(el => {
+      el.addEventListener("input", () => {
+        updateLabels();
+      });
+    });
+
+    playPauseBtn.addEventListener("click", () => {
+      running = !running;
+      playPauseBtn.textContent = running ? "Pause" : "Play";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetTime();
+    });
+
+    presetBtn.addEventListener("click", () => {
+      presetNiceBeats();
+    });
+
+    toggleEnvelopeBtn.addEventListener("click", () => {
+      showEnvelope = !showEnvelope;
+      toggleEnvelopeBtn.textContent = showEnvelope ? "Hide envelope" : "Show envelope";
+    });
+
+    toggleY1Btn.addEventListener("click", () => {
+      showY1 = !showY1;
+      toggleY1Btn.textContent = showY1 ? "Hide y₁" : "Show y₁";
+    });
+
+    toggleY2Btn.addEventListener("click", () => {
+      showY2 = !showY2;
+      toggleY2Btn.textContent = showY2 ? "Hide y₂" : "Show y₂";
+    });
+
+    toggleProbeBtn.addEventListener("click", () => {
+      showProbe = !showProbe;
+      toggleProbeBtn.textContent = showProbe ? "Hide x=0 graph" : "Show x=0 graph";
+    });
+
+    function animate(timestamp){
+      if(lastTimestamp === null) lastTimestamp = timestamp;
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if(running){
+        t += dt * val("speed");
+        addProbeSample();
+      }
+
+      updateLabels();
+      drawWaveScene();
+      drawProbeScene();
+
+      requestAnimationFrame(animate);
+    }
+
+    resetTime();
+    updateLabels();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

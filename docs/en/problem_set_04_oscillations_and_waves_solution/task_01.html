@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonic Motion – Step by Step</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --accent:#2563eb;
+      --accent2:#7c3aed;
+      --good:#059669;
+      --line:#dbeafe;
+      --shadow:0 12px 30px rgba(0,0,0,.15);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:#fff;
+      overflow-x:hidden;
+    }
+
+    .bg-orb{
+      position:fixed;
+      border-radius:50%;
+      filter:blur(60px);
+      opacity:.25;
+      z-index:0;
+      animation:float 9s ease-in-out infinite;
+    }
+    .orb1{
+      width:280px;height:280px;
+      background:#60a5fa;
+      top:40px;left:-60px;
+    }
+    .orb2{
+      width:320px;height:320px;
+      background:#a78bfa;
+      right:-80px;top:180px;
+      animation-delay:2s;
+    }
+    .orb3{
+      width:240px;height:240px;
+      background:#34d399;
+      left:30%;bottom:-60px;
+      animation-delay:4s;
+    }
+
+    @keyframes float{
+      0%,100%{transform:translateY(0) translateX(0)}
+      50%{transform:translateY(-25px) translateX(20px)}
+    }
+
+    .container{
+      width:min(1100px,92%);
+      margin:0 auto;
+      position:relative;
+      z-index:1;
+      padding:40px 0 80px;
+    }
+
+    .hero{
+      text-align:center;
+      padding:30px 20px 10px;
+      animation:fadeUp 1s ease;
+    }
+
+    .hero h1{
+      margin:0 0 14px;
+      font-size:clamp(2rem,4vw,3.4rem);
+      line-height:1.1;
+    }
+
+    .hero p{
+      margin:0 auto;
+      max-width:800px;
+      color:#dbeafe;
+      font-size:1.08rem;
+      line-height:1.7;
+    }
+
+    .formula-banner{
+      margin:28px auto 0;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(10px);
+      padding:18px 24px;
+      border-radius:18px;
+      display:inline-block;
+      font-size:clamp(1.05rem,2vw,1.45rem);
+      box-shadow:var(--shadow);
+    }
+
+    .grid{
+      display:grid;
+      gap:24px;
+      grid-template-columns:1fr;
+      margin-top:34px;
+    }
+
+    .card{
+      background:var(--card);
+      color:var(--text);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:var(--shadow);
+      opacity:0;
+      transform:translateY(24px);
+      animation:fadeUp .8s ease forwards;
+    }
+
+    .card:nth-child(1){animation-delay:.15s}
+    .card:nth-child(2){animation-delay:.3s}
+    .card:nth-child(3){animation-delay:.45s}
+    .card:nth-child(4){animation-delay:.6s}
+    .card:nth-child(5){animation-delay:.75s}
+    .card:nth-child(6){animation-delay:.9s}
+
+    @keyframes fadeUp{
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    h2{
+      margin:0 0 16px;
+      font-size:1.7rem;
+      color:var(--accent);
+    }
+
+    h3{
+      margin:20px 0 10px;
+      font-size:1.15rem;
+      color:var(--accent2);
+    }
+
+    .step{
+      margin:16px 0;
+      padding:16px 18px;
+      background:#f8fafc;
+      border-left:6px solid var(--accent);
+      border-radius:14px;
+      line-height:1.7;
+    }
+
+    .math{
+      margin:12px 0;
+      padding:14px 16px;
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+      border-radius:14px;
+      font-family:"Courier New", monospace;
+      font-size:1rem;
+      overflow-x:auto;
+      white-space:pre-wrap;
+      line-height:1.7;
+    }
+
+    .highlight{
+      background:linear-gradient(90deg,#dbeafe,#ede9fe);
+      border-left:6px solid var(--accent2);
+    }
+
+    .answer-box{
+      margin-top:16px;
+      padding:18px;
+      background:#ecfdf5;
+      border:1px solid #a7f3d0;
+      border-radius:16px;
+      color:#064e3b;
+      font-weight:bold;
+      line-height:1.7;
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:22px;
+      align-items:center;
+    }
+
+    @media (max-width:900px){
+      .two-col{grid-template-columns:1fr}
+    }
+
+    .canvas-wrap{
+      background:linear-gradient(180deg,#f8fafc,#e2e8f0);
+      border-radius:18px;
+      padding:18px;
+      border:1px solid #cbd5e1;
+    }
+
+    canvas{
+      width:100%;
+      height:auto;
+      display:block;
+      background:#fff;
+      border-radius:14px;
+    }
+
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 16px;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .dot{
+      width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px;
+      vertical-align:middle;
+    }
+
+    .controls{
+      margin-top:18px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+    }
+
+    button{
+      background:var(--accent);
+      border:none;
+      color:white;
+      padding:10px 16px;
+      border-radius:12px;
+      font-size:1rem;
+      cursor:pointer;
+      transition:.25s;
+    }
+
+    button:hover{transform:translateY(-2px); background:#1d4ed8}
+
+    .mini{
+      font-size:.95rem;
+      color:var(--muted);
+    }
+
+    .value-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+
+    @media (max-width:700px){
+      .value-grid{grid-template-columns:1fr}
+    }
+
+    .value-card{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:16px;
+      text-align:center;
+      transition:transform .25s ease, box-shadow .25s ease;
+    }
+
+    .value-card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 10px 22px rgba(37,99,235,.12);
+    }
+
+    .big{
+      font-size:1.45rem;
+      font-weight:bold;
+      color:var(--accent2);
+      margin-top:8px;
+    }
+
+    .footer{
+      text-align:center;
+      color:#cbd5e1;
+      margin-top:32px;
+      font-size:.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+
+  <div class="container">
+    <section class="hero">
+      <h1>Harmonic Motion – Motion Parameters</h1>
+      <p>
+        Step-by-step presentation of the task:
+        period, frequency, maximum velocity, maximum acceleration,
+        and numerical calculations for <b>A = 0.2 m</b> and <b>f = 2 Hz</b>.
+      </p>
+      <div class="formula-banner">
+        x(t) = A cos(ωt + φ)
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>1. Given function</h2>
+        <div class="step">
+          We start from the harmonic motion formula:
+        </div>
+        <div class="math">x(t) = A cos(ωt + φ)</div>
+        <div class="step">
+          Here:
+          <br><b>A</b> = amplitude
+          <br><b>ω</b> = angular frequency
+          <br><b>φ</b> = phase constant
+          <br><b>x(t)</b> = position at time t
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Period and frequency</h2>
+        <div class="step">
+          One full oscillation happens when the angle of cosine changes by:
+        </div>
+        <div class="math">2π</div>
+
+        <div class="step">
+          So:
+        </div>
+        <div class="math">ωT = 2π</div>
+
+        <div class="step">
+          Solve for the period:
+        </div>
+        <div class="math">T = 2π / ω</div>
+
+        <div class="step">
+          Frequency is the number of oscillations per second:
+        </div>
+        <div class="math">f = 1 / T</div>
+
+        <div class="step">
+          Substitute T:
+        </div>
+        <div class="math">f = ω / 2π</div>
+
+        <div class="answer-box">
+          Final formulas:
+          <br>T = 2π / ω
+          <br>f = ω / 2π
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Maximum velocity</h2>
+        <div class="step">
+          Velocity is the derivative of position:
+        </div>
+        <div class="math">v(t) = dx/dt</div>
+
+        <div class="step">
+          Differentiate:
+        </div>
+        <div class="math">x(t) = A cos(ωt + φ)</div>
+
+        <div class="math">v(t) = -Aω sin(ωt + φ)</div>
+
+        <div class="step">
+          Since the sine function is always between -1 and 1,
+          the largest possible magnitude is 1.
+        </div>
+        <div class="math">|sin(ωt + φ)| ≤ 1</div>
+
+        <div class="step highlight">
+          Therefore, the maximum velocity is:
+        </div>
+        <div class="math">vmax = Aω</div>
+
+        <div class="answer-box">
+          Maximum velocity:
+          <br>vmax = Aω
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>4. Maximum acceleration</h2>
+        <div class="step">
+          Acceleration is the derivative of velocity:
+        </div>
+        <div class="math">a(t) = dv/dt</div>
+
+        <div class="step">
+          Differentiate:
+        </div>
+        <div class="math">v(t) = -Aω sin(ωt + φ)</div>
+
+        <div class="math">a(t) = -Aω² cos(ωt + φ)</div>
+
+        <div class="step">
+          Since cosine is also between -1 and 1,
+          its largest magnitude is 1.
+        </div>
+        <div class="math">|cos(ωt + φ)| ≤ 1</div>
+
+        <div class="step highlight">
+          Therefore, the maximum acceleration is:
+        </div>
+        <div class="math">amax = Aω²</div>
+
+        <div class="answer-box">
+          Maximum acceleration:
+          <br>amax = Aω²
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>5. Numerical calculations</h2>
+
+        <div class="step">
+          Given:
+        </div>
+        <div class="math">A = 0.2 m
+f = 2 Hz</div>
+
+        <h3>Step 1: Calculate ω</h3>
+        <div class="math">ω = 2πf</div>
+        <div class="math">ω = 2π · 2 = 4π rad/s ≈ 12.57 rad/s</div>
+
+        <h3>Step 2: Calculate vmax</h3>
+        <div class="math">vmax = Aω</div>
+        <div class="math">vmax = 0.2 · 4π = 0.8π m/s ≈ 2.51 m/s</div>
+
+        <h3>Step 3: Calculate amax</h3>
+        <div class="math">amax = Aω²</div>
+        <div class="math">amax = 0.2 · (4π)² = 3.2π² m/s² ≈ 31.58 m/s²</div>
+
+        <div class="value-grid">
+          <div class="value-card">
+            <div>Angular frequency</div>
+            <div class="big">ω ≈ 12.57 rad/s</div>
+          </div>
+          <div class="value-card">
+            <div>Maximum velocity</div>
+            <div class="big">vmax ≈ 2.51 m/s</div>
+          </div>
+          <div class="value-card">
+            <div>Maximum acceleration</div>
+            <div class="big">amax ≈ 31.58 m/s²</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>6. Interpretation + animation</h2>
+
+        <div class="two-col">
+          <div>
+            <div class="step">
+              The period tells us how long one full oscillation takes.
+            </div>
+            <div class="math">T = 1 / f = 1 / 2 = 0.5 s</div>
+
+            <div class="step">
+              So the object completes one full oscillation in <b>0.5 seconds</b>.
+            </div>
+
+            <div class="step">
+              The maximum velocity happens when the object passes through the middle position.
+            </div>
+
+            <div class="step">
+              The maximum acceleration happens at the ends of the motion,
+              where the object turns back.
+            </div>
+
+            <div class="answer-box">
+              Final answers:
+              <br>T = 0.5 s
+              <br>f = 2 Hz
+              <br>ω = 4π rad/s ≈ 12.57 rad/s
+              <br>vmax = 0.8π m/s ≈ 2.51 m/s
+              <br>amax = 3.2π² m/s² ≈ 31.58 m/s²
+            </div>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="motionCanvas" width="520" height="300"></canvas>
+            <div class="legend">
+              <span><span class="dot" style="background:#2563eb;"></span>Oscillating mass</span>
+              <span><span class="dot" style="background:#7c3aed;"></span>Center position</span>
+              <span><span class="dot" style="background:#059669;"></span>Graph point x(t)</span>
+            </div>
+            <div class="controls">
+              <button id="toggleBtn">Pause</button>
+              <button id="resetBtn">Reset</button>
+              <div class="mini">Animation shows the harmonic motion and the cosine graph together.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Interactive HTML presentation of the harmonic motion problem.
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("motionCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const toggleBtn = document.getElementById("toggleBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let running = true;
+    let time = 0;
+
+    const Apx = 80;
+    const omega = 4 * Math.PI; // from the task
+    const phi = 0;
+
+    function drawAxesGraph() {
+      const graphX = 280;
+      const graphY = 30;
+      const graphW = 210;
+      const graphH = 220;
+
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(graphX, graphY + graphH / 2);
+      ctx.lineTo(graphX + graphW, graphY + graphH / 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(graphX, graphY);
+      ctx.lineTo(graphX, graphY + graphH);
+      ctx.stroke();
+
+      ctx.fillStyle = "#475569";
+      ctx.font = "12px Arial";
+      ctx.fillText("t", graphX + graphW - 8, graphY + graphH / 2 - 8);
+      ctx.fillText("x", graphX + 8, graphY + 12);
+
+      ctx.strokeStyle = "#93c5fd";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      for (let i = 0; i <= graphW; i++) {
+        const tMap = (i / graphW) * 1.2;
+        const yVal = Math.cos(omega * tMap + phi);
+        const y = graphY + graphH / 2 - yVal * 70;
+        const x = graphX + i;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      const tNow = time % 1.2;
+      const xNow = graphX + (tNow / 1.2) * graphW;
+      const yNow = graphY + graphH / 2 - Math.cos(omega * tNow + phi) * 70;
+
+      ctx.fillStyle = "#059669";
+      ctx.beginPath();
+      ctx.arc(xNow, yNow, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawSpring(x1, x2, y, coils = 10, amp = 14) {
+      const length = x2 - x1;
+      const segment = length / (coils * 2);
+
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+
+      let x = x1;
+      for (let i = 0; i < coils * 2; i++) {
+        x += segment;
+        const yy = i % 2 === 0 ? y - amp : y + amp;
+        ctx.lineTo(x, yy);
+      }
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const wallX = 40;
+      const centerX = 160;
+      const y = 120;
+
+      const displacement = Apx * Math.cos(omega * time + phi);
+      const massX = centerX + displacement;
+
+      // title
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("Oscillation", 40, 24);
+      ctx.fillText("Cosine graph x(t)", 310, 24);
+
+      // wall
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(wallX, y - 50, 20, 100);
+
+      for (let i = 0; i < 9; i++) {
+        ctx.beginPath();
+        ctx.moveTo(wallX, y - 50 + i * 12);
+        ctx.lineTo(wallX - 15, y - 40 + i * 12);
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // center line
+      ctx.strokeStyle = "#7c3aed";
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, 50);
+      ctx.lineTo(centerX, 220);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // floor line
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(30, 180);
+      ctx.lineTo(245, 180);
+      ctx.stroke();
+
+      // spring
+      drawSpring(wallX + 20, massX - 25, y);
+
+      // mass
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(massX - 25, y - 25, 50, 50);
+
+      // amplitude markers
+      ctx.fillStyle = "#475569";
+      ctx.font = "12px Arial";
+      ctx.fillText("-A", centerX - Apx - 10, 200);
+      ctx.fillText("0", centerX - 4, 200);
+      ctx.fillText("+A", centerX + Apx - 5, 200);
+
+      // position text
+      const xMeters = 0.2 * Math.cos(omega * time + phi);
+      const v = -0.2 * omega * Math.sin(omega * time + phi);
+      const a = -0.2 * omega * omega * Math.cos(omega * time + phi);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "14px Arial";
+      ctx.fillText("x(t) = " + xMeters.toFixed(3) + " m", 36, 245);
+      ctx.fillText("v(t) = " + v.toFixed(3) + " m/s", 36, 266);
+      ctx.fillText("a(t) = " + a.toFixed(3) + " m/s²", 36, 287);
+
+      drawAxesGraph();
+    }
+
+    function animate() {
+      if (running) {
+        time += 0.01;
+      }
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      running = !running;
+      toggleBtn.textContent = running ? "Pause" : "Play";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      time = 0;
+      running = true;
+      toggleBtn.textContent = "Pause";
+      drawScene();
+    });
+
+    animate();
+  </script>
+</body>
+</html>

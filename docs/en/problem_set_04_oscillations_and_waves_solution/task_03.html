@@ -1,0 +1,1006 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 3 – Harmonic Wave</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.15);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --accent3:#f59e0b;
+      --accent4:#a78bfa;
+      --danger:#ef4444;
+      --shadow:0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    *{box-sizing:border-box}
+
+    html{scroll-behavior:smooth}
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, #1d4ed8 0%, transparent 25%),
+        radial-gradient(circle at top right, #0ea5e9 0%, transparent 25%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .container{
+      width:min(1200px, 94%);
+      margin:0 auto;
+      padding:30px 0 60px;
+    }
+
+    .hero{
+      text-align:center;
+      padding:10px 0 28px;
+      animation:fadeUp .8s ease;
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      font-size:clamp(2rem, 4vw, 3.3rem);
+      line-height:1.1;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:1.05rem;
+    }
+
+    .equation-box{
+      margin:0 auto 24px;
+      max-width:820px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:22px;
+      padding:18px 20px;
+      box-shadow:var(--shadow);
+      text-align:center;
+      backdrop-filter:blur(8px);
+      animation:fadeUp 1s ease;
+    }
+
+    .equation{
+      font-size:clamp(1.2rem, 3vw, 2rem);
+      font-weight:bold;
+      color:white;
+    }
+
+    .top-nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      margin:0 0 24px;
+    }
+
+    .top-nav a{
+      text-decoration:none;
+      color:white;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.12);
+      font-size:.92rem;
+      transition:.2s ease;
+    }
+
+    .top-nav a:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,0.14);
+    }
+
+    .section{
+      margin-bottom:24px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+      animation:fadeUp .9s ease both;
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns:1.2fr .95fr;
+      gap:24px;
+    }
+
+    .sim-grid{
+      display:grid;
+      grid-template-columns:1.3fr .9fr;
+      gap:24px;
+    }
+
+    @media (max-width:980px){
+      .two-col,.sim-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    h2{
+      margin:0 0 14px;
+      font-size:1.45rem;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    h3{
+      margin:0 0 12px;
+      font-size:1.05rem;
+      color:#fff;
+    }
+
+    .badge{
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(135deg, var(--accent), #6366f1);
+      color:white;
+      font-weight:bold;
+      box-shadow:0 8px 18px rgba(56,189,248,0.35);
+      flex:0 0 auto;
+    }
+
+    p, li{
+      line-height:1.7;
+      color:var(--text);
+      font-size:1rem;
+    }
+
+    ul{
+      margin:10px 0 0;
+      padding-left:22px;
+    }
+
+    .muted{
+      color:var(--muted);
+    }
+
+    .math{
+      margin:14px 0;
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(255,255,255,0.05);
+      border-left:4px solid var(--accent);
+      font-family:"Courier New", monospace;
+      white-space:pre-wrap;
+      line-height:1.6;
+      overflow:auto;
+    }
+
+    .result{
+      margin-top:12px;
+      padding:14px 16px;
+      border-radius:16px;
+      background:linear-gradient(135deg, rgba(34,197,94,0.18), rgba(56,189,248,0.12));
+      border:1px solid rgba(255,255,255,0.12);
+      font-weight:bold;
+      color:white;
+    }
+
+    .highlight{
+      color:#fff;
+      font-weight:bold;
+    }
+
+    canvas{
+      width:100%;
+      height:400px;
+      display:block;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    }
+
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-top:12px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      display:inline-block;
+      margin-right:7px;
+    }
+
+    .blue{background:var(--accent)}
+    .green{background:var(--accent2)}
+    .orange{background:var(--accent3)}
+    .purple{background:var(--accent4)}
+
+    .controls{
+      display:grid;
+      gap:16px;
+    }
+
+    .control-group{
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .slider-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:center;
+      margin:12px 0;
+    }
+
+    .slider-box label{
+      display:block;
+      margin-bottom:6px;
+      font-size:.95rem;
+    }
+
+    .value-box{
+      min-width:88px;
+      text-align:center;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(255,255,255,0.08);
+      color:white;
+      font-weight:bold;
+      font-size:.95rem;
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    input[type="range"]{
+      width:100%;
+      appearance:none;
+      height:8px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.12);
+      outline:none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb{
+      appearance:none;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:var(--accent);
+      cursor:pointer;
+      box-shadow:0 0 0 4px rgba(56,189,248,0.2);
+    }
+
+    .button-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    button{
+      border:none;
+      padding:12px 16px;
+      border-radius:14px;
+      font-size:.95rem;
+      font-weight:bold;
+      cursor:pointer;
+      color:white;
+      transition:transform .2s ease, opacity .2s ease;
+    }
+
+    button:hover{
+      transform:translateY(-2px);
+      opacity:.95;
+    }
+
+    .btn-primary{ background:linear-gradient(135deg, var(--accent), #2563eb); }
+    .btn-green{ background:linear-gradient(135deg, var(--accent2), #16a34a); }
+    .btn-orange{ background:linear-gradient(135deg, var(--accent3), #ea580c); }
+    .btn-purple{ background:linear-gradient(135deg, var(--accent4), #7c3aed); }
+    .btn-red{ background:linear-gradient(135deg, var(--danger), #b91c1c); }
+
+    .live-grid{
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:12px;
+    }
+
+    @media (max-width:600px){
+      .live-grid{grid-template-columns:1fr}
+    }
+
+    .live-box{
+      padding:14px;
+      border-radius:16px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .live-box .label{
+      color:var(--muted);
+      font-size:.88rem;
+      margin-bottom:6px;
+    }
+
+    .live-box .num{
+      font-size:1.12rem;
+      font-weight:bold;
+      color:white;
+    }
+
+    .formula{
+      margin-top:12px;
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(255,255,255,0.05);
+      border-left:4px solid var(--accent);
+      font-family:"Courier New", monospace;
+      white-space:pre-wrap;
+      line-height:1.55;
+      overflow:auto;
+    }
+
+    .summary-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .summary-item{
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer{
+      text-align:center;
+      margin-top:30px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    @keyframes fadeUp{
+      from{opacity:0; transform:translateY(24px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Problem 3 – Harmonic Wave</h1>
+      <p>Interactive presentation with full solution, live formulas, and animation controls</p>
+    </section>
+
+    <div class="equation-box">
+      <div class="equation">y(x,t) = A sin(kx − ωt)</div>
+    </div>
+
+    <nav class="top-nav">
+      <a href="#problem">Problem</a>
+      <a href="#step1">Wavelength</a>
+      <a href="#step2">Phase velocity</a>
+      <a href="#step3">Numerical result</a>
+      <a href="#step4">In phase?</a>
+      <a href="#simulator">Simulator</a>
+      <a href="#final">Final answers</a>
+    </nav>
+
+    <section class="section" id="problem">
+      <div class="card">
+        <h2><span class="badge">Q</span> Task</h2>
+        <p>The wave equation is given by</p>
+        <div class="math">y(x,t) = A sin(kx - ωt)</div>
+        <p>We need to determine:</p>
+        <ul>
+          <li>the wavelength <span class="highlight">λ</span>,</li>
+          <li>the phase velocity <span class="highlight">v</span>,</li>
+          <li>the value of <span class="highlight">v</span> for <span class="highlight">k = 4π</span> and <span class="highlight">ω = 20π</span>,</li>
+          <li>whether the point <span class="highlight">x = λ</span> oscillates in phase with the point <span class="highlight">x = 0</span>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section two-col" id="step1">
+      <div class="card">
+        <h2><span class="badge">1</span> Determine the wavelength</h2>
+        <p>In the wave equation</p>
+        <div class="math">y(x,t) = A sin(kx - ωt)</div>
+        <p>the quantity <span class="highlight">k</span> is called the <span class="highlight">wave number</span>.</p>
+        <p>The relation between wave number and wavelength is</p>
+        <div class="math">k = 2π / λ</div>
+        <p>Now solve for <span class="highlight">λ</span>.</p>
+        <div class="math">kλ = 2π
+
+λ = 2π / k</div>
+        <div class="result">Therefore, the wavelength is: λ = 2π / k</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="badge">i</span> Interpretation</h2>
+        <p>The wavelength tells us the distance in space after which the wave repeats its shape.</p>
+        <p>So if one crest is at some position, the next crest appears one wavelength later.</p>
+        <p>That is why points separated by one full wavelength have the same oscillation pattern.</p>
+      </div>
+    </section>
+
+    <section class="section two-col" id="step2">
+      <div class="card">
+        <h2><span class="badge">2</span> Determine the phase velocity</h2>
+        <p>The phase velocity is the speed of a point with constant phase.</p>
+        <p>So we take</p>
+        <div class="math">kx - ωt = constant</div>
+        <p>Differentiate both sides with respect to time:</p>
+        <div class="math">d/dt (kx - ωt) = 0</div>
+        <div class="math">k(dx/dt) - ω = 0</div>
+        <p>Since</p>
+        <div class="math">dx/dt = v</div>
+        <p>we get</p>
+        <div class="math">kv - ω = 0
+
+kv = ω
+
+v = ω / k</div>
+        <div class="result">Therefore, the phase velocity is: v = ω / k</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="badge">i</span> Interpretation</h2>
+        <p>This velocity tells us how fast the wave pattern moves.</p>
+        <p>For example, a crest or a trough moves with the phase velocity.</p>
+        <p>Because the equation has the form <span class="highlight">kx − ωt</span>, the wave travels in the positive <span class="highlight">x</span>-direction.</p>
+      </div>
+    </section>
+
+    <section class="section two-col" id="step3">
+      <div class="card">
+        <h2><span class="badge">3</span> Numerical calculation</h2>
+        <p>We are given</p>
+        <div class="math">k = 4π
+ω = 20π</div>
+        <p>Use the formula</p>
+        <div class="math">v = ω / k</div>
+        <p>Substitute the values:</p>
+        <div class="math">v = (20π) / (4π)</div>
+        <p>The factor <span class="highlight">π</span> cancels:</p>
+        <div class="math">v = 20 / 4 = 5</div>
+        <div class="result">Therefore, v = 5 m/s</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="badge">i</span> Also find λ for these values</h2>
+        <div class="math">λ = 2π / k = 2π / 4π = 1/2</div>
+        <div class="result">So the wavelength is: λ = 0.5 m</div>
+      </div>
+    </section>
+
+    <section class="section two-col" id="step4">
+      <div class="card">
+        <h2><span class="badge">4</span> Does x = λ oscillate in phase with x = 0?</h2>
+        <p>We compare the displacement at both points.</p>
+
+        <p><span class="highlight">At x = 0:</span></p>
+        <div class="math">y(0,t) = A sin(0 - ωt) = A sin(-ωt)</div>
+
+        <p><span class="highlight">At x = λ:</span></p>
+        <div class="math">y(λ,t) = A sin(kλ - ωt)</div>
+
+        <p>But</p>
+        <div class="math">k = 2π / λ</div>
+        <p>so</p>
+        <div class="math">kλ = 2π</div>
+
+        <p>Therefore</p>
+        <div class="math">y(λ,t) = A sin(2π - ωt)</div>
+
+        <p>Since the sine function repeats every <span class="highlight">2π</span>,</p>
+        <div class="math">sin(2π - ωt) = sin(-ωt)</div>
+
+        <p>Thus</p>
+        <div class="math">y(λ,t) = y(0,t)</div>
+
+        <div class="result">Yes. The point x = λ oscillates in phase with the point x = 0.</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="badge">i</span> Physical meaning</h2>
+        <p>Two points are in phase when they always have the same displacement at the same time.</p>
+        <p>Points separated by one full wavelength behave identically.</p>
+        <p>That is exactly why <span class="highlight">x = 0</span> and <span class="highlight">x = λ</span> are in phase.</p>
+      </div>
+    </section>
+
+    <section class="section sim-grid" id="simulator">
+      <div class="card">
+        <h2><span class="badge">~</span> Interactive simulator</h2>
+        <canvas id="waveCanvas" width="760" height="400"></canvas>
+
+        <div class="legend">
+          <span><i class="dot blue"></i>Wave</span>
+          <span><i class="dot green"></i>Point x = 0</span>
+          <span><i class="dot orange"></i>Point x = λ</span>
+          <span><i class="dot purple"></i>Wave direction</span>
+        </div>
+
+        <div class="formula" id="formulaBox"></div>
+      </div>
+
+      <div class="controls">
+        <div class="card">
+          <h2><span class="badge">C</span> Controls</h2>
+
+          <div class="control-group">
+            <h3>Wave parameters</h3>
+
+            <div class="slider-row">
+              <div class="slider-box">
+                <label for="amplitude">Amplitude A</label>
+                <input type="range" id="amplitude" min="10" max="100" step="1" value="55">
+              </div>
+              <div class="value-box" id="amplitudeVal">55</div>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-box">
+                <label for="kValue">Wave number k</label>
+                <input type="range" id="kValue" min="0.5" max="20" step="0.1" value="12.6">
+              </div>
+              <div class="value-box" id="kValueVal">12.6</div>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-box">
+                <label for="omegaValue">Angular frequency ω</label>
+                <input type="range" id="omegaValue" min="0.5" max="80" step="0.1" value="62.8">
+              </div>
+              <div class="value-box" id="omegaValueVal">62.8</div>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-box">
+                <label for="speedScale">Animation speed</label>
+                <input type="range" id="speedScale" min="0" max="4" step="0.05" value="1">
+              </div>
+              <div class="value-box" id="speedScaleVal">1.00×</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>Buttons</h3>
+            <div class="button-row">
+              <button class="btn-primary" id="playPauseBtn">Pause</button>
+              <button class="btn-green" id="stepBtn">Step +</button>
+              <button class="btn-orange" id="resetTimeBtn">Reset time</button>
+              <button class="btn-purple" id="setExampleBtn">Set k=4π, ω=20π</button>
+              <button class="btn-red" id="defaultBtn">Restore defaults</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><span class="badge">L</span> Live values</h2>
+          <div class="live-grid">
+            <div class="live-box">
+              <div class="label">Time t</div>
+              <div class="num" id="liveT">0.00 s</div>
+            </div>
+            <div class="live-box">
+              <div class="label">Wavelength λ = 2π/k</div>
+              <div class="num" id="liveLambda">0.00</div>
+            </div>
+            <div class="live-box">
+              <div class="label">Phase velocity v = ω/k</div>
+              <div class="num" id="liveVelocity">0.00</div>
+            </div>
+            <div class="live-box">
+              <div class="label">Wave direction</div>
+              <div class="num" id="liveDirection">+x</div>
+            </div>
+            <div class="live-box">
+              <div class="label">y(0,t)</div>
+              <div class="num" id="liveY0">0.00</div>
+            </div>
+            <div class="live-box">
+              <div class="label">y(λ,t)</div>
+              <div class="num" id="liveYLambda">0.00</div>
+            </div>
+            <div class="live-box">
+              <div class="label">Difference y(λ,t) − y(0,t)</div>
+              <div class="num" id="liveDiff">0.00</div>
+            </div>
+            <div class="live-box">
+              <div class="label">Current phase at x = 0</div>
+              <div class="num" id="livePhase">0.00 rad</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="final">
+      <div class="card">
+        <h2><span class="badge">✓</span> Final answers</h2>
+        <div class="summary-list">
+          <div class="summary-item">
+            <strong>Wavelength:</strong>
+            <div class="math">λ = 2π / k</div>
+          </div>
+          <div class="summary-item">
+            <strong>Phase velocity:</strong>
+            <div class="math">v = ω / k</div>
+          </div>
+          <div class="summary-item">
+            <strong>For k = 4π and ω = 20π:</strong>
+            <div class="math">λ = 2π / 4π = 1/2 m
+
+v = 20π / 4π = 5 m/s</div>
+          </div>
+          <div class="summary-item">
+            <strong>Phase relation:</strong>
+            <p>The point <span class="highlight">x = λ</span> oscillates <span class="highlight">in phase</span> with the point <span class="highlight">x = 0</span>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Ready to copy, paste, and present
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const controls = {
+      amplitude: document.getElementById("amplitude"),
+      kValue: document.getElementById("kValue"),
+      omegaValue: document.getElementById("omegaValue"),
+      speedScale: document.getElementById("speedScale")
+    };
+
+    const outputs = {
+      amplitudeVal: document.getElementById("amplitudeVal"),
+      kValueVal: document.getElementById("kValueVal"),
+      omegaValueVal: document.getElementById("omegaValueVal"),
+      speedScaleVal: document.getElementById("speedScaleVal"),
+      liveT: document.getElementById("liveT"),
+      liveLambda: document.getElementById("liveLambda"),
+      liveVelocity: document.getElementById("liveVelocity"),
+      liveDirection: document.getElementById("liveDirection"),
+      liveY0: document.getElementById("liveY0"),
+      liveYLambda: document.getElementById("liveYLambda"),
+      liveDiff: document.getElementById("liveDiff"),
+      livePhase: document.getElementById("livePhase"),
+      formulaBox: document.getElementById("formulaBox")
+    };
+
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const resetTimeBtn = document.getElementById("resetTimeBtn");
+    const setExampleBtn = document.getElementById("setExampleBtn");
+    const defaultBtn = document.getElementById("defaultBtn");
+
+    const defaults = {
+      amplitude: 55,
+      kValue: 12.6,
+      omegaValue: 62.8,
+      speedScale: 1
+    };
+
+    let running = true;
+    let t = 0;
+    let lastTimestamp = 0;
+
+    function fmt(n, digits = 2) {
+      return Number(n).toFixed(digits);
+    }
+
+    function getValues() {
+      return {
+        Apx: parseFloat(controls.amplitude.value),
+        k: parseFloat(controls.kValue.value),
+        omega: parseFloat(controls.omegaValue.value),
+        speedScale: parseFloat(controls.speedScale.value)
+      };
+    }
+
+    function updateControlLabels() {
+      outputs.amplitudeVal.textContent = controls.amplitude.value;
+      outputs.kValueVal.textContent = controls.kValue.value;
+      outputs.omegaValueVal.textContent = controls.omegaValue.value;
+      outputs.speedScaleVal.textContent = fmt(controls.speedScale.value, 2) + "×";
+    }
+
+    function xToMeters(xPx) {
+      return xPx / 120;
+    }
+
+    function yAt(xMeters, time, Apx, k, omega) {
+      return Apx * Math.sin(k * xMeters - omega * time);
+    }
+
+    function drawGrid() {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x <= canvas.width; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= canvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawAxis(midY) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,0.24)";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, midY);
+      ctx.lineTo(canvas.width, midY);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.font = "14px Arial";
+      ctx.fillText("x", canvas.width - 14, midY - 8);
+      ctx.fillText("y", 8, 18);
+      ctx.restore();
+    }
+
+    function drawWave(midY, Apx, k, omega, time) {
+      ctx.save();
+      ctx.beginPath();
+
+      for (let xPx = 0; xPx <= canvas.width; xPx++) {
+        const xM = xToMeters(xPx);
+        const y = midY + yAt(xM, time, Apx, k, omega);
+
+        if (xPx === 0) ctx.moveTo(xPx, y);
+        else ctx.lineTo(xPx, y);
+      }
+
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 3.5;
+      ctx.shadowColor = "rgba(56,189,248,0.55)";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPoint(xPx, color, label, midY, Apx, k, omega, time) {
+      const xM = xToMeters(xPx);
+      const y = midY + yAt(xM, time, Apx, k, omega);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(xPx, y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 16;
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,255,255,0.20)";
+      ctx.setLineDash([6,6]);
+      ctx.beginPath();
+      ctx.moveTo(xPx, midY);
+      ctx.lineTo(xPx, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText(label, xPx - 16, y - 14);
+      ctx.restore();
+    }
+
+    function drawLambdaArrow(x1, x2, y) {
+      ctx.save();
+      ctx.strokeStyle = "#f59e0b";
+      ctx.fillStyle = "#f59e0b";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x1 + 10, y - 5);
+      ctx.lineTo(x1 + 10, y + 5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y);
+      ctx.lineTo(x2 - 10, y - 5);
+      ctx.lineTo(x2 - 10, y + 5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("λ", (x1 + x2) / 2 - 5, y - 10);
+      ctx.restore();
+    }
+
+    function drawDirectionArrow() {
+      const xStart = 520;
+      const y = 55;
+
+      ctx.save();
+      ctx.strokeStyle = "#a78bfa";
+      ctx.fillStyle = "#a78bfa";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(xStart, y);
+      ctx.lineTo(xStart + 70, y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(xStart + 70, y);
+      ctx.lineTo(xStart + 56, y - 8);
+      ctx.lineTo(xStart + 56, y + 8);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("wave moves in +x", xStart - 8, y - 14);
+      ctx.restore();
+    }
+
+    function updateLiveValues(Apx, k, omega, time, lambda) {
+      const y0 = yAt(0, time, Apx, k, omega);
+      const yLambda = yAt(lambda, time, Apx, k, omega);
+      const diff = yLambda - y0;
+      const phase0 = -omega * time;
+
+      outputs.liveT.textContent = fmt(time, 2) + " s";
+      outputs.liveLambda.textContent = fmt(lambda, 4);
+      outputs.liveVelocity.textContent = fmt(omega / k, 4);
+      outputs.liveDirection.textContent = "+x";
+      outputs.liveY0.textContent = fmt(y0, 2);
+      outputs.liveYLambda.textContent = fmt(yLambda, 2);
+      outputs.liveDiff.textContent = fmt(diff, 6);
+      outputs.livePhase.textContent = fmt(phase0, 3) + " rad";
+
+      outputs.formulaBox.textContent =
+`Live formulas and values
+
+λ = 2π / k = ${fmt(lambda, 4)}
+v = ω / k = ${fmt(omega / k, 4)}
+
+y(0,t) = A sin(0 - ωt) = ${fmt(y0, 2)}
+y(λ,t) = A sin(kλ - ωt) = ${fmt(yLambda, 2)}
+
+Difference = y(λ,t) - y(0,t) = ${fmt(diff, 6)}
+
+Because kλ = 2π, the points x = 0 and x = λ are in phase.`;
+    }
+
+    function drawScene() {
+      const { Apx, k, omega } = getValues();
+      const midY = canvas.height / 2;
+      const lambda = (2 * Math.PI) / k;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawGrid();
+      drawAxis(midY);
+      drawWave(midY, Apx, k, omega, t);
+
+      const x0Px = 90;
+      const xLambdaPx = x0Px + lambda * 120;
+
+      if (xLambdaPx < canvas.width - 20) {
+        drawLambdaArrow(x0Px, xLambdaPx, 44);
+      }
+
+      drawPoint(x0Px, "#22c55e", "x=0", midY, Apx, k, omega, t);
+      drawPoint(xLambdaPx, "#f59e0b", "x=λ", midY, Apx, k, omega, t);
+      drawDirectionArrow();
+
+      ctx.fillStyle = "rgba(255,255,255,0.78)";
+      ctx.font = "14px Arial";
+      ctx.fillText("Points separated by one wavelength oscillate in phase", 16, canvas.height - 18);
+
+      updateLiveValues(Apx, k, omega, t, lambda);
+    }
+
+    function animate(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      const { speedScale } = getValues();
+
+      if (running) {
+        t += dt * speedScale;
+      }
+
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    Object.values(controls).forEach(input => {
+      input.addEventListener("input", () => {
+        updateControlLabels();
+        drawScene();
+      });
+    });
+
+    playPauseBtn.addEventListener("click", () => {
+      running = !running;
+      playPauseBtn.textContent = running ? "Pause" : "Play";
+    });
+
+    stepBtn.addEventListener("click", () => {
+      t += 0.08;
+      drawScene();
+    });
+
+    resetTimeBtn.addEventListener("click", () => {
+      t = 0;
+      drawScene();
+    });
+
+    setExampleBtn.addEventListener("click", () => {
+      controls.kValue.value = (4 * Math.PI).toFixed(1);
+      controls.omegaValue.value = (20 * Math.PI).toFixed(1);
+      updateControlLabels();
+      drawScene();
+    });
+
+    defaultBtn.addEventListener("click", () => {
+      controls.amplitude.value = defaults.amplitude;
+      controls.kValue.value = defaults.kValue;
+      controls.omegaValue.value = defaults.omegaValue;
+      controls.speedScale.value = defaults.speedScale;
+      t = 0;
+      running = true;
+      playPauseBtn.textContent = "Pause";
+      updateControlLabels();
+      drawScene();
+    });
+
+    updateControlLabels();
+    drawScene();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
+```

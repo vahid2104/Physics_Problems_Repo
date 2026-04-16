@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Damped Oscillator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f4f4;
+      color: #222;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .controls {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .chart-box {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    .info {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+    .formula {
+      font-family: "Courier New", monospace;
+      background: #eee;
+      padding: 8px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Damped Oscillator</h1>
+
+  <div class="controls">
+    <p>Equation:</p>
+    <div class="formula">m x'' + b x' + k x = 0</div>
+
+    <br>
+
+    <label for="bSlider">Damping coefficient b:</label>
+    <input type="range" id="bSlider" min="0" max="10" step="0.1" value="1">
+    <p><strong>b = <span id="bValue">1.0</span></strong></p>
+
+    <div class="info">
+      <p><strong>Parameters:</strong> m = 1, k = 4, x(0) = 1, v(0) = 0</p>
+      <p><strong>Critical damping:</strong> \( b_c = 2\sqrt{mk} = 4 \)</p>
+      <p><strong>Case:</strong> <span id="caseType">Underdamped</span></p>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box">
+      <h2>Displacement x(t)</h2>
+      <canvas id="xtChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h2>Phase Portrait (v vs x)</h2>
+      <canvas id="phaseChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const m = 1.0;
+    const k = 4.0;
+    const x0 = 1.0;
+    const v0 = 0.0;
+    const dt = 0.02;
+    const tMax = 20.0;
+
+    const bSlider = document.getElementById("bSlider");
+    const bValue = document.getElementById("bValue");
+    const caseType = document.getElementById("caseType");
+
+    let xtChart, phaseChart;
+
+    function derivatives(x, v, b) {
+      return {
+        dxdt: v,
+        dvdt: -(b / m) * v - (k / m) * x
+      };
+    }
+
+    function rk4Step(x, v, b, h) {
+      const k1 = derivatives(x, v, b);
+
+      const k2 = derivatives(
+        x + 0.5 * h * k1.dxdt,
+        v + 0.5 * h * k1.dvdt,
+        b
+      );
+
+      const k3 = derivatives(
+        x + 0.5 * h * k2.dxdt,
+        v + 0.5 * h * k2.dvdt,
+        b
+      );
+
+      const k4 = derivatives(
+        x + h * k3.dxdt,
+        v + h * k3.dvdt,
+        b
+      );
+
+      const xNext = x + (h / 6) * (k1.dxdt + 2 * k2.dxdt + 2 * k3.dxdt + k4.dxdt);
+      const vNext = v + (h / 6) * (k1.dvdt + 2 * k2.dvdt + 2 * k3.dvdt + k4.dvdt);
+
+      return { xNext, vNext };
+    }
+
+    function simulate(b) {
+      const tData = [];
+      const xData = [];
+      const phaseData = [];
+
+      let x = x0;
+      let v = v0;
+
+      for (let t = 0; t <= tMax; t += dt) {
+        tData.push(t.toFixed(2));
+        xData.push(x);
+        phaseData.push({ x: x, y: v });
+
+        const step = rk4Step(x, v, b, dt);
+        x = step.xNext;
+        v = step.vNext;
+      }
+
+      return { tData, xData, phaseData };
+    }
+
+    function classify(b) {
+      const disc = b * b - 4 * m * k;
+      if (disc < 0) return "Underdamped";
+      if (disc === 0) return "Critically damped";
+      return "Overdamped";
+    }
+
+    function updateCharts() {
+      const b = parseFloat(bSlider.value);
+      bValue.textContent = b.toFixed(1);
+      caseType.textContent = classify(b);
+
+      const result = simulate(b);
+
+      if (xtChart) xtChart.destroy();
+      if (phaseChart) phaseChart.destroy();
+
+      const xtCtx = document.getElementById("xtChart").getContext("2d");
+      xtChart = new Chart(xtCtx, {
+        type: "line",
+        data: {
+          labels: result.tData,
+          datasets: [{
+            label: "x(t)",
+            data: result.xData,
+            borderColor: "blue",
+            fill: false,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: { display: true, text: "t" }
+            },
+            y: {
+              title: { display: true, text: "x(t)" }
+            }
+          }
+        }
+      });
+
+      const phaseCtx = document.getElementById("phaseChart").getContext("2d");
+      phaseChart = new Chart(phaseCtx, {
+        type: "scatter",
+        data: {
+          datasets: [{
+            label: "Phase portrait",
+            data: result.phaseData,
+            showLine: true,
+            borderColor: "red",
+            backgroundColor: "red",
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: { display: true, text: "x" }
+            },
+            y: {
+              title: { display: true, text: "v" }
+            }
+          }
+        }
+      });
+    }
+
+    bSlider.addEventListener("input", updateCharts);
+    updateCharts();
+  </script>
+
+</body>
+</html>

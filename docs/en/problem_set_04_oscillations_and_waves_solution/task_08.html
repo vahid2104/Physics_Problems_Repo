@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Problem 8 – Two Coupled Springs</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 24px; line-height: 1.5; color: #222; }
+  h1, h2 { margin-top: 1.2em; }
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+  .panel { border: 1px solid #ccc; border-radius: 12px; padding: 16px; }
+  label { display: block; margin-top: 8px; font-size: 14px; }
+  input { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
+  button { margin-top: 12px; padding: 10px 14px; cursor: pointer; }
+  canvas { width: 100%; max-width: 920px; border: 1px solid #ccc; border-radius: 12px; background: #fafafa; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .small { font-size: 13px; color: #555; }
+  code { background: #f2f2f2; padding: 2px 5px; border-radius: 5px; }
+  .readout { margin-top: 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>Problem 8 – Two Coupled Springs</h1>
+<p>This page animates two masses connected to walls by three springs. It solves the equations numerically with a fourth-order Runge–Kutta method and shows the energy exchange between the masses.</p>
+
+<div class="grid">
+  <div class="panel">
+    <h2>Parameters</h2>
+    <div class="row">
+      <label>m₁<input id="m1" type="number" step="0.1" value="1"></label>
+      <label>m₂<input id="m2" type="number" step="0.1" value="1"></label>
+    </div>
+    <div class="row">
+      <label>k₁<input id="k1" type="number" step="0.1" value="1"></label>
+      <label>k₂<input id="k2" type="number" step="0.1" value="1"></label>
+    </div>
+    <label>k₃<input id="k3" type="number" step="0.1" value="1"></label>
+
+    <h2>Initial conditions</h2>
+    <div class="row">
+      <label>x₁(0)<input id="x1" type="number" step="0.01" value="0.2"></label>
+      <label>x₂(0)<input id="x2" type="number" step="0.01" value="0"></label>
+    </div>
+    <div class="row">
+      <label>v₁(0)<input id="v1" type="number" step="0.01" value="0"></label>
+      <label>v₂(0)<input id="v2" type="number" step="0.01" value="0"></label>
+    </div>
+
+    <div class="row">
+      <label>Total time<input id="tmax" type="number" step="1" value="30"></label>
+      <label>Time step<input id="dt" type="number" step="0.001" value="0.01"></label>
+    </div>
+
+    <button id="runBtn">Run simulation</button>
+    <p class="small">Default example: <code>m₁=m₂=1</code>, <code>k₁=k₂=k₃=1</code>, <code>x₁(0)=0.2</code>, <code>x₂(0)=0</code>.</p>
+
+    <div class="readout" id="freqs"></div>
+    <div class="readout" id="modes"></div>
+    <div class="readout" id="energyText"></div>
+  </div>
+
+  <div>
+    <canvas id="canvas" width="920" height="420"></canvas>
+  </div>
+</div>
+
+<script>
+function val(id){ return parseFloat(document.getElementById(id).value); }
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let sim = null;
+let animFrame = 0;
+let startTime = null;
+
+function eigData(m1,m2,k1,k2,k3){
+  const a = m1*m2;
+  const b = -(m2*(k1+k2) + m1*(k2+k3));
+  const c = (k1+k2)*(k2+k3) - k2*k2;
+  const D = b*b - 4*a*c;
+  const y1 = (-b - Math.sqrt(D))/(2*a);
+  const y2 = (-b + Math.sqrt(D))/(2*a);
+  const w1 = Math.sqrt(y1);
+  const w2 = Math.sqrt(y2);
+  function modeFor(w){
+    const r = ((k1+k2) - m1*w*w)/k2;
+    const norm = Math.hypot(1, r);
+    return [1/norm, r/norm];
+  }
+  return {w1,w2,mode1: modeFor(w1), mode2: modeFor(w2)};
+}
+
+function deriv(state, p){
+  const [x1,v1,x2,v2] = state;
+  const a1 = (-(p.k1+p.k2)*x1 + p.k2*x2)/p.m1;
+  const a2 = (p.k2*x1 - (p.k2+p.k3)*x2)/p.m2;
+  return [v1,a1,v2,a2];
+}
+
+function rk4Step(state, dt, p){
+  const k1 = deriv(state,p);
+  const s2 = state.map((s,i)=>s+0.5*dt*k1[i]);
+  const k2 = deriv(s2,p);
+  const s3 = state.map((s,i)=>s+0.5*dt*k2[i]);
+  const k3 = deriv(s3,p);
+  const s4 = state.map((s,i)=>s+dt*k3[i]);
+  const k4 = deriv(s4,p);
+  return state.map((s,i)=>s + dt*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6);
+}
+
+function energies(state,p){
+  const [x1,v1,x2,v2] = state;
+  const coupling = 0.5*p.k2*(x2-x1)*(x2-x1);
+  const E1 = 0.5*p.m1*v1*v1 + 0.5*p.k1*x1*x1 + 0.5*coupling;
+  const E2 = 0.5*p.m2*v2*v2 + 0.5*p.k3*x2*x2 + 0.5*coupling;
+  return {E1,E2,Et:E1+E2};
+}
+
+function runSimulation(){
+  const p = {m1:val('m1'),m2:val('m2'),k1:val('k1'),k2:val('k2'),k3:val('k3')};
+  const dt = val('dt');
+  const tmax = val('tmax');
+  let state = [val('x1'),val('v1'),val('x2'),val('v2')];
+  const N = Math.floor(tmax/dt)+1;
+  const times = new Array(N);
+  const states = new Array(N);
+  const es = new Array(N);
+
+  for(let i=0;i<N;i++){
+    times[i] = i*dt;
+    states[i] = state.slice();
+    es[i] = energies(state,p);
+    state = rk4Step(state,dt,p);
+  }
+  sim = {p,dt,tmax,times,states,es, eig:eigData(p.m1,p.m2,p.k1,p.k2,p.k3)};
+  startTime = null;
+  cancelAnimationFrame(animFrame);
+  animate();
+  updateText();
+}
+
+function updateText(){
+  const e = sim.eig;
+  document.getElementById('freqs').innerHTML =
+    `<b>Natural frequencies</b><br>ω₁ = ${e.w1.toFixed(4)} rad/s<br>ω₂ = ${e.w2.toFixed(4)} rad/s`;
+  document.getElementById('modes').innerHTML =
+    `<b>Normal modes</b><br>Mode 1: [${e.mode1[0].toFixed(4)}, ${e.mode1[1].toFixed(4)}]<br>Mode 2: [${e.mode2[0].toFixed(4)}, ${e.mode2[1].toFixed(4)}]`;
+  const maxE1 = Math.max(...sim.es.map(v=>v.E1));
+  const minE1 = Math.min(...sim.es.map(v=>v.E1));
+  document.getElementById('energyText').innerHTML =
+    `<b>Energy exchange</b><br>Total energy stays nearly constant.<br>E₁ varies from ${minE1.toFixed(4)} to ${maxE1.toFixed(4)}, showing energy transfer between the two masses.`;
+}
+
+function drawSpring(xa, xb, y, turns){
+  const pad = 14;
+  const start = xa + pad;
+  const end = xb - pad;
+  const L = end - start;
+  ctx.beginPath();
+  ctx.moveTo(xa, y);
+  ctx.lineTo(start, y);
+  for(let i=0;i<turns;i++){
+    const xMid1 = start + L*(i+0.25)/turns;
+    const xMid2 = start + L*(i+0.75)/turns;
+    const xNext = start + L*(i+1)/turns;
+    ctx.lineTo(xMid1, y-18);
+    ctx.lineTo(xMid2, y+18);
+    ctx.lineTo(xNext, y);
+  }
+  ctx.lineTo(xb, y);
+  ctx.stroke();
+}
+
+function drawScene(t){
+  const {states,es,times,tmax} = sim;
+  const idx = Math.min(states.length-1, Math.floor((t/tmax)*(states.length-1)));
+  const [x1,,x2,] = states[idx];
+  const E = es[idx];
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.lineWidth = 2;
+  ctx.font = '16px Arial';
+  ctx.fillStyle = '#222';
+  ctx.strokeStyle = '#222';
+
+  const wallL = 80;
+  const wallR = 840;
+  const y = 150;
+  const trackY = 250;
+  ctx.fillRect(wallL-20, 90, 20, 160);
+  ctx.fillRect(wallR, 90, 20, 160);
+  ctx.beginPath();
+  ctx.moveTo(40, trackY);
+  ctx.lineTo(880, trackY);
+  ctx.stroke();
+
+  const eq1 = 280;
+  const eq2 = 620;
+  const scale = 200;
+  const mW = 70, mH = 45;
+  const xPix1 = eq1 + scale*x1;
+  const xPix2 = eq2 + scale*x2;
+
+  drawSpring(wallL, xPix1-mW/2, y, 8);
+  drawSpring(xPix1+mW/2, xPix2-mW/2, y, 8);
+  drawSpring(xPix2+mW/2, wallR, y, 8);
+
+  ctx.fillRect(xPix1-mW/2, y-mH/2, mW, mH);
+  ctx.fillRect(xPix2-mW/2, y-mH/2, mW, mH);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('m₁', xPix1-11, y+6);
+  ctx.fillText('m₂', xPix2-11, y+6);
+  ctx.fillStyle = '#222';
+
+  ctx.fillText(`t = ${times[idx].toFixed(2)} s`, 60, 35);
+  ctx.fillText(`x₁ = ${x1.toFixed(3)} m`, 60, 60);
+  ctx.fillText(`x₂ = ${x2.toFixed(3)} m`, 60, 85);
+
+  // Energy bars
+  const barX = 70, barY = 320, barW = 260, barH = 24;
+  const total = E.Et || 1;
+  const w1 = barW * (E.E1/total);
+  const w2 = barW * (E.E2/total);
+  ctx.strokeRect(barX, barY, barW, barH);
+  ctx.fillRect(barX, barY, w1, barH);
+  ctx.strokeRect(barX, barY+44, barW, barH);
+  ctx.fillRect(barX, barY+44, w2, barH);
+  ctx.fillText(`E₁ = ${E.E1.toFixed(4)}`, barX+barW+20, barY+18);
+  ctx.fillText(`E₂ = ${E.E2.toFixed(4)}`, barX+barW+20, barY+62);
+  ctx.fillText(`E_total = ${E.Et.toFixed(4)}`, barX, barY+95);
+
+  // tiny history plot of E1 and E2
+  const plotX = 420, plotY = 300, plotW = 420, plotH = 90;
+  ctx.strokeRect(plotX, plotY, plotW, plotH);
+  const maxEt = Math.max(...sim.es.map(v=>v.Et));
+  function drawHistory(sel){
+    ctx.beginPath();
+    sim.es.forEach((en,i)=>{
+      const px = plotX + plotW*i/(sim.es.length-1);
+      const py = plotY + plotH - plotH*sel(en)/maxEt;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+  }
+  drawHistory(en=>en.E1);
+  drawHistory(en=>en.E2);
+  ctx.fillText('Energy history (both curves)', plotX, plotY-8);
+}
+
+function animate(ts){
+  if(!sim) return;
+  if(startTime===null) startTime = ts;
+  const elapsed = (ts - startTime)/1000;
+  const loopT = sim.tmax;
+  const t = elapsed % loopT;
+  drawScene(t);
+  animFrame = requestAnimationFrame(animate);
+}
+
+document.getElementById('runBtn').addEventListener('click', runSimulation);
+runSimulation();
+</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wave Equation – Animated Explanation</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:#111827cc;
+      --text:#e5eefc;
+      --muted:#b8c4d9;
+      --accent:#60a5fa;
+      --accent2:#22d3ee;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --shadow:0 20px 50px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, #1d4ed8 0%, transparent 30%),
+        radial-gradient(circle at top right, #0891b2 0%, transparent 28%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .container{
+      width:min(1150px, 92%);
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hero{
+      text-align:center;
+      padding:30px 20px 10px;
+      animation:fadeUp 1s ease;
+    }
+
+    .hero h1{
+      font-size:clamp(2rem, 5vw, 3.8rem);
+      margin:0 0 12px;
+      letter-spacing:.5px;
+    }
+
+    .hero p{
+      max-width:850px;
+      margin:0 auto;
+      color:var(--muted);
+      font-size:1.08rem;
+      line-height:1.7;
+    }
+
+    .wave-banner{
+      margin:35px auto 10px;
+      width:min(920px,100%);
+      height:120px;
+      position:relative;
+      border-radius:999px;
+      overflow:hidden;
+      background:rgba(255,255,255,.06);
+      box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .wave{
+      position:absolute;
+      inset:0;
+      background:
+        url("data:image/svg+xml;utf8,\
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'>\
+          <path d='M0,60 C100,10 200,110 300,60 C400,10 500,110 600,60 C700,10 800,110 900,60 C1000,10 1100,110 1200,60' fill='none' stroke='%2360a5fa' stroke-width='5' stroke-linecap='round'/>\
+        </svg>") repeat-x;
+      background-size:600px 120px;
+      animation:waveMove 6s linear infinite;
+      opacity:.95;
+    }
+
+    .wave::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        url("data:image/svg+xml;utf8,\
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'>\
+          <path d='M0,60 C100,110 200,10 300,60 C400,110 500,10 600,60 C700,110 800,10 900,60 C1000,110 1100,10 1200,60' fill='none' stroke='%2322d3ee' stroke-width='3' stroke-linecap='round'/>\
+        </svg>") repeat-x;
+      background-size:600px 120px;
+      animation:waveMove 9s linear infinite reverse;
+      opacity:.8;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:24px;
+      margin-top:30px;
+    }
+
+    .card{
+      background:var(--card);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:24px;
+      animation:fadeUp .9s ease both;
+    }
+
+    .card:nth-child(2){animation-delay:.1s}
+    .card:nth-child(3){animation-delay:.2s}
+    .card:nth-child(4){animation-delay:.3s}
+    .card:nth-child(5){animation-delay:.4s}
+    .card:nth-child(6){animation-delay:.5s}
+    .card:nth-child(7){animation-delay:.6s}
+
+    h2{
+      margin:0 0 16px;
+      font-size:1.4rem;
+      color:#fff;
+    }
+
+    h3{
+      margin:18px 0 10px;
+      font-size:1.05rem;
+      color:var(--accent2);
+    }
+
+    .formula{
+      background:rgba(255,255,255,.06);
+      border-left:4px solid var(--accent);
+      padding:14px 16px;
+      border-radius:14px;
+      margin:14px 0;
+      font-family:"Times New Roman", serif;
+      font-size:1.2rem;
+      line-height:1.7;
+      overflow-x:auto;
+    }
+
+    .step{
+      margin:14px 0;
+      padding:14px 16px;
+      background:rgba(255,255,255,.04);
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.06);
+      transform:translateY(18px);
+      opacity:0;
+      animation:reveal .9s ease forwards;
+    }
+
+    .step:nth-of-type(1){animation-delay:.15s}
+    .step:nth-of-type(2){animation-delay:.3s}
+    .step:nth-of-type(3){animation-delay:.45s}
+    .step:nth-of-type(4){animation-delay:.6s}
+    .step:nth-of-type(5){animation-delay:.75s}
+
+    .step strong{
+      color:#fff;
+    }
+
+    .eq{
+      color:var(--warn);
+      font-weight:bold;
+      font-family:"Times New Roman", serif;
+    }
+
+    ul{
+      margin:10px 0 0 20px;
+      padding:0;
+      line-height:1.8;
+      color:var(--muted);
+    }
+
+    p{
+      color:var(--muted);
+      line-height:1.75;
+      margin:10px 0;
+    }
+
+    .highlight{
+      color:var(--ok);
+      font-weight:bold;
+    }
+
+    .final-box{
+      margin-top:26px;
+      padding:18px;
+      border-radius:18px;
+      background:linear-gradient(135deg, rgba(96,165,250,.16), rgba(34,211,238,.14));
+      border:1px solid rgba(255,255,255,.1);
+      animation:pulse 2.5s ease-in-out infinite;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:8px 14px;
+      border-radius:999px;
+      background:rgba(96,165,250,.18);
+      border:1px solid rgba(96,165,250,.35);
+      color:#dbeafe;
+      font-size:.95rem;
+      margin-bottom:14px;
+    }
+
+    .compare{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-top:14px;
+    }
+
+    .mini{
+      background:rgba(255,255,255,.05);
+      border-radius:16px;
+      padding:16px;
+      border:1px solid rgba(255,255,255,.07);
+    }
+
+    .footer{
+      text-align:center;
+      margin-top:34px;
+      color:var(--muted);
+      font-size:.95rem;
+      opacity:.9;
+    }
+
+    .floating-dot{
+      position:fixed;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:rgba(255,255,255,.35);
+      pointer-events:none;
+      animation:floatDot linear infinite;
+    }
+
+    .d1{left:8%; top:92%; animation-duration:14s;}
+    .d2{left:20%; top:96%; animation-duration:18s; width:6px; height:6px;}
+    .d3{left:40%; top:95%; animation-duration:13s; width:8px; height:8px;}
+    .d4{left:63%; top:94%; animation-duration:17s; width:7px; height:7px;}
+    .d5{left:82%; top:97%; animation-duration:15s; width:9px; height:9px;}
+
+    @keyframes waveMove{
+      from{background-position-x:0}
+      to{background-position-x:600px}
+    }
+
+    @keyframes fadeUp{
+      from{opacity:0; transform:translateY(30px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+
+    @keyframes reveal{
+      from{opacity:0; transform:translateY(18px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+
+    @keyframes pulse{
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.01)}
+    }
+
+    @keyframes floatDot{
+      from{transform:translateY(0); opacity:0}
+      10%{opacity:1}
+      to{transform:translateY(-110vh); opacity:0}
+    }
+
+    @media (max-width:780px){
+      .compare{grid-template-columns:1fr}
+      .card{padding:20px}
+      .formula{font-size:1.05rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-dot d1"></div>
+  <div class="floating-dot d2"></div>
+  <div class="floating-dot d3"></div>
+  <div class="floating-dot d4"></div>
+  <div class="floating-dot d5"></div>
+
+  <div class="container">
+    <section class="hero">
+      <h1>Problem 4 – Wave Equation</h1>
+      <p>
+        We want to check whether the function
+        <span class="eq">y(x,t)=A cos(kx − ωt)</span>
+        satisfies the wave equation and then find the relation between
+        <span class="eq">v</span>, <span class="eq">k</span>, and <span class="eq">ω</span>.
+      </p>
+
+      <div class="wave-banner">
+        <div class="wave"></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <div class="badge">Given function</div>
+        <div class="formula">
+          y(x,t)=A cos(kx−ωt)
+        </div>
+
+        <div class="badge">Wave equation</div>
+        <div class="formula">
+          ∂²y/∂t² = v² ∂²y/∂x²
+        </div>
+
+        <p>
+          To verify this, we must:
+        </p>
+        <ul>
+          <li>find the second derivative with respect to time</li>
+          <li>find the second derivative with respect to position</li>
+          <li>substitute both into the wave equation</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>1. Derivative with respect to time</h2>
+
+        <div class="step">
+          <strong>Start with:</strong>
+          <div class="formula">
+            y(x,t)=A cos(kx−ωt)
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>First derivative:</strong>
+          <div class="formula">
+            ∂y/∂t = Aω sin(kx−ωt)
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>Second derivative:</strong>
+          <div class="formula">
+            ∂²y/∂t² = −Aω² cos(kx−ωt)
+          </div>
+        </div>
+
+        <p>
+          So the time derivative result is
+          <span class="highlight">−Aω² cos(kx−ωt)</span>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>2. Derivative with respect to position</h2>
+
+        <div class="step">
+          <strong>Start again with:</strong>
+          <div class="formula">
+            y(x,t)=A cos(kx−ωt)
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>First derivative:</strong>
+          <div class="formula">
+            ∂y/∂x = −Ak sin(kx−ωt)
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>Second derivative:</strong>
+          <div class="formula">
+            ∂²y/∂x² = −Ak² cos(kx−ωt)
+          </div>
+        </div>
+
+        <p>
+          So the position derivative result is
+          <span class="highlight">−Ak² cos(kx−ωt)</span>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>3. Substitute into the wave equation</h2>
+
+        <div class="formula">
+          ∂²y/∂t² = v² ∂²y/∂x²
+        </div>
+
+        <div class="step">
+          <strong>Left side:</strong>
+          <div class="formula">
+            ∂²y/∂t² = −Aω² cos(kx−ωt)
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>Right side:</strong>
+          <div class="formula">
+            v² ∂²y/∂x² = v²[−Ak² cos(kx−ωt)]
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>So we get:</strong>
+          <div class="formula">
+            −Aω² cos(kx−ωt) = −Av²k² cos(kx−ωt)
+          </div>
+        </div>
+
+        <p>
+          The common factor
+          <span class="eq">−A cos(kx−ωt)</span>
+          appears on both sides, so we cancel it.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>4. Algebraic relation</h2>
+
+        <div class="step">
+          <strong>After cancellation:</strong>
+          <div class="formula">
+            ω² = v²k²
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>Take square root:</strong>
+          <div class="formula">
+            ω = vk
+          </div>
+        </div>
+
+        <div class="step">
+          <strong>Solve for wave speed:</strong>
+          <div class="formula">
+            v = ω/k
+          </div>
+        </div>
+
+        <div class="final-box">
+          <h3>Final relation</h3>
+          <div class="formula">
+            v = ω/k
+          </div>
+          <p>
+            Equivalent form:
+            <span class="eq">ω = vk</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>5. Final answer</h2>
+
+        <p>
+          The function
+          <span class="eq">y(x,t)=A cos(kx−ωt)</span>
+          satisfies the wave equation
+        </p>
+
+        <div class="formula">
+          ∂²y/∂t² = v² ∂²y/∂x²
+        </div>
+
+        <p>
+          because its second derivatives are:
+        </p>
+
+        <div class="compare">
+          <div class="mini">
+            <h3>Time derivative</h3>
+            <div class="formula">
+              ∂²y/∂t² = −Aω² cos(kx−ωt)
+            </div>
+          </div>
+
+          <div class="mini">
+            <h3>Position derivative</h3>
+            <div class="formula">
+              ∂²y/∂x² = −Ak² cos(kx−ωt)
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Substituting them gives:
+        </p>
+
+        <div class="formula">
+          ω² = v²k²
+        </div>
+
+        <p>
+          Therefore, the required algebraic relation is:
+        </p>
+
+        <div class="formula">
+          <strong>v = ω/k</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Animated HTML presentation ready to copy and use.
+    </div>
+  </div>
+</body>
+</html>

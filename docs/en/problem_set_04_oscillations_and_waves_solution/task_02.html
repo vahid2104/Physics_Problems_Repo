@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonic Oscillator – Step by Step</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 50px 20px 30px;
+      animation: fadeIn 1.2s ease;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      color: #facc15;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #cbd5e1;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      transform: translateY(40px);
+      animation: slideUp 0.9s ease forwards;
+    }
+
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.4s; }
+    .card:nth-child(4) { animation-delay: 0.6s; }
+    .card:nth-child(5) { animation-delay: 0.8s; }
+    .card:nth-child(6) { animation-delay: 1s; }
+
+    h2 {
+      color: #93c5fd;
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+
+    .given-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .mini-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      font-size: 1rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .mini-box:hover {
+      transform: scale(1.05);
+      background: rgba(255,255,255,0.14);
+    }
+
+    .formula {
+      background: rgba(15, 23, 42, 0.55);
+      border-left: 5px solid #facc15;
+      padding: 14px 16px;
+      margin: 14px 0;
+      border-radius: 10px;
+      font-family: "Courier New", monospace;
+      line-height: 1.7;
+      white-space: pre-line;
+      color: #e2e8f0;
+    }
+
+    .highlight {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    .interpretation {
+      line-height: 1.8;
+      color: #e2e8f0;
+    }
+
+    .result-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, rgba(250,204,21,0.18), rgba(96,165,250,0.15));
+      border: 1px solid rgba(250,204,21,0.28);
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #fff;
+      animation: pulse 2.2s infinite;
+    }
+
+    .oscillator-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 0 10px;
+      overflow: hidden;
+    }
+
+    .oscillator {
+      position: relative;
+      width: 700px;
+      max-width: 100%;
+      height: 140px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+
+    .wall {
+      position: absolute;
+      left: 30px;
+      top: 20px;
+      width: 16px;
+      height: 100px;
+      background: repeating-linear-gradient(
+        45deg,
+        #94a3b8,
+        #94a3b8 8px,
+        #64748b 8px,
+        #64748b 16px
+      );
+      border-radius: 4px;
+    }
+
+    .spring {
+      position: absolute;
+      left: 46px;
+      top: 63px;
+      width: 220px;
+      height: 14px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0 10px,
+          #facc15 10px 14px,
+          transparent 14px 24px
+        );
+      animation: springStretch 2.5s ease-in-out infinite alternate;
+      transform-origin: left center;
+    }
+
+    .mass {
+      position: absolute;
+      top: 42px;
+      left: 250px;
+      width: 90px;
+      height: 55px;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      border-radius: 12px;
+      box-shadow: 0 8px 18px rgba(37,99,235,0.35);
+      animation: moveMass 2.5s ease-in-out infinite alternate;
+    }
+
+    .ground-line {
+      position: absolute;
+      left: 0;
+      bottom: 20px;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .energy-bar-wrap {
+      margin-top: 18px;
+    }
+
+    .bar-label {
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+    }
+
+    .bar {
+      height: 20px;
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: 999px;
+      animation: fillBar 2s ease forwards;
+    }
+
+    .fill.potential {
+      width: 99.75%;
+      background: linear-gradient(90deg, #facc15, #f59e0b);
+    }
+
+    .fill.kinetic {
+      width: 0.25%;
+      min-width: 10px;
+      background: linear-gradient(90deg, #60a5fa, #2563eb);
+    }
+
+    .final-list {
+      line-height: 2;
+      font-size: 1.05rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes moveMass {
+      from { transform: translateX(0); }
+      to { transform: translateX(160px); }
+    }
+
+    @keyframes springStretch {
+      from { transform: scaleX(1); }
+      to { transform: scaleX(1.72); }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 rgba(250,204,21,0.15); }
+      50% { box-shadow: 0 0 25px rgba(250,204,21,0.25); }
+      100% { box-shadow: 0 0 0 rgba(250,204,21,0.15); }
+    }
+
+    @keyframes fillBar {
+      from { transform: scaleX(0); transform-origin: left; }
+      to { transform: scaleX(1); transform-origin: left; }
+    }
+
+    @media (max-width: 700px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .formula {
+        font-size: 0.92rem;
+      }
+
+      .mass {
+        width: 70px;
+        height: 46px;
+      }
+
+      .oscillator {
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Problem 2 – Energy of a Harmonic Oscillator</h1>
+      <p>
+        Step-by-step explanation of the natural frequency, the total energy,
+        and the displacement where the kinetic energy is 50% of the total energy.
+      </p>
+    </section>
+
+    <div class="card">
+      <h2>Given Data</h2>
+      <div class="given-grid">
+        <div class="mini-box">m = 1 kg</div>
+        <div class="mini-box">k = 100 N/m</div>
+        <div class="mini-box">x(0) = 2 m</div>
+        <div class="mini-box">v(0) = 1 m/s</div>
+      </div>
+
+      <div class="oscillator-area">
+        <div class="oscillator">
+          <div class="wall"></div>
+          <div class="spring"></div>
+          <div class="mass"></div>
+          <div class="ground-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Natural Frequency</h2>
+
+      <div class="formula">
+For a mass–spring oscillator:
+
+ω₀ = √(k / m)
+      </div>
+
+      <div class="formula">
+Substitute the values:
+
+ω₀ = √(100 / 1)
+ω₀ = √100
+ω₀ = 10 rad/s
+      </div>
+
+      <div class="formula">
+Ordinary frequency:
+
+f = ω₀ / (2π)
+f = 10 / (2π)
+f ≈ 1.59 Hz
+      </div>
+
+      <div class="result-box">
+        Natural angular frequency: ω₀ = 10 rad/s<br>
+        Natural frequency: f ≈ 1.59 Hz
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Total Energy of the System</h2>
+
+      <div class="formula">
+Total mechanical energy:
+
+E = Eₖ + Eₚ
+
+For a spring-mass system:
+
+E = (1/2)mv² + (1/2)kx²
+      </div>
+
+      <div class="formula">
+Substitute the initial values:
+
+E = (1/2)(1)(1²) + (1/2)(100)(2²)
+E = 0.5 + 200
+E = 200.5 J
+      </div>
+
+      <div class="formula">
+Initial kinetic energy:
+
+Eₖ(0) = (1/2)(1)(1²) = 0.5 J
+
+Initial potential energy:
+
+Eₚ(0) = (1/2)(100)(2²) = 200 J
+      </div>
+
+      <div class="energy-bar-wrap">
+        <div class="bar-label">Potential energy at the start ≈ 200 J</div>
+        <div class="bar">
+          <div class="fill potential"></div>
+        </div>
+      </div>
+
+      <div class="energy-bar-wrap">
+        <div class="bar-label">Kinetic energy at the start = 0.5 J</div>
+        <div class="bar">
+          <div class="fill kinetic"></div>
+        </div>
+      </div>
+
+      <div class="result-box">
+        Total energy of the system: E = 200.5 J
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. When Is Kinetic Energy 50% of Total Energy?</h2>
+
+      <div class="formula">
+We want:
+
+Eₖ = 50% of E
+
+So:
+
+Eₖ = E / 2
+
+Since:
+
+E = Eₖ + Eₚ
+
+then at that moment:
+
+Eₚ = E / 2
+      </div>
+
+      <div class="formula">
+For spring potential energy:
+
+Eₚ = (1/2)kx²
+
+Set it equal to half the total energy:
+
+(1/2)kx² = E / 2
+      </div>
+
+      <div class="formula">
+Substitute k = 100 and E = 200.5:
+
+(1/2)(100)x² = 200.5 / 2
+50x² = 100.25
+x² = 100.25 / 50
+x² = 2.005
+x = ±√2.005
+x ≈ ±1.416 m
+      </div>
+
+      <div class="result-box">
+        The displacement is: x ≈ ±1.42 m
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Interpretation</h2>
+      <div class="interpretation">
+        <p>
+          The value <span class="highlight">ω₀ = 10 rad/s</span> tells us that the system oscillates quite fast,
+          because the spring is stiff and the mass is not large.
+        </p>
+        <p>
+          The total energy is <span class="highlight">200.5 J</span>, and this stays constant during the motion
+          if there is no friction or damping.
+        </p>
+        <p>
+          At the beginning, almost all the energy is stored in the spring as potential energy because the spring
+          is stretched by <span class="highlight">2 m</span>. The initial kinetic energy is very small.
+        </p>
+        <p>
+          When the mass moves toward the center, spring energy changes into kinetic energy. At the displacement
+          <span class="highlight">x ≈ ±1.42 m</span>, the kinetic energy becomes exactly half of the total energy.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Final Answers</h2>
+      <div class="final-list">
+        1. Natural angular frequency: <span class="highlight">ω₀ = 10 rad/s</span><br>
+        2. Natural frequency: <span class="highlight">f ≈ 1.59 Hz</span><br>
+        3. Total energy: <span class="highlight">E = 200.5 J</span><br>
+        4. Displacement where kinetic energy is 50% of total energy:
+        <span class="highlight">x ≈ ±1.42 m</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

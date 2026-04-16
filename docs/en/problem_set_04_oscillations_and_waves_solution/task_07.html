@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forced Oscillator and Resonance</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f7f7f7;
+      color: #222;
+    }
+    h1, h2 {
+      margin-bottom: 8px;
+    }
+    .controls, .info {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="range"] {
+      width: 300px;
+    }
+    .value {
+      font-weight: bold;
+      color: #0b57d0;
+    }
+    canvas {
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      flex: 1 1 300px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Forced Oscillator and Resonance</h1>
+
+  <div class="controls">
+    <h2>Parameters</h2>
+
+    <label>Mass m = <span class="value" id="mVal">1.0</span></label>
+    <input type="range" id="m" min="0.5" max="5" step="0.1" value="1.0">
+
+    <label>Damping b = <span class="value" id="bVal">0.4</span></label>
+    <input type="range" id="b" min="0.0" max="3" step="0.05" value="0.4">
+
+    <label>Spring constant k = <span class="value" id="kVal">9.0</span></label>
+    <input type="range" id="k" min="1" max="20" step="0.1" value="9.0">
+
+    <label>Force amplitude F₀ = <span class="value" id="F0Val">1.0</span></label>
+    <input type="range" id="F0" min="0.1" max="5" step="0.1" value="1.0">
+
+    <label>Driving frequency Ω = <span class="value" id="OmegaVal">3.0</span> rad/s</label>
+    <input type="range" id="Omega" min="0.1" max="8" step="0.01" value="3.0">
+  </div>
+
+  <div class="info">
+    <h2>Analytical formulas</h2>
+    <p><b>Amplitude:</b> <span id="ampText"></span></p>
+    <p><b>Phase shift:</b> <span id="phaseText"></span></p>
+    <p><b>Natural frequency:</b> <span id="omega0Text"></span></p>
+    <p><b>Resonance frequency (approx.):</b> <span id="resText"></span></p>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <canvas id="timeChart"></canvas>
+    </div>
+    <div class="card">
+      <canvas id="resonanceChart"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <canvas id="phaseChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const mSlider = document.getElementById("m");
+    const bSlider = document.getElementById("b");
+    const kSlider = document.getElementById("k");
+    const F0Slider = document.getElementById("F0");
+    const OmegaSlider = document.getElementById("Omega");
+
+    const mVal = document.getElementById("mVal");
+    const bVal = document.getElementById("bVal");
+    const kVal = document.getElementById("kVal");
+    const F0Val = document.getElementById("F0Val");
+    const OmegaVal = document.getElementById("OmegaVal");
+
+    const ampText = document.getElementById("ampText");
+    const phaseText = document.getElementById("phaseText");
+    const omega0Text = document.getElementById("omega0Text");
+    const resText = document.getElementById("resText");
+
+    function amplitude(m, b, k, F0, Omega) {
+      return F0 / Math.sqrt((k - m * Omega * Omega) ** 2 + (b * Omega) ** 2);
+    }
+
+    function phaseShift(b, k, m, Omega) {
+      return Math.atan2(b * Omega, k - m * Omega * Omega);
+    }
+
+    function rk4Solve(m, b, k, F0, Omega, tMax = 40, dt = 0.01) {
+      let t = 0;
+      let x = 0;
+      let v = 0;
+
+      const times = [];
+      const xs = [];
+      const force = [];
+
+      function ax(t, x, v) {
+        return (F0 * Math.cos(Omega * t) - b * v - k * x) / m;
+      }
+
+      while (t <= tMax) {
+        times.push(t);
+        xs.push(x);
+        force.push(F0 * Math.cos(Omega * t));
+
+        const k1x = v;
+        const k1v = ax(t, x, v);
+
+        const k2x = v + 0.5 * dt * k1v;
+        const k2v = ax(t + 0.5 * dt, x + 0.5 * dt * k1x, v + 0.5 * dt * k1v);
+
+        const k3x = v + 0.5 * dt * k2v;
+        const k3v = ax(t + 0.5 * dt, x + 0.5 * dt * k2x, v + 0.5 * dt * k2v);
+
+        const k4x = v + dt * k3v;
+        const k4v = ax(t + dt, x + dt * k3x, v + dt * k3v);
+
+        x += (dt / 6) * (k1x + 2 * k2x + 2 * k3x + k4x);
+        v += (dt / 6) * (k1v + 2 * k2v + 2 * k3v + k4v);
+        t += dt;
+      }
+
+      return { times, xs, force };
+    }
+
+    let timeChart, resonanceChart, phaseChart;
+
+    function createCharts() {
+      const ctx1 = document.getElementById("timeChart").getContext("2d");
+      const ctx2 = document.getElementById("resonanceChart").getContext("2d");
+      const ctx3 = document.getElementById("phaseChart").getContext("2d");
+
+      timeChart = new Chart(ctx1, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            { label: "x(t)", data: [], borderWidth: 2, pointRadius: 0 },
+            { label: "F(t)", data: [], borderWidth: 2, pointRadius: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { title: { display: true, text: "Numerical solution in time" } },
+          scales: {
+            x: { title: { display: true, text: "t (s)" } },
+            y: { title: { display: true, text: "x(t), F(t)" } }
+          }
+        }
+      });
+
+      resonanceChart = new Chart(ctx2, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            { label: "A(Ω)", data: [], borderWidth: 2, pointRadius: 0 },
+            { label: "Current Ω", data: [], type: "scatter", pointRadius: 5 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { title: { display: true, text: "Resonance curve" } },
+          scales: {
+            x: { title: { display: true, text: "Ω (rad/s)" } },
+            y: { title: { display: true, text: "Amplitude" } }
+          }
+        }
+      });
+
+      phaseChart = new Chart(ctx3, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            { label: "δ(Ω)", data: [], borderWidth: 2, pointRadius: 0 },
+            { label: "Current Ω", data: [], type: "scatter", pointRadius: 5 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { title: { display: true, text: "Phase shift" } },
+          scales: {
+            x: { title: { display: true, text: "Ω (rad/s)" } },
+            y: { title: { display: true, text: "δ (rad)" } }
+          }
+        }
+      });
+    }
+
+    function updateAll() {
+      const m = parseFloat(mSlider.value);
+      const b = parseFloat(bSlider.value);
+      const k = parseFloat(kSlider.value);
+      const F0 = parseFloat(F0Slider.value);
+      const Omega = parseFloat(OmegaSlider.value);
+
+      mVal.textContent = m.toFixed(2);
+      bVal.textContent = b.toFixed(2);
+      kVal.textContent = k.toFixed(2);
+      F0Val.textContent = F0.toFixed(2);
+      OmegaVal.textContent = Omega.toFixed(2);
+
+      const A = amplitude(m, b, k, F0, Omega);
+      const delta = phaseShift(b, k, m, Omega);
+      const omega0 = Math.sqrt(k / m);
+
+      let omegaRes = NaN;
+      const inside = k / m - (b * b) / (2 * m * m);
+      if (inside > 0) omegaRes = Math.sqrt(inside);
+
+      ampText.textContent = `${A.toFixed(4)} m`;
+      phaseText.textContent = `${delta.toFixed(4)} rad = ${(delta * 180 / Math.PI).toFixed(2)}°`;
+      omega0Text.textContent = `${omega0.toFixed(4)} rad/s`;
+
+      if (isNaN(omegaRes)) {
+        resText.textContent = "No clear resonance peak for this damping";
+      } else {
+        resText.textContent = `${omegaRes.toFixed(4)} rad/s`;
+      }
+
+      const sol = rk4Solve(m, b, k, F0, Omega);
+      timeChart.data.labels = sol.times;
+      timeChart.data.datasets[0].data = sol.xs;
+      timeChart.data.datasets[1].data = sol.force;
+      timeChart.update();
+
+      const Omin = 0.05;
+      const Omax = 8.0;
+      const n = 400;
+      const Olist = [];
+      const Alist = [];
+      const Dlist = [];
+
+      for (let i = 0; i <= n; i++) {
+        const Om = Omin + (Omax - Omin) * i / n;
+        Olist.push(Om);
+        Alist.push(amplitude(m, b, k, F0, Om));
+        Dlist.push(phaseShift(b, k, m, Om));
+      }
+
+      resonanceChart.data.labels = Olist;
+      resonanceChart.data.datasets[0].data = Alist;
+      resonanceChart.data.datasets[1].data = [{ x: Omega, y: A }];
+      resonanceChart.update();
+
+      phaseChart.data.labels = Olist;
+      phaseChart.data.datasets[0].data = Dlist;
+      phaseChart.data.datasets[1].data = [{ x: Omega, y: delta }];
+      phaseChart.update();
+    }
+
+    createCharts();
+    updateAll();
+
+    [mSlider, bSlider, kSlider, F0Slider, OmegaSlider].forEach(slider => {
+      slider.addEventListener("input", updateAll);
+    });
+  </script>
+</body>
+</html>
