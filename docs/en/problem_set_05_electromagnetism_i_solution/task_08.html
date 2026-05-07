@@ -1,0 +1,963 @@
+Here is a complete **copy-paste HTML file** with animations, sliders, buttons, and explanations for **Problem 8 – Energy of a Three-Charge System**.
+
+Save it as:
+
+```html
+problem8_three_charge_energy.html
+```
+
+Then open it in your browser.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 8 – Energy of a Three-Charge System</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #f8fafc;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      color: #e0f2fe;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      border-left: 5px solid #38bdf8;
+      padding-left: 12px;
+      margin-top: 25px;
+    }
+
+    p {
+      margin-bottom: 12px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .formula {
+      background: #020617;
+      color: #93c5fd;
+      padding: 15px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-size: 1.1rem;
+      border-left: 4px solid #38bdf8;
+    }
+
+    .final-box {
+      background: linear-gradient(135deg, #064e3b, #065f46);
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid #34d399;
+      margin-top: 15px;
+    }
+
+    .warning-box {
+      background: linear-gradient(135deg, #7f1d1d, #991b1b);
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid #fca5a5;
+      margin-top: 15px;
+    }
+
+    .animation-area {
+      position: relative;
+      width: 100%;
+      height: 420px;
+      background: radial-gradient(circle, #1e293b, #020617);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid #334155;
+      margin-top: 20px;
+    }
+
+    .charge {
+      position: absolute;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: white;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 25px rgba(255,255,255,0.35);
+      transition: all 0.8s ease;
+      z-index: 5;
+    }
+
+    .positive {
+      background: radial-gradient(circle, #fb7185, #dc2626);
+      box-shadow: 0 0 30px rgba(248, 113, 113, 0.7);
+    }
+
+    .negative {
+      background: radial-gradient(circle, #60a5fa, #2563eb);
+      box-shadow: 0 0 30px rgba(96, 165, 250, 0.7);
+    }
+
+    .line {
+      position: absolute;
+      height: 3px;
+      background: rgba(226, 232, 240, 0.65);
+      transform-origin: left center;
+      z-index: 2;
+      transition: all 0.8s ease;
+    }
+
+    .energy-label {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #fde68a;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .control-box {
+      background: #020617;
+      border: 1px solid #475569;
+      padding: 16px;
+      border-radius: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #bfdbfe;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    button {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s, background 0.2s;
+      margin: 5px;
+    }
+
+    button:hover {
+      transform: scale(1.04);
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    }
+
+    .danger-btn {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+    }
+
+    .danger-btn:hover {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .green-btn {
+      background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .green-btn:hover {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .step {
+      background: #020617;
+      border-left: 4px solid #a78bfa;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 14px 0;
+    }
+
+    .value {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+      }
+
+      .animation-area {
+        height: 360px;
+      }
+    }
+
+    .pulse {
+      animation: pulseAnimation 1.4s infinite;
+    }
+
+    @keyframes pulseAnimation {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.12);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    .glow-positive {
+      animation: glowPositive 1.5s infinite alternate;
+    }
+
+    @keyframes glowPositive {
+      from {
+        box-shadow: 0 0 15px rgba(248, 113, 113, 0.5);
+      }
+      to {
+        box-shadow: 0 0 45px rgba(248, 113, 113, 1);
+      }
+    }
+
+    .glow-negative {
+      animation: glowNegative 1.5s infinite alternate;
+    }
+
+    @keyframes glowNegative {
+      from {
+        box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+      }
+      to {
+        box-shadow: 0 0 45px rgba(96, 165, 250, 1);
+      }
+    }
+
+    .small-text {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      border: 1px solid #475569;
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background: #075985;
+      color: white;
+    }
+
+    td {
+      background: #020617;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>Problem 8 – Energy of a Three-Charge System</h1>
+
+    <div class="card">
+      <h2>Given Data</h2>
+
+      <p>We study three point charges. In this example, the charges have magnitude:</p>
+
+      <div class="formula">
+        q = 4 μC = 4 × 10⁻⁶ C
+      </div>
+
+      <p>The Coulomb constant is:</p>
+
+      <div class="formula">
+        k = 8.99 × 10⁹ N·m²/C²
+      </div>
+
+      <p>For the equilateral triangle case, the side length is:</p>
+
+      <div class="formula">
+        a = 0.3 m
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Total Energy of the System</h2>
+
+      <p>
+        The electric potential energy between two point charges is:
+      </p>
+
+      <div class="formula">
+        U = k q₁q₂ / r
+      </div>
+
+      <p>
+        For three charges, we add the energy of every pair.
+      </p>
+
+      <div class="formula">
+        Utotal = k(q₁q₂/r₁₂ + q₁q₃/r₁₃ + q₂q₃/r₂₃)
+      </div>
+
+      <div class="step">
+        There are three pairs:
+        <br>
+        Pair 1: q₁ and q₂
+        <br>
+        Pair 2: q₁ and q₃
+        <br>
+        Pair 3: q₂ and q₃
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Interactive Animation</h2>
+
+      <p>
+        Use the controls to change the distance, charge size, animation speed, and sign of one charge.
+      </p>
+
+      <div class="animation-area" id="animationArea">
+        <div class="line" id="line12"></div>
+        <div class="line" id="line13"></div>
+        <div class="line" id="line23"></div>
+
+        <div class="charge positive pulse glow-positive" id="charge1">+q</div>
+        <div class="charge positive pulse glow-positive" id="charge2">+q</div>
+        <div class="charge positive pulse glow-positive" id="charge3">+q</div>
+      </div>
+
+      <div class="energy-label" id="energyLabel">
+        Total Energy: calculating...
+      </div>
+
+      <div class="controls">
+
+        <div class="control-box">
+          <label for="chargeSlider">Charge magnitude q: <span id="chargeValue">4</span> μC</label>
+          <input type="range" id="chargeSlider" min="1" max="10" step="0.5" value="4">
+        </div>
+
+        <div class="control-box">
+          <label for="distanceSlider">Triangle side length a: <span id="distanceValue">0.3</span> m</label>
+          <input type="range" id="distanceSlider" min="0.1" max="1.0" step="0.05" value="0.3">
+        </div>
+
+        <div class="control-box">
+          <label for="speedSlider">Animation speed: <span id="speedValue">1.5</span> s</label>
+          <input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-box">
+          <label>Charge sign control</label>
+          <button onclick="makeAllPositive()">All Charges Positive</button>
+          <button class="danger-btn" onclick="changeOneChargeSign()">Make One Charge Negative</button>
+        </div>
+
+        <div class="control-box">
+          <label>Configuration</label>
+          <button onclick="showTriangle()">Equilateral Triangle</button>
+          <button class="green-btn" onclick="showMinimumPositive()">Minimum: All Positive</button>
+          <button class="danger-btn" onclick="showMinimumMixed()">Minimum: Mixed Signs</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Energy for Equilateral Triangle</h2>
+
+      <p>
+        In an equilateral triangle, all distances are equal:
+      </p>
+
+      <div class="formula">
+        r₁₂ = r₁₃ = r₂₃ = a
+      </div>
+
+      <p>
+        If all three charges are equal and positive:
+      </p>
+
+      <div class="formula">
+        q₁ = q₂ = q₃ = q
+      </div>
+
+      <p>
+        Then the total energy becomes:
+      </p>
+
+      <div class="formula">
+        Utotal = 3kq²/a
+      </div>
+
+      <div class="step">
+        Substitute:
+        <br>
+        Utotal = 3(8.99 × 10⁹)(4 × 10⁻⁶)² / 0.3
+      </div>
+
+      <div class="step">
+        First:
+        <br>
+        (4 × 10⁻⁶)² = 16 × 10⁻¹²
+      </div>
+
+      <div class="step">
+        Then:
+        <br>
+        kq² = (8.99 × 10⁹)(16 × 10⁻¹²)
+        <br>
+        kq² = 0.14384
+      </div>
+
+      <div class="step">
+        Now:
+        <br>
+        Utotal = 3(0.14384 / 0.3)
+        <br>
+        Utotal = 1.4384 J
+      </div>
+
+      <div class="final-box">
+        Final answer:
+        <br>
+        Utotal ≈ 1.44 J
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Changing the Sign of One Charge</h2>
+
+      <p>
+        Now we make one charge negative:
+      </p>
+
+      <div class="formula">
+        q₁ = +q, &nbsp; q₂ = +q, &nbsp; q₃ = -q
+      </div>
+
+      <p>
+        The total energy becomes:
+      </p>
+
+      <div class="formula">
+        Utotal = kq²/a - kq²/a - kq²/a
+      </div>
+
+      <p>
+        So:
+      </p>
+
+      <div class="formula">
+        Utotal = -kq²/a
+      </div>
+
+      <div class="step">
+        Substitute:
+        <br>
+        Utotal = -(0.14384 / 0.3)
+      </div>
+
+      <div class="step">
+        Utotal = -0.47947 J
+      </div>
+
+      <div class="final-box">
+        Final answer:
+        <br>
+        Utotal ≈ -0.479 J
+      </div>
+
+      <p>
+        The energy becomes negative because opposite charges attract.
+      </p>
+
+      <div class="step">
+        Energy change:
+        <br>
+        ΔU = Umixed - Upositive
+        <br>
+        ΔU = -0.47947 - 1.4384
+        <br>
+        ΔU = -1.91787 J
+      </div>
+
+      <div class="final-box">
+        ΔU ≈ -1.92 J
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Minimum Energy Configuration Numerically</h2>
+
+      <p>
+        If point charges are completely free, opposite charges can get closer and closer.
+      </p>
+
+      <div class="formula">
+        U = -kq²/r
+      </div>
+
+      <p>
+        When:
+      </p>
+
+      <div class="formula">
+        r → 0
+      </div>
+
+      <p>
+        then:
+      </p>
+
+      <div class="formula">
+        U → -∞
+      </div>
+
+      <div class="warning-box">
+        So without restrictions, there is no finite minimum energy for opposite charges.
+      </div>
+
+      <p>
+        To calculate a numerical minimum, we add restrictions:
+      </p>
+
+      <div class="formula">
+        Box size = 1 m × 1 m
+        <br>
+        Minimum distance = 0.05 m
+      </div>
+
+      <h3>Case A: Three Positive Charges</h3>
+
+      <p>
+        For three positive charges, all forces are repulsive.
+        The charges want to move far apart.
+      </p>
+
+      <div class="formula">
+        U = kq²(1/r₁₂ + 1/r₁₃ + 1/r₂₃)
+      </div>
+
+      <p>
+        A low-energy configuration is placing charges at three corners of a square:
+      </p>
+
+      <div class="formula">
+        (0,0), (1,0), (0,1)
+      </div>
+
+      <p>
+        The distances are:
+      </p>
+
+      <div class="formula">
+        r₁₂ = 1, &nbsp; r₁₃ = 1, &nbsp; r₂₃ = √2
+      </div>
+
+      <div class="formula">
+        U = 0.14384(1 + 1 + 1/√2)
+      </div>
+
+      <div class="final-box">
+        Umin ≈ 0.389 J
+      </div>
+
+      <h3>Case B: Two Positive Charges and One Negative Charge</h3>
+
+      <p>
+        The negative charge attracts both positive charges.
+      </p>
+
+      <div class="formula">
+        U = kq²(1/r₁₂ - 1/r₁₃ - 1/r₂₃)
+      </div>
+
+      <p>
+        A low-energy restricted configuration is:
+      </p>
+
+      <div class="formula">
+        r₁₃ = 0.05 m
+        <br>
+        r₂₃ = 0.05 m
+        <br>
+        r₁₂ = 0.10 m
+      </div>
+
+      <div class="formula">
+        U = 0.14384(10 - 20 - 20)
+      </div>
+
+      <div class="final-box">
+        Umin ≈ -4.32 J
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>5. Stability Interpretation</h2>
+
+      <div class="two-column">
+
+        <div class="step">
+          <h3>All Positive Charges</h3>
+          <p>
+            All charges repel each other.
+          </p>
+          <p>
+            The energy is positive.
+          </p>
+          <p>
+            The system is not stable if the charges are free to move.
+          </p>
+          <p>
+            They spread out to reduce the energy.
+          </p>
+        </div>
+
+        <div class="step">
+          <h3>Mixed Signs</h3>
+          <p>
+            Positive and negative charges attract.
+          </p>
+          <p>
+            The energy becomes negative.
+          </p>
+          <p>
+            The system is more bound.
+          </p>
+          <p>
+            But ideal point charges can collapse together without restrictions.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Final Summary Table</h2>
+
+      <table>
+        <tr>
+          <th>Configuration</th>
+          <th>Energy Formula</th>
+          <th>Numerical Result</th>
+        </tr>
+
+        <tr>
+          <td>Three positive charges in equilateral triangle</td>
+          <td>U = 3kq²/a</td>
+          <td>1.44 J</td>
+        </tr>
+
+        <tr>
+          <td>Two positive and one negative charge</td>
+          <td>U = -kq²/a</td>
+          <td>-0.479 J</td>
+        </tr>
+
+        <tr>
+          <td>Change in energy</td>
+          <td>ΔU = Umixed - Upositive</td>
+          <td>-1.92 J</td>
+        </tr>
+
+        <tr>
+          <td>Minimum, all positive, restricted box</td>
+          <td>Charges far apart</td>
+          <td>0.389 J</td>
+        </tr>
+
+        <tr>
+          <td>Minimum, mixed signs, restricted distance</td>
+          <td>Opposite charges close</td>
+          <td>-4.32 J</td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const k = 8.99e9;
+
+    let qMicro = 4;
+    let distance = 0.3;
+    let animationSpeed = 1.5;
+
+    let chargeSigns = [1, 1, 1];
+
+    const charge1 = document.getElementById("charge1");
+    const charge2 = document.getElementById("charge2");
+    const charge3 = document.getElementById("charge3");
+
+    const line12 = document.getElementById("line12");
+    const line13 = document.getElementById("line13");
+    const line23 = document.getElementById("line23");
+
+    const energyLabel = document.getElementById("energyLabel");
+
+    const chargeSlider = document.getElementById("chargeSlider");
+    const distanceSlider = document.getElementById("distanceSlider");
+    const speedSlider = document.getElementById("speedSlider");
+
+    const chargeValue = document.getElementById("chargeValue");
+    const distanceValue = document.getElementById("distanceValue");
+    const speedValue = document.getElementById("speedValue");
+
+    let currentPositions = [
+      { x: 50, y: 18 },
+      { x: 25, y: 78 },
+      { x: 75, y: 78 }
+    ];
+
+    function setChargeVisuals() {
+      const charges = [charge1, charge2, charge3];
+
+      for (let i = 0; i < charges.length; i++) {
+        if (chargeSigns[i] === 1) {
+          charges[i].className = "charge positive pulse glow-positive";
+          charges[i].innerHTML = "+q";
+        } else {
+          charges[i].className = "charge negative pulse glow-negative";
+          charges[i].innerHTML = "-q";
+        }
+
+        charges[i].style.transitionDuration = animationSpeed + "s";
+      }
+    }
+
+    function setPositions(positions) {
+      currentPositions = positions;
+
+      const charges = [charge1, charge2, charge3];
+
+      for (let i = 0; i < charges.length; i++) {
+        charges[i].style.left = positions[i].x + "%";
+        charges[i].style.top = positions[i].y + "%";
+        charges[i].style.transitionDuration = animationSpeed + "s";
+      }
+
+      updateLines();
+      updateEnergy();
+    }
+
+    function updateLines() {
+      drawLine(line12, currentPositions[0], currentPositions[1]);
+      drawLine(line13, currentPositions[0], currentPositions[2]);
+      drawLine(line23, currentPositions[1], currentPositions[2]);
+    }
+
+    function drawLine(line, p1, p2) {
+      const area = document.getElementById("animationArea");
+      const width = area.clientWidth;
+      const height = area.clientHeight;
+
+      const x1 = (p1.x / 100) * width;
+      const y1 = (p1.y / 100) * height;
+      const x2 = (p2.x / 100) * width;
+      const y2 = (p2.y / 100) * height;
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+      line.style.width = length + "px";
+      line.style.left = x1 + "px";
+      line.style.top = y1 + "px";
+      line.style.transform = `rotate(${angle}deg)`;
+      line.style.transitionDuration = animationSpeed + "s";
+    }
+
+    function calculateEnergy() {
+      const q = qMicro * 1e-6;
+
+      const q1 = chargeSigns[0] * q;
+      const q2 = chargeSigns[1] * q;
+      const q3 = chargeSigns[2] * q;
+
+      let r12 = distance;
+      let r13 = distance;
+      let r23 = distance;
+
+      const U =
+        k * ((q1 * q2 / r12) +
+             (q1 * q3 / r13) +
+             (q2 * q3 / r23));
+
+      return U;
+    }
+
+    function updateEnergy() {
+      const U = calculateEnergy();
+
+      energyLabel.innerHTML =
+        "Total Energy: " + U.toFixed(4) + " J";
+
+      if (U > 0) {
+        energyLabel.style.color = "#fca5a5";
+      } else if (U < 0) {
+        energyLabel.style.color = "#93c5fd";
+      } else {
+        energyLabel.style.color = "#fde68a";
+      }
+    }
+
+    function makeAllPositive() {
+      chargeSigns = [1, 1, 1];
+      setChargeVisuals();
+      updateEnergy();
+    }
+
+    function changeOneChargeSign() {
+      chargeSigns = [1, 1, -1];
+      setChargeVisuals();
+      updateEnergy();
+    }
+
+    function showTriangle() {
+      setPositions([
+        { x: 50, y: 18 },
+        { x: 25, y: 78 },
+        { x: 75, y: 78 }
+      ]);
+    }
+
+    function showMinimumPositive() {
+      chargeSigns = [1, 1, 1];
+      setChargeVisuals();
+
+      setPositions([
+        { x: 18, y: 18 },
+        { x: 82, y: 18 },
+        { x: 18, y: 82 }
+      ]);
+
+      energyLabel.innerHTML =
+        "Restricted minimum for all positive charges: about 0.389 J";
+      energyLabel.style.color = "#86efac";
+    }
+
+    function showMinimumMixed() {
+      chargeSigns = [1, 1, -1];
+      setChargeVisuals();
+
+      setPositions([
+        { x: 43, y: 50 },
+        { x: 57, y: 50 },
+        { x: 50, y: 50 }
+      ]);
+
+      energyLabel.innerHTML =
+        "Restricted minimum for mixed signs: about -4.32 J";
+      energyLabel.style.color = "#93c5fd";
+    }
+
+    chargeSlider.addEventListener("input", function () {
+      qMicro = parseFloat(chargeSlider.value);
+      chargeValue.innerHTML = qMicro;
+      updateEnergy();
+    });
+
+    distanceSlider.addEventListener("input", function () {
+      distance = parseFloat(distanceSlider.value);
+      distanceValue.innerHTML = distance.toFixed(2);
+      updateEnergy();
+
+      const scale = Math.min(1, distance / 0.3);
+
+      setPositions([
+        { x: 50, y: 18 + (1 - scale) * 20 },
+        { x: 25 + (1 - scale) * 18, y: 78 - (1 - scale) * 20 },
+        { x: 75 - (1 - scale) * 18, y: 78 - (1 - scale) * 20 }
+      ]);
+    });
+
+    speedSlider.addEventListener("input", function () {
+      animationSpeed = parseFloat(speedSlider.value);
+      speedValue.innerHTML = animationSpeed.toFixed(1);
+
+      const charges = [charge1, charge2, charge3];
+      const lines = [line12, line13, line23];
+
+      charges.forEach(charge => {
+        charge.style.transitionDuration = animationSpeed + "s";
+        charge.style.animationDuration = animationSpeed + "s";
+      });
+
+      lines.forEach(line => {
+        line.style.transitionDuration = animationSpeed + "s";
+      });
+    });
+
+    window.addEventListener("resize", updateLines);
+
+    setChargeVisuals();
+    showTriangle();
+    updateEnergy();
+  </script>
+
+</body>
+</html>
+```

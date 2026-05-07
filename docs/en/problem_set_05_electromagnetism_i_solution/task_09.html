@@ -1,0 +1,933 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 9 – Dipole in an External Field</title>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card2: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent2: #f97316;
+      --good: #22c55e;
+      --danger: #ef4444;
+      --yellow: #facc15;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 25px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 430px;
+      background: linear-gradient(180deg, #020617, #0f172a);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 700px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control {
+      background: var(--card2);
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      border: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--accent);
+      color: #00111f;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    button.secondary {
+      background: var(--card2);
+      color: white;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    button.warning {
+      background: var(--accent2);
+      color: white;
+    }
+
+    .equation {
+      background: #020617;
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-size: 1.05rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .step {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .step:last-child {
+      border-bottom: none;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .orange {
+      color: var(--accent2);
+      font-weight: bold;
+    }
+
+    .green {
+      color: var(--good);
+      font-weight: bold;
+    }
+
+    .danger {
+      color: var(--danger);
+      font-weight: bold;
+    }
+
+    .values {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .value-box {
+      background: #020617;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .value-box small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .value-box strong {
+      font-size: 1.1rem;
+      color: white;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .blue { background: var(--accent); }
+    .red { background: var(--danger); }
+    .yellow { background: var(--yellow); }
+    .orange-dot { background: var(--accent2); }
+
+    .mini-title {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: -6px;
+      margin-bottom: 10px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 25px;
+      font-size: 0.9rem;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Problem 9 – Dipole in an External Field</h1>
+  <p class="subtitle">
+    Interactive explanation with torque, potential energy, angular motion, linearization, and harmonic oscillator interpretation.
+  </p>
+
+  <div class="container">
+
+    <div>
+
+      <div class="card">
+        <h2>Animated dipole in a uniform electric field</h2>
+        <p class="mini-title">
+          The electric field points to the right. The dipole rotates because of the restoring torque.
+        </p>
+
+        <canvas id="dipoleCanvas" width="900" height="430"></canvas>
+
+        <div class="legend">
+          <span><span class="dot blue"></span>Electric field E₀</span>
+          <span><span class="dot red"></span>Positive charge +q</span>
+          <span><span class="dot yellow"></span>Negative charge −q</span>
+          <span><span class="dot orange-dot"></span>Dipole moment p</span>
+        </div>
+
+        <div class="buttons">
+          <button id="playPauseBtn">Pause animation</button>
+          <button class="secondary" id="resetBtn">Reset</button>
+          <button class="warning" id="kickBtn">Give small push</button>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="smallAngleToggle">
+          <label for="smallAngleToggle" style="display:inline;">Use small-angle approximation: sinθ ≈ θ</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Animation controls</h2>
+
+        <div class="controls">
+
+          <div class="control">
+            <label>
+              Electric field E₀
+              <span id="eValue">5.0</span>
+            </label>
+            <input type="range" id="eSlider" min="1" max="10" step="0.1" value="5">
+          </div>
+
+          <div class="control">
+            <label>
+              Dipole moment p
+              <span id="pValue">4.0</span>
+            </label>
+            <input type="range" id="pSlider" min="1" max="10" step="0.1" value="4">
+          </div>
+
+          <div class="control">
+            <label>
+              Moment of inertia I
+              <span id="iValue">8.0</span>
+            </label>
+            <input type="range" id="iSlider" min="1" max="20" step="0.1" value="8">
+          </div>
+
+          <div class="control">
+            <label>
+              Initial angle θ₀
+              <span id="thetaValue">45°</span>
+            </label>
+            <input type="range" id="thetaSlider" min="-170" max="170" step="1" value="45">
+          </div>
+
+          <div class="control">
+            <label>
+              Damping
+              <span id="dampingValue">0.020</span>
+            </label>
+            <input type="range" id="dampingSlider" min="0" max="0.12" step="0.001" value="0.02">
+          </div>
+
+          <div class="control">
+            <label>
+              Animation speed
+              <span id="speedValue">1.00×</span>
+            </label>
+            <input type="range" id="speedSlider" min="0.2" max="3" step="0.05" value="1">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Live physical values</h2>
+
+        <div class="values">
+          <div class="value-box">
+            <small>Angle</small>
+            <strong id="angleLive">0°</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Torque τ</small>
+            <strong id="torqueLive">0</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Potential energy U</small>
+            <strong id="energyLive">0</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Angular frequency ω</small>
+            <strong id="omegaLive">0</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Period T</small>
+            <strong id="periodLive">0</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Model used</small>
+            <strong id="modelLive">Exact nonlinear</strong>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+
+      <div class="card">
+        <h2>Step-by-step solution</h2>
+
+        <div class="step">
+          <h3>Given idea</h3>
+          <p>
+            A dipole is made of two charges, <span class="danger">+q</span> and <span class="green">−q</span>,
+            separated by distance d.
+          </p>
+
+          <div class="equation">
+            p = qd
+          </div>
+
+          <p>
+            The vector <span class="highlight">p</span> points from the negative charge to the positive charge.
+          </p>
+        </div>
+
+        <div class="step">
+          <h3>1. Torque acting on the dipole</h3>
+          <p>
+            The electric field pulls the positive charge in the field direction and the negative charge in the opposite direction.
+            These two forces create a rotating effect called torque.
+          </p>
+
+          <div class="equation">
+            τ⃗ = p⃗ × E⃗₀
+          </div>
+
+          <p>The magnitude is:</p>
+
+          <div class="equation">
+            τ = pE₀ sinθ
+          </div>
+
+          <p>
+            Since the torque tries to bring the dipole back to θ = 0, it is a restoring torque:
+          </p>
+
+          <div class="equation">
+            τ = −pE₀ sinθ
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>2. Potential energy</h3>
+          <p>
+            The potential energy of a dipole in an external electric field is:
+          </p>
+
+          <div class="equation">
+            U = −p⃗ · E⃗₀
+          </div>
+
+          <p>Using the dot product:</p>
+
+          <div class="equation">
+            U = −pE₀ cosθ
+          </div>
+
+          <p>
+            When θ = 0, the dipole is aligned with the field and energy is minimum.
+          </p>
+
+          <div class="equation">
+            Umin = −pE₀
+          </div>
+
+          <p>
+            When θ = π, the dipole is opposite to the field and energy is maximum.
+          </p>
+
+          <div class="equation">
+            Umax = +pE₀
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>3. Equation of angular motion</h3>
+          <p>
+            For rotational motion, Newton’s second law is:
+          </p>
+
+          <div class="equation">
+            τ = Iα
+          </div>
+
+          <p>Angular acceleration is:</p>
+
+          <div class="equation">
+            α = d²θ / dt²
+          </div>
+
+          <p>So:</p>
+
+          <div class="equation">
+            I(d²θ / dt²) = −pE₀ sinθ
+          </div>
+
+          <p>Bring everything to one side:</p>
+
+          <div class="equation">
+            d²θ / dt² + (pE₀ / I) sinθ = 0
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>4. Linearization for small displacement</h3>
+          <p>
+            For small angles, measured in radians:
+          </p>
+
+          <div class="equation">
+            sinθ ≈ θ
+          </div>
+
+          <p>The equation becomes:</p>
+
+          <div class="equation">
+            d²θ / dt² + (pE₀ / I)θ = 0
+          </div>
+
+          <p>
+            This is now a linear equation.
+          </p>
+        </div>
+
+        <div class="step">
+          <h3>5. Harmonic oscillator interpretation</h3>
+          <p>
+            The standard simple harmonic oscillator equation is:
+          </p>
+
+          <div class="equation">
+            d²x / dt² + ω²x = 0
+          </div>
+
+          <p>
+            For angular motion:
+          </p>
+
+          <div class="equation">
+            d²θ / dt² + ω²θ = 0
+          </div>
+
+          <p>Compare with:</p>
+
+          <div class="equation">
+            d²θ / dt² + (pE₀ / I)θ = 0
+          </div>
+
+          <p>Therefore:</p>
+
+          <div class="equation">
+            ω² = pE₀ / I
+          </div>
+
+          <div class="equation">
+            ω = √(pE₀ / I)
+          </div>
+
+          <p>The period is:</p>
+
+          <div class="equation">
+            T = 2π√(I / pE₀)
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card">
+        <h2>Final answers</h2>
+
+        <div class="equation">
+          τ⃗ = p⃗ × E⃗₀
+        </div>
+
+        <div class="equation">
+          τ = −pE₀ sinθ
+        </div>
+
+        <div class="equation">
+          U = −pE₀ cosθ
+        </div>
+
+        <div class="equation">
+          d²θ / dt² + (pE₀ / I) sinθ = 0
+        </div>
+
+        <div class="equation">
+          d²θ / dt² + (pE₀ / I)θ = 0
+        </div>
+
+        <div class="equation">
+          ω = √(pE₀ / I)
+        </div>
+
+        <div class="equation">
+          T = 2π√(I / pE₀)
+        </div>
+
+        <p>
+          So, for small oscillations, the dipole behaves like a
+          <span class="highlight">rotational harmonic oscillator</span>.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <p class="footer">
+    Interactive physics presentation: Dipole in a uniform electric field.
+  </p>
+
+  <script>
+    const canvas = document.getElementById("dipoleCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const eSlider = document.getElementById("eSlider");
+    const pSlider = document.getElementById("pSlider");
+    const iSlider = document.getElementById("iSlider");
+    const thetaSlider = document.getElementById("thetaSlider");
+    const dampingSlider = document.getElementById("dampingSlider");
+    const speedSlider = document.getElementById("speedSlider");
+    const smallAngleToggle = document.getElementById("smallAngleToggle");
+
+    const eValue = document.getElementById("eValue");
+    const pValue = document.getElementById("pValue");
+    const iValue = document.getElementById("iValue");
+    const thetaValue = document.getElementById("thetaValue");
+    const dampingValue = document.getElementById("dampingValue");
+    const speedValue = document.getElementById("speedValue");
+
+    const angleLive = document.getElementById("angleLive");
+    const torqueLive = document.getElementById("torqueLive");
+    const energyLive = document.getElementById("energyLive");
+    const omegaLive = document.getElementById("omegaLive");
+    const periodLive = document.getElementById("periodLive");
+    const modelLive = document.getElementById("modelLive");
+
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const kickBtn = document.getElementById("kickBtn");
+
+    let E0 = Number(eSlider.value);
+    let p = Number(pSlider.value);
+    let I = Number(iSlider.value);
+    let damping = Number(dampingSlider.value);
+    let speed = Number(speedSlider.value);
+
+    let theta = degToRad(Number(thetaSlider.value));
+    let omegaAngular = 0;
+
+    let isRunning = true;
+    let lastTime = performance.now();
+
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function radToDeg(rad) {
+      return rad * 180 / Math.PI;
+    }
+
+    function updateSliderLabels() {
+      E0 = Number(eSlider.value);
+      p = Number(pSlider.value);
+      I = Number(iSlider.value);
+      damping = Number(dampingSlider.value);
+      speed = Number(speedSlider.value);
+
+      eValue.textContent = E0.toFixed(1);
+      pValue.textContent = p.toFixed(1);
+      iValue.textContent = I.toFixed(1);
+      thetaValue.textContent = thetaSlider.value + "°";
+      dampingValue.textContent = damping.toFixed(3);
+      speedValue.textContent = speed.toFixed(2) + "×";
+    }
+
+    function resetMotion() {
+      theta = degToRad(Number(thetaSlider.value));
+      omegaAngular = 0;
+    }
+
+    eSlider.addEventListener("input", updateSliderLabels);
+    pSlider.addEventListener("input", updateSliderLabels);
+    iSlider.addEventListener("input", updateSliderLabels);
+    dampingSlider.addEventListener("input", updateSliderLabels);
+    speedSlider.addEventListener("input", updateSliderLabels);
+
+    thetaSlider.addEventListener("input", () => {
+      updateSliderLabels();
+      resetMotion();
+    });
+
+    smallAngleToggle.addEventListener("change", () => {
+      resetMotion();
+    });
+
+    playPauseBtn.addEventListener("click", () => {
+      isRunning = !isRunning;
+      playPauseBtn.textContent = isRunning ? "Pause animation" : "Play animation";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetMotion();
+    });
+
+    kickBtn.addEventListener("click", () => {
+      omegaAngular += 1.2;
+    });
+
+    function drawArrow(x1, y1, x2, y2, color, width = 3) {
+      const headLength = 12;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawText(text, x, y, color = "#e5e7eb", size = 16, align = "center") {
+      ctx.fillStyle = color;
+      ctx.font = `${size}px Arial`;
+      ctx.textAlign = align;
+      ctx.fillText(text, x, y);
+    }
+
+    function drawElectricField() {
+      const spacing = 85;
+      const startX = 55;
+      const endX = canvas.width - 55;
+
+      for (let y = 65; y < canvas.height - 45; y += spacing) {
+        drawArrow(startX, y, endX, y, "#38bdf8", 2);
+      }
+
+      drawText("Uniform electric field E₀", canvas.width / 2, 35, "#38bdf8", 18);
+    }
+
+    function drawDipole() {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + 20;
+
+      const length = 190;
+      const half = length / 2;
+
+      const xNeg = cx - half * Math.cos(theta);
+      const yNeg = cy - half * Math.sin(theta);
+
+      const xPos = cx + half * Math.cos(theta);
+      const yPos = cy + half * Math.sin(theta);
+
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.beginPath();
+      ctx.moveTo(xNeg, yNeg);
+      ctx.lineTo(xPos, yPos);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(xNeg, yNeg, 22, 0, Math.PI * 2);
+      ctx.fillStyle = "#facc15";
+      ctx.fill();
+      drawText("−q", xNeg, yNeg + 6, "#020617", 18);
+
+      ctx.beginPath();
+      ctx.arc(xPos, yPos, 22, 0, Math.PI * 2);
+      ctx.fillStyle = "#ef4444";
+      ctx.fill();
+      drawText("+q", xPos, yPos + 6, "#ffffff", 18);
+
+      drawArrow(xNeg, yNeg, xPos, yPos, "#f97316", 4);
+      drawText("p", (xNeg + xPos) / 2, (yNeg + yPos) / 2 - 18, "#f97316", 20);
+
+      drawArrow(xPos, yPos, xPos + 70, yPos, "#ef4444", 3);
+      drawText("F₊", xPos + 82, yPos + 5, "#ef4444", 15);
+
+      drawArrow(xNeg, yNeg, xNeg - 70, yNeg, "#facc15", 3);
+      drawText("F₋", xNeg - 82, yNeg + 5, "#facc15", 15);
+
+      drawAngleArc(cx, cy);
+      drawTorqueSymbol(cx, cy);
+    }
+
+    function drawAngleArc(cx, cy) {
+      const radius = 65;
+      const start = 0;
+      const end = theta;
+
+      ctx.strokeStyle = "#a78bfa";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, start, end, theta < 0);
+      ctx.stroke();
+
+      drawText("θ", cx + 75, cy + (theta >= 0 ? 30 : -20), "#a78bfa", 20);
+
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 120, cy);
+      ctx.lineTo(cx + 120, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawTorqueSymbol(cx, cy) {
+      const torque = -p * E0 * Math.sin(theta);
+      const color = torque >= 0 ? "#22c55e" : "#ef4444";
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+
+      if (torque >= 0) {
+        ctx.arc(cx, cy, 120, 0.3, 1.8);
+        ctx.stroke();
+        drawArrow(cx - 25, cy + 118, cx - 45, cy + 105, color, 4);
+      } else {
+        ctx.arc(cx, cy, 120, -0.3, -1.8, true);
+        ctx.stroke();
+        drawArrow(cx - 25, cy - 118, cx - 45, cy - 105, color, 4);
+      }
+
+      drawText("Restoring torque τ", cx, cy + 155, color, 17);
+    }
+
+    function drawEnergyBar() {
+      const U = -p * E0 * Math.cos(theta);
+      const minU = -p * E0;
+      const maxU = p * E0;
+      const normalized = (U - minU) / (maxU - minU);
+
+      const x = 55;
+      const y = canvas.height - 38;
+      const w = canvas.width - 110;
+      const h = 14;
+
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(x, y, w, h);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(x, y, w * normalized, h);
+
+      ctx.strokeStyle = "#94a3b8";
+      ctx.strokeRect(x, y, w, h);
+
+      drawText("Potential energy U", canvas.width / 2, y - 8, "#94a3b8", 14);
+      drawText("min", x, y + 32, "#94a3b8", 13);
+      drawText("max", x + w, y + 32, "#94a3b8", 13);
+    }
+
+    function updatePhysics(dt) {
+      const useSmallAngle = smallAngleToggle.checked;
+
+      let angularAcceleration;
+
+      if (useSmallAngle) {
+        angularAcceleration = -(p * E0 / I) * theta;
+      } else {
+        angularAcceleration = -(p * E0 / I) * Math.sin(theta);
+      }
+
+      angularAcceleration += -damping * omegaAngular;
+
+      omegaAngular += angularAcceleration * dt;
+      theta += omegaAngular * dt;
+    }
+
+    function updateLiveValues() {
+      const torque = -p * E0 * Math.sin(theta);
+      const energy = -p * E0 * Math.cos(theta);
+      const naturalOmega = Math.sqrt((p * E0) / I);
+      const period = 2 * Math.PI / naturalOmega;
+
+      angleLive.textContent = radToDeg(theta).toFixed(1) + "°";
+      torqueLive.textContent = torque.toFixed(3);
+      energyLive.textContent = energy.toFixed(3);
+      omegaLive.textContent = naturalOmega.toFixed(3) + " rad/s";
+      periodLive.textContent = period.toFixed(3) + " s";
+      modelLive.textContent = smallAngleToggle.checked ? "Linear small-angle" : "Exact nonlinear";
+    }
+
+    function animate(currentTime) {
+      const realDt = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      const dt = Math.min(realDt, 0.04) * speed;
+
+      if (isRunning) {
+        updatePhysics(dt);
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawElectricField();
+      drawDipole();
+      drawEnergyBar();
+      updateLiveValues();
+
+      requestAnimationFrame(animate);
+    }
+
+    updateSliderLabels();
+    resetMotion();
+    requestAnimationFrame(animate);
+  </script>
+
+</body>
+</html>
+```

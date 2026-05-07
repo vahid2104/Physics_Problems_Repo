@@ -1,0 +1,952 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 4 – Motion of a Particle in a Uniform Electric Field</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #101820, #1b2735);
+      color: #f5f5f5;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      color: #7dd3fc;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 2.2rem;
+    }
+
+    h2 {
+      border-left: 5px solid #38bdf8;
+      padding-left: 10px;
+      margin-top: 30px;
+    }
+
+    p {
+      margin-bottom: 10px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+    }
+
+    .given-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .given-box {
+      background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(125, 211, 252, 0.4);
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.05rem;
+    }
+
+    .formula {
+      background: #020617;
+      color: #e0f2fe;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-family: "Courier New", monospace;
+      overflow-x: auto;
+      border-left: 4px solid #38bdf8;
+    }
+
+    .answer {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: #bbf7d0;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-weight: bold;
+    }
+
+    .warning {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.5);
+      color: #fde68a;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 12px 0;
+    }
+
+    .simulation-layout {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .simulation-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    canvas {
+      width: 100%;
+      background: #f8fafc;
+      border-radius: 14px;
+      border: 3px solid #38bdf8;
+      display: block;
+    }
+
+    .controls {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #e0f2fe;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .value {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 6px 4px 6px 0;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #020617;
+      background: #38bdf8;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #7dd3fc;
+      transform: translateY(-2px);
+    }
+
+    .reset-btn {
+      background: #f87171;
+    }
+
+    .reset-btn:hover {
+      background: #fca5a5;
+    }
+
+    .data-box {
+      background: #020617;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 15px;
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+    }
+
+    .data-box span {
+      color: #facc15;
+    }
+
+    .step {
+      padding: 14px;
+      margin: 15px 0;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      border-left: 4px solid #a78bfa;
+    }
+
+    .energy-bar-container {
+      width: 100%;
+      height: 24px;
+      background: #334155;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .energy-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22c55e, #facc15);
+      transition: width 0.3s;
+    }
+
+    .final-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .final-list li {
+      background: rgba(255, 255, 255, 0.07);
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      border-left: 4px solid #22c55e;
+    }
+
+    .small {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Problem 4 – Motion of a Particle in a Uniform Electric Field</h1>
+
+    <div class="card">
+      <h2>Given Data</h2>
+
+      <p>We have a charged particle moving in a uniform electric field.</p>
+
+      <div class="given-grid">
+        <div class="given-box">m = 0.02 kg</div>
+        <div class="given-box">q = 1 mC = 1 × 10⁻³ C</div>
+        <div class="given-box">E = (30, 100) N/C</div>
+        <div class="given-box">v(0) = (20, 0) m/s</div>
+        <div class="given-box">r(0) = (0, 0)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Equations of Motion</h2>
+
+      <div class="step">
+        <h3>Step 1: Electric force</h3>
+        <p>The electric force on a charged particle is:</p>
+        <div class="formula">F = qE</div>
+
+        <p>Substitute the values:</p>
+        <div class="formula">F = (1 × 10⁻³)(30, 100)</div>
+
+        <p>So:</p>
+        <div class="answer">F = (0.03, 0.10) N</div>
+      </div>
+
+      <div class="step">
+        <h3>Step 2: Acceleration</h3>
+        <p>Using Newton’s second law:</p>
+        <div class="formula">F = ma</div>
+
+        <p>So:</p>
+        <div class="formula">a = F / m</div>
+
+        <p>Substitute:</p>
+        <div class="formula">a = (0.03, 0.10) / 0.02</div>
+
+        <div class="answer">a = (1.5, 5) m/s²</div>
+      </div>
+
+      <div class="step">
+        <h3>Step 3: Velocity equations</h3>
+        <p>Because acceleration is constant:</p>
+
+        <div class="formula">vx(t) = vx(0) + ax t</div>
+        <div class="formula">vy(t) = vy(0) + ay t</div>
+
+        <p>Substitute the values:</p>
+
+        <div class="answer">vx(t) = 20 + 1.5t</div>
+        <div class="answer">vy(t) = 5t</div>
+
+        <p>Therefore:</p>
+        <div class="answer">v(t) = (20 + 1.5t, 5t)</div>
+      </div>
+
+      <div class="step">
+        <h3>Step 4: Position equations</h3>
+
+        <div class="formula">x(t) = x(0) + vx(0)t + ½axt²</div>
+        <div class="formula">y(t) = y(0) + vy(0)t + ½ayt²</div>
+
+        <p>Substitute the values:</p>
+
+        <div class="answer">x(t) = 20t + 0.75t²</div>
+        <div class="answer">y(t) = 2.5t²</div>
+
+        <p>Therefore:</p>
+        <div class="answer">r(t) = (20t + 0.75t², 2.5t²)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Animated Motion Trajectory</h2>
+
+      <p>
+        The particle starts at the origin. It moves to the right because its initial velocity is in the x-direction.
+        It also curves upward because the electric field gives it upward acceleration.
+      </p>
+
+      <div class="simulation-layout">
+        <div>
+          <canvas id="motionCanvas" width="800" height="500"></canvas>
+
+          <div class="data-box">
+            Time: <span id="timeDisplay">0.00</span> s<br />
+            x-position: <span id="xDisplay">0.000</span> m<br />
+            y-position: <span id="yDisplay">0.000</span> m<br />
+            vx: <span id="vxDisplay">20.000</span> m/s<br />
+            vy: <span id="vyDisplay">0.000</span> m/s<br />
+            Kinetic Energy: <span id="kDisplay">4.000</span> J<br />
+            Electric Work: <span id="wDisplay">0.000</span> J<br />
+          </div>
+        </div>
+
+        <div class="controls">
+          <h3>Animation Controls</h3>
+
+          <button onclick="playAnimation()">Play</button>
+          <button onclick="pauseAnimation()">Pause</button>
+          <button class="reset-btn" onclick="resetAnimation()">Reset</button>
+
+          <div class="control-group">
+            <label>Mass m: <span class="value" id="massValue">0.02</span> kg</label>
+            <input type="range" id="massSlider" min="0.005" max="0.1" step="0.005" value="0.02" />
+          </div>
+
+          <div class="control-group">
+            <label>Charge q: <span class="value" id="chargeValue">1.00</span> mC</label>
+            <input type="range" id="chargeSlider" min="0.1" max="5" step="0.1" value="1" />
+          </div>
+
+          <div class="control-group">
+            <label>Electric field Ex: <span class="value" id="exValue">30</span> N/C</label>
+            <input type="range" id="exSlider" min="-100" max="100" step="5" value="30" />
+          </div>
+
+          <div class="control-group">
+            <label>Electric field Ey: <span class="value" id="eyValue">100</span> N/C</label>
+            <input type="range" id="eySlider" min="-100" max="200" step="5" value="100" />
+          </div>
+
+          <div class="control-group">
+            <label>Initial vx: <span class="value" id="vx0Value">20</span> m/s</label>
+            <input type="range" id="vx0Slider" min="0" max="50" step="1" value="20" />
+          </div>
+
+          <div class="control-group">
+            <label>Initial vy: <span class="value" id="vy0Value">0</span> m/s</label>
+            <input type="range" id="vy0Slider" min="-30" max="30" step="1" value="0" />
+          </div>
+
+          <div class="control-group">
+            <label>Animation speed: <span class="value" id="speedValue">1.0</span>x</label>
+            <input type="range" id="speedSlider" min="0.2" max="5" step="0.1" value="1" />
+          </div>
+
+          <div class="control-group">
+            <label>Maximum time: <span class="value" id="maxTimeValue">10</span> s</label>
+            <input type="range" id="maxTimeSlider" min="1" max="20" step="1" value="10" />
+          </div>
+
+          <div class="warning">
+            Change the sliders and press reset to clearly see the new motion from the beginning.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Time to Reach Vertical Velocity of 50 m/s</h2>
+
+      <p>The vertical velocity equation is:</p>
+
+      <div class="formula">vy(t) = 5t</div>
+
+      <p>We want:</p>
+
+      <div class="formula">vy = 50 m/s</div>
+
+      <p>So:</p>
+
+      <div class="formula">50 = 5t</div>
+
+      <p>Divide by 5:</p>
+
+      <div class="formula">t = 50 / 5</div>
+
+      <div class="answer">t = 10 s</div>
+    </div>
+
+    <div class="card">
+      <h2>4. Kinetic Energy After t = 0.05 s</h2>
+
+      <p>The kinetic energy formula is:</p>
+
+      <div class="formula">K = ½mv²</div>
+
+      <p>where:</p>
+
+      <div class="formula">v² = vx² + vy²</div>
+
+      <p>At t = 0.05 s:</p>
+
+      <div class="formula">vx = 20 + 1.5(0.05) = 20.075 m/s</div>
+      <div class="formula">vy = 5(0.05) = 0.25 m/s</div>
+
+      <p>Now:</p>
+
+      <div class="formula">v² = (20.075)² + (0.25)²</div>
+      <div class="formula">v² = 403.068125</div>
+
+      <p>Therefore:</p>
+
+      <div class="formula">K = ½(0.02)(403.068125)</div>
+
+      <div class="answer">K = 4.03068125 J ≈ 4.03 J</div>
+
+      <h3>Energy bar</h3>
+      <p>This bar compares the initial kinetic energy with the kinetic energy after 0.05 s.</p>
+
+      <div class="energy-bar-container">
+        <div class="energy-bar" id="energyBar"></div>
+      </div>
+
+      <p id="energyText">Initial K = 4.00 J, Final K = 4.03 J</p>
+    </div>
+
+    <div class="card">
+      <h2>5. Energy Balance Check</h2>
+
+      <p>The work-energy theorem says:</p>
+
+      <div class="formula">ΔK = W</div>
+
+      <p>The work done by the electric field is:</p>
+
+      <div class="formula">W = qE · Δr</div>
+
+      <p>At t = 0.05 s:</p>
+
+      <div class="formula">x = 20(0.05) + 0.75(0.05)² = 1.001875 m</div>
+      <div class="formula">y = 2.5(0.05)² = 0.00625 m</div>
+
+      <p>Now calculate the dot product:</p>
+
+      <div class="formula">E · r = Ex x + Ey y</div>
+      <div class="formula">E · r = 30(1.001875) + 100(0.00625)</div>
+      <div class="formula">E · r = 30.68125</div>
+
+      <p>Then:</p>
+
+      <div class="formula">W = (1 × 10⁻³)(30.68125)</div>
+
+      <div class="answer">W = 0.03068125 J</div>
+
+      <p>The initial kinetic energy is:</p>
+
+      <div class="formula">K(0) = ½(0.02)(20)² = 4.00 J</div>
+
+      <p>The final kinetic energy is:</p>
+
+      <div class="formula">K(0.05) = 4.03068125 J</div>
+
+      <p>So:</p>
+
+      <div class="formula">ΔK = 4.03068125 - 4.00</div>
+
+      <div class="answer">ΔK = 0.03068125 J</div>
+
+      <p>Since:</p>
+
+      <div class="formula">ΔK = W</div>
+
+      <div class="answer">0.03068125 J = 0.03068125 J ✅</div>
+
+      <p>Therefore, the energy balance is correct.</p>
+    </div>
+
+    <div class="card">
+      <h2>Final Answers</h2>
+
+      <ul class="final-list">
+        <li>Electric force: <strong>F = (0.03, 0.10) N</strong></li>
+        <li>Acceleration: <strong>a = (1.5, 5) m/s²</strong></li>
+        <li>Velocity: <strong>v(t) = (20 + 1.5t, 5t)</strong></li>
+        <li>Position: <strong>r(t) = (20t + 0.75t², 2.5t²)</strong></li>
+        <li>Time to reach vy = 50 m/s: <strong>t = 10 s</strong></li>
+        <li>Kinetic energy at t = 0.05 s: <strong>K ≈ 4.03 J</strong></li>
+        <li>Work done by field at t = 0.05 s: <strong>W = 0.03068125 J</strong></li>
+        <li>Energy check: <strong>ΔK = W ✅</strong></li>
+      </ul>
+
+      <p class="small">
+        Tip: Copy this whole code into a file named <strong>problem4.html</strong>, then open it in your browser.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("motionCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const massSlider = document.getElementById("massSlider");
+    const chargeSlider = document.getElementById("chargeSlider");
+    const exSlider = document.getElementById("exSlider");
+    const eySlider = document.getElementById("eySlider");
+    const vx0Slider = document.getElementById("vx0Slider");
+    const vy0Slider = document.getElementById("vy0Slider");
+    const speedSlider = document.getElementById("speedSlider");
+    const maxTimeSlider = document.getElementById("maxTimeSlider");
+
+    const massValue = document.getElementById("massValue");
+    const chargeValue = document.getElementById("chargeValue");
+    const exValue = document.getElementById("exValue");
+    const eyValue = document.getElementById("eyValue");
+    const vx0Value = document.getElementById("vx0Value");
+    const vy0Value = document.getElementById("vy0Value");
+    const speedValue = document.getElementById("speedValue");
+    const maxTimeValue = document.getElementById("maxTimeValue");
+
+    const timeDisplay = document.getElementById("timeDisplay");
+    const xDisplay = document.getElementById("xDisplay");
+    const yDisplay = document.getElementById("yDisplay");
+    const vxDisplay = document.getElementById("vxDisplay");
+    const vyDisplay = document.getElementById("vyDisplay");
+    const kDisplay = document.getElementById("kDisplay");
+    const wDisplay = document.getElementById("wDisplay");
+
+    const energyBar = document.getElementById("energyBar");
+    const energyText = document.getElementById("energyText");
+
+    let time = 0;
+    let running = false;
+    let lastTimestamp = null;
+
+    let trail = [];
+
+    function getValues() {
+      const m = Number(massSlider.value);
+      const q_mC = Number(chargeSlider.value);
+      const q = q_mC * 1e-3;
+      const Ex = Number(exSlider.value);
+      const Ey = Number(eySlider.value);
+      const vx0 = Number(vx0Slider.value);
+      const vy0 = Number(vy0Slider.value);
+      const speed = Number(speedSlider.value);
+      const maxTime = Number(maxTimeSlider.value);
+
+      const ax = (q * Ex) / m;
+      const ay = (q * Ey) / m;
+
+      return { m, q_mC, q, Ex, Ey, vx0, vy0, speed, maxTime, ax, ay };
+    }
+
+    function updateLabels() {
+      const values = getValues();
+
+      massValue.textContent = values.m.toFixed(3);
+      chargeValue.textContent = values.q_mC.toFixed(2);
+      exValue.textContent = values.Ex.toFixed(0);
+      eyValue.textContent = values.Ey.toFixed(0);
+      vx0Value.textContent = values.vx0.toFixed(0);
+      vy0Value.textContent = values.vy0.toFixed(0);
+      speedValue.textContent = values.speed.toFixed(1);
+      maxTimeValue.textContent = values.maxTime.toFixed(0);
+    }
+
+    function positionAt(t) {
+      const { vx0, vy0, ax, ay } = getValues();
+
+      const x = vx0 * t + 0.5 * ax * t * t;
+      const y = vy0 * t + 0.5 * ay * t * t;
+
+      return { x, y };
+    }
+
+    function velocityAt(t) {
+      const { vx0, vy0, ax, ay } = getValues();
+
+      const vx = vx0 + ax * t;
+      const vy = vy0 + ay * t;
+
+      return { vx, vy };
+    }
+
+    function kineticEnergy(t) {
+      const { m } = getValues();
+      const { vx, vy } = velocityAt(t);
+
+      return 0.5 * m * (vx * vx + vy * vy);
+    }
+
+    function electricWork(t) {
+      const { q, Ex, Ey } = getValues();
+      const { x, y } = positionAt(t);
+
+      return q * (Ex * x + Ey * y);
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x <= canvas.width; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= canvas.height; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawAxes() {
+      const origin = getCanvasOrigin();
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(0, origin.y);
+      ctx.lineTo(canvas.width, origin.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(origin.x, 0);
+      ctx.lineTo(origin.x, canvas.height);
+      ctx.stroke();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText("x", canvas.width - 25, origin.y - 10);
+      ctx.fillText("y", origin.x + 10, 20);
+      ctx.fillText("(0,0)", origin.x + 8, origin.y + 18);
+    }
+
+    function getCanvasOrigin() {
+      return {
+        x: 60,
+        y: canvas.height - 60
+      };
+    }
+
+    function getScale() {
+      const values = getValues();
+
+      let maxX = 1;
+      let maxY = 1;
+
+      for (let t = 0; t <= values.maxTime; t += values.maxTime / 100) {
+        const p = positionAt(t);
+        maxX = Math.max(maxX, Math.abs(p.x));
+        maxY = Math.max(maxY, Math.abs(p.y));
+      }
+
+      const scaleX = (canvas.width - 120) / maxX;
+      const scaleY = (canvas.height - 120) / maxY;
+
+      return Math.min(scaleX, scaleY, 30);
+    }
+
+    function worldToCanvas(x, y) {
+      const origin = getCanvasOrigin();
+      const scale = getScale();
+
+      return {
+        cx: origin.x + x * scale,
+        cy: origin.y - y * scale
+      };
+    }
+
+    function drawElectricFieldArrows() {
+      const { Ex, Ey } = getValues();
+
+      const magnitude = Math.sqrt(Ex * Ex + Ey * Ey);
+
+      if (magnitude === 0) return;
+
+      const dirX = Ex / magnitude;
+      const dirY = Ey / magnitude;
+
+      ctx.strokeStyle = "#0ea5e9";
+      ctx.fillStyle = "#0ea5e9";
+      ctx.lineWidth = 2;
+
+      for (let x = 120; x < canvas.width; x += 120) {
+        for (let y = 80; y < canvas.height - 80; y += 100) {
+          const length = 35;
+
+          const x2 = x + dirX * length;
+          const y2 = y - dirY * length;
+
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+
+          drawArrowHead(x, y, x2, y2, "#0ea5e9");
+        }
+      }
+
+      ctx.fillStyle = "#0369a1";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("Electric field direction", canvas.width - 220, 30);
+    }
+
+    function drawArrowHead(x1, y1, x2, y2, color) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const size = 8;
+
+      ctx.fillStyle = color;
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - size * Math.cos(angle - Math.PI / 6),
+        y2 - size * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - size * Math.cos(angle + Math.PI / 6),
+        y2 - size * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawTrail() {
+      if (trail.length < 2) return;
+
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+
+      const first = worldToCanvas(trail[0].x, trail[0].y);
+      ctx.moveTo(first.cx, first.cy);
+
+      for (let i = 1; i < trail.length; i++) {
+        const point = worldToCanvas(trail[i].x, trail[i].y);
+        ctx.lineTo(point.cx, point.cy);
+      }
+
+      ctx.stroke();
+    }
+
+    function drawParticle() {
+      const position = positionAt(time);
+      const particle = worldToCanvas(position.x, position.y);
+
+      ctx.beginPath();
+      ctx.arc(particle.cx, particle.cy, 10, 0, Math.PI * 2);
+      ctx.fillStyle = "#dc2626";
+      ctx.fill();
+
+      ctx.strokeStyle = "#7f1d1d";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("+q", particle.cx - 8, particle.cy + 5);
+    }
+
+    function drawVelocityArrow() {
+      const position = positionAt(time);
+      const velocity = velocityAt(time);
+
+      const start = worldToCanvas(position.x, position.y);
+
+      const scale = 2.5;
+      const endX = start.cx + velocity.vx * scale;
+      const endY = start.cy - velocity.vy * scale;
+
+      ctx.strokeStyle = "#22c55e";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(start.cx, start.cy);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      drawArrowHead(start.cx, start.cy, endX, endY, "#22c55e");
+
+      ctx.fillStyle = "#166534";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("v", endX + 6, endY - 6);
+    }
+
+    function drawAccelerationArrow() {
+      const position = positionAt(time);
+      const { ax, ay } = getValues();
+
+      const start = worldToCanvas(position.x, position.y);
+
+      const scale = 20;
+      const endX = start.cx + ax * scale;
+      const endY = start.cy - ay * scale;
+
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(start.cx, start.cy);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      drawArrowHead(start.cx, start.cy, endX, endY, "#a855f7");
+
+      ctx.fillStyle = "#6b21a8";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("a", endX + 6, endY - 6);
+    }
+
+    function updateDataDisplay() {
+      const position = positionAt(time);
+      const velocity = velocityAt(time);
+      const K = kineticEnergy(time);
+      const W = electricWork(time);
+      const K0 = kineticEnergy(0);
+
+      timeDisplay.textContent = time.toFixed(2);
+      xDisplay.textContent = position.x.toFixed(3);
+      yDisplay.textContent = position.y.toFixed(3);
+      vxDisplay.textContent = velocity.vx.toFixed(3);
+      vyDisplay.textContent = velocity.vy.toFixed(3);
+      kDisplay.textContent = K.toFixed(6);
+      wDisplay.textContent = W.toFixed(6);
+
+      const percent = Math.min((K / Math.max(K0, K)) * 100, 100);
+      energyBar.style.width = percent + "%";
+
+      energyText.textContent =
+        "Initial K = " +
+        K0.toFixed(4) +
+        " J, Current K = " +
+        K.toFixed(4) +
+        " J, ΔK = " +
+        (K - K0).toFixed(6) +
+        " J, W = " +
+        W.toFixed(6) +
+        " J";
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawGrid();
+      drawAxes();
+      drawElectricFieldArrows();
+      drawTrail();
+      drawParticle();
+      drawVelocityArrow();
+      drawAccelerationArrow();
+
+      updateDataDisplay();
+    }
+
+    function animate(timestamp) {
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+      }
+
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (running) {
+        const { speed, maxTime } = getValues();
+
+        time += delta * speed;
+
+        if (time > maxTime) {
+          time = maxTime;
+          running = false;
+        }
+
+        const p = positionAt(time);
+        trail.push(p);
+
+        if (trail.length > 600) {
+          trail.shift();
+        }
+      }
+
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    function playAnimation() {
+      running = true;
+      lastTimestamp = null;
+    }
+
+    function pauseAnimation() {
+      running = false;
+    }
+
+    function resetAnimation() {
+      time = 0;
+      trail = [];
+      running = false;
+      lastTimestamp = null;
+      drawScene();
+    }
+
+    function sliderChanged() {
+      updateLabels();
+      resetAnimation();
+    }
+
+    massSlider.addEventListener("input", sliderChanged);
+    chargeSlider.addEventListener("input", sliderChanged);
+    exSlider.addEventListener("input", sliderChanged);
+    eySlider.addEventListener("input", sliderChanged);
+    vx0Slider.addEventListener("input", sliderChanged);
+    vy0Slider.addEventListener("input", sliderChanged);
+    speedSlider.addEventListener("input", updateLabels);
+    maxTimeSlider.addEventListener("input", sliderChanged);
+
+    updateLabels();
+    resetAnimation();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
+```

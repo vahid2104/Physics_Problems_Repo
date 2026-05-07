@@ -1,0 +1,1094 @@
+Here is a complete **copy-paste HTML file** with animations, sliders, RK4 simulation, energy plot, and explanation sections.
+
+Save it as:
+
+```text
+problem7_central_field.html
+```
+
+Then open it in your browser.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 7 – Motion in a Central Field</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #101020, #1b1b35);
+      color: #f2f2f2;
+      line-height: 1.6;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #20204a, #303075);
+      border-bottom: 3px solid #6c63ff;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.4rem;
+      color: #ffffff;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #d8d8ff;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    section {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 18px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
+      animation: fadeUp 0.8s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      color: #9fa8ff;
+      margin-top: 0;
+    }
+
+    h3 {
+      color: #c8ccff;
+    }
+
+    .formula {
+      background: #111122;
+      border-left: 5px solid #6c63ff;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      overflow-x: auto;
+    }
+
+    .highlight {
+      color: #ffd166;
+      font-weight: bold;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+
+    @media (max-width: 850px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    canvas {
+      width: 100%;
+      background: #090914;
+      border-radius: 15px;
+      border: 2px solid #333366;
+      display: block;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 750px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    button {
+      border: none;
+      padding: 12px 18px;
+      margin: 8px 5px 8px 0;
+      border-radius: 10px;
+      background: #6c63ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #867fff;
+      transform: scale(1.03);
+    }
+
+    .danger {
+      background: #ef476f;
+    }
+
+    .danger:hover {
+      background: #ff6b8f;
+    }
+
+    .success {
+      background: #06d6a0;
+      color: #101020;
+    }
+
+    .success:hover {
+      background: #41e7ba;
+    }
+
+    .output {
+      background: #111122;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+      font-family: Consolas, monospace;
+      color: #d8f3dc;
+      border-left: 5px solid #06d6a0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #111122;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #333366;
+      text-align: center;
+    }
+
+    th {
+      background: #303075;
+      color: #ffffff;
+    }
+
+    .note {
+      background: rgba(255, 209, 102, 0.12);
+      border-left: 5px solid #ffd166;
+      padding: 15px;
+      border-radius: 10px;
+      color: #fff3c4;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 25px;
+      color: #aaa;
+    }
+
+    .small {
+      font-size: 0.95rem;
+      color: #ccccdd;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Problem 7 – Motion in a Central Field</h1>
+  <p>Electric central force, radial motion, RK4 method, energy cases, and gravitational analogy</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>Given Electric Field</h2>
+
+    <p>The electric field is</p>
+
+    <div class="formula">
+      E(r) = k Q / r² &nbsp; r̂
+    </div>
+
+    <p>
+      Here, <span class="highlight">Q</span> is the source charge placed at the origin.
+      The symbol <span class="highlight">r̂</span> means the radial direction.
+    </p>
+
+    <p>
+      If the source charge is positive, the electric field points outward.
+      If the source charge is negative, the electric field points inward.
+    </p>
+  </section>
+
+  <section>
+    <h2>1. Equation of Motion</h2>
+
+    <p>The electric force on a particle with charge <span class="highlight">q</span> is</p>
+
+    <div class="formula">
+      F = qE
+    </div>
+
+    <p>Substitute the electric field:</p>
+
+    <div class="formula">
+      F = k qQ / r² &nbsp; r̂
+    </div>
+
+    <p>Using Newton’s second law:</p>
+
+    <div class="formula">
+      F = ma
+    </div>
+
+    <p>So the equation of motion becomes</p>
+
+    <div class="formula">
+      m d²r⃗/dt² = k qQ / r² &nbsp; r̂
+    </div>
+
+    <p>Therefore,</p>
+
+    <div class="formula">
+      d²r⃗/dt² = k qQ / (m r²) &nbsp; r̂
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Radial Motion</h2>
+
+    <p>
+      Radial motion means the particle moves only toward or away from the center.
+      There is no angular motion.
+    </p>
+
+    <p>So the vector equation becomes one-dimensional:</p>
+
+    <div class="formula">
+      d²r/dt² = k qQ / (m r²)
+    </div>
+
+    <p>Define</p>
+
+    <div class="formula">
+      α = k qQ / m
+    </div>
+
+    <p>Then</p>
+
+    <div class="formula">
+      d²r/dt² = α / r²
+    </div>
+
+    <p>
+      If <span class="highlight">α &gt; 0</span>, the force is repulsive.
+      If <span class="highlight">α &lt; 0</span>, the force is attractive.
+    </p>
+  </section>
+
+  <section>
+    <h2>3. RK4 Method Setup</h2>
+
+    <p>RK4 works with first-order equations, so we define velocity:</p>
+
+    <div class="formula">
+      v = dr/dt
+    </div>
+
+    <p>Now the system becomes:</p>
+
+    <div class="formula">
+      dr/dt = v
+      <br />
+      dv/dt = α / r²
+    </div>
+
+    <p>This is the system solved numerically in the animation below.</p>
+  </section>
+
+  <section>
+    <h2>Interactive RK4 Animation</h2>
+
+    <p>
+      Use the controls to change the motion. The particle is simulated using the RK4 method.
+    </p>
+
+    <div class="grid">
+      <div>
+        <canvas id="motionCanvas" width="550" height="550"></canvas>
+      </div>
+
+      <div>
+        <canvas id="energyCanvas" width="550" height="260"></canvas>
+        <canvas id="radiusCanvas" width="550" height="260" style="margin-top: 20px;"></canvas>
+      </div>
+    </div>
+
+    <div class="controls">
+      <label>
+        Source charge Q: <span id="QValue"></span> μC
+        <input id="QSlider" type="range" min="-5" max="5" step="0.1" value="1">
+      </label>
+
+      <label>
+        Particle charge q: <span id="qValue"></span> μC
+        <input id="qSlider" type="range" min="-5" max="5" step="0.1" value="-1">
+      </label>
+
+      <label>
+        Mass m: <span id="mValue"></span> g
+        <input id="mSlider" type="range" min="0.1" max="10" step="0.1" value="1">
+      </label>
+
+      <label>
+        Initial radius r₀: <span id="r0Value"></span> m
+        <input id="r0Slider" type="range" min="0.3" max="5" step="0.1" value="2">
+      </label>
+
+      <label>
+        Initial velocity v₀: <span id="v0Value"></span> m/s
+        <input id="v0Slider" type="range" min="-10" max="10" step="0.1" value="1">
+      </label>
+
+      <label>
+        Time step h: <span id="hValue"></span> s
+        <input id="hSlider" type="range" min="0.0005" max="0.02" step="0.0005" value="0.005">
+      </label>
+
+      <label>
+        Animation speed: <span id="speedValue"></span>
+        <input id="speedSlider" type="range" min="1" max="20" step="1" value="5">
+      </label>
+
+      <label>
+        Zoom: <span id="zoomValue"></span>
+        <input id="zoomSlider" type="range" min="40" max="160" step="5" value="90">
+      </label>
+    </div>
+
+    <div>
+      <button onclick="startSimulation()" class="success">Start</button>
+      <button onclick="pauseSimulation()">Pause</button>
+      <button onclick="resetSimulation()" class="danger">Reset</button>
+    </div>
+
+    <div class="output" id="outputBox"></div>
+
+    <div class="note">
+      Tip: Try opposite signs for Q and q to get attraction.
+      Try same signs for repulsion.
+      Increase the initial velocity to move from negative energy to positive energy.
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Positive and Negative Energy</h2>
+
+    <p>The total mechanical energy is</p>
+
+    <div class="formula">
+      E = 1/2 mv² + k qQ / r
+    </div>
+
+    <p>
+      The first term is kinetic energy.
+      The second term is electric potential energy.
+    </p>
+
+    <h3>Attractive Case</h3>
+
+    <p>If the charges have opposite signs:</p>
+
+    <div class="formula">
+      qQ &lt; 0
+    </div>
+
+    <p>Then the potential energy is negative:</p>
+
+    <div class="formula">
+      U(r) = - k |qQ| / r
+    </div>
+
+    <table>
+      <tr>
+        <th>Energy</th>
+        <th>Meaning</th>
+      </tr>
+      <tr>
+        <td>E &lt; 0</td>
+        <td>Bound motion. The particle does not have enough energy to escape.</td>
+      </tr>
+      <tr>
+        <td>E = 0</td>
+        <td>Escape limit. The particle just escapes with zero final speed.</td>
+      </tr>
+      <tr>
+        <td>E &gt; 0</td>
+        <td>Escape motion. The particle escapes with nonzero final speed.</td>
+      </tr>
+    </table>
+
+    <h3>Repulsive Case</h3>
+
+    <p>If the charges have the same sign:</p>
+
+    <div class="formula">
+      qQ &gt; 0
+    </div>
+
+    <p>
+      The potential energy is positive.
+      The particle is pushed away from the center.
+    </p>
+  </section>
+
+  <section>
+    <h2>5. Escape Speed</h2>
+
+    <p>For attractive motion, escape happens when</p>
+
+    <div class="formula">
+      E = 0
+    </div>
+
+    <p>So</p>
+
+    <div class="formula">
+      1/2 mv² = k |qQ| / r
+    </div>
+
+    <p>Solving for velocity gives</p>
+
+    <div class="formula">
+      v_escape = √(2k |qQ| / mr)
+    </div>
+
+    <p>
+      If the initial velocity is smaller than this value, energy is negative.
+      If it is larger, energy is positive.
+    </p>
+  </section>
+
+  <section>
+    <h2>6. Gravitational Analogy</h2>
+
+    <p>The gravitational force is</p>
+
+    <div class="formula">
+      F_g = -G Mm / r²
+    </div>
+
+    <p>The gravitational potential energy is</p>
+
+    <div class="formula">
+      U_g = -G Mm / r
+    </div>
+
+    <p>The electric force is</p>
+
+    <div class="formula">
+      F_e = k qQ / r²
+    </div>
+
+    <p>The electric potential energy is</p>
+
+    <div class="formula">
+      U_e = k qQ / r
+    </div>
+
+    <table>
+      <tr>
+        <th>Electric Field</th>
+        <th>Gravitational Field</th>
+      </tr>
+      <tr>
+        <td>Can be attractive or repulsive</td>
+        <td>Always attractive</td>
+      </tr>
+      <tr>
+        <td>Depends on charges q and Q</td>
+        <td>Depends on masses m and M</td>
+      </tr>
+      <tr>
+        <td>Force proportional to 1/r²</td>
+        <td>Force proportional to 1/r²</td>
+      </tr>
+      <tr>
+        <td>Potential proportional to 1/r</td>
+        <td>Potential proportional to 1/r</td>
+      </tr>
+    </table>
+
+    <p>
+      The attractive electric case is mathematically very similar to gravity.
+      The main difference is that electric forces can also be repulsive.
+    </p>
+  </section>
+
+  <section>
+    <h2>Final Summary</h2>
+
+    <div class="formula">
+      Equation of motion:
+      <br />
+      d²r⃗/dt² = kqQ / (mr²) r̂
+    </div>
+
+    <div class="formula">
+      Radial motion:
+      <br />
+      d²r/dt² = α / r²
+    </div>
+
+    <div class="formula">
+      RK4 system:
+      <br />
+      dr/dt = v
+      <br />
+      dv/dt = α / r²
+    </div>
+
+    <div class="formula">
+      Energy:
+      <br />
+      E = 1/2 mv² + kqQ/r
+    </div>
+
+    <p>
+      For attractive fields, negative energy means bound motion and positive energy means escape motion.
+      This is the same idea as in gravitational motion.
+    </p>
+  </section>
+
+</main>
+
+<div class="footer">
+  Problem 7 – Motion in a Central Field | Interactive RK4 Simulation
+</div>
+
+<script>
+  const kCoulomb = 8.99e9;
+
+  const motionCanvas = document.getElementById("motionCanvas");
+  const motionCtx = motionCanvas.getContext("2d");
+
+  const energyCanvas = document.getElementById("energyCanvas");
+  const energyCtx = energyCanvas.getContext("2d");
+
+  const radiusCanvas = document.getElementById("radiusCanvas");
+  const radiusCtx = radiusCanvas.getContext("2d");
+
+  const QSlider = document.getElementById("QSlider");
+  const qSlider = document.getElementById("qSlider");
+  const mSlider = document.getElementById("mSlider");
+  const r0Slider = document.getElementById("r0Slider");
+  const v0Slider = document.getElementById("v0Slider");
+  const hSlider = document.getElementById("hSlider");
+  const speedSlider = document.getElementById("speedSlider");
+  const zoomSlider = document.getElementById("zoomSlider");
+
+  const QValue = document.getElementById("QValue");
+  const qValue = document.getElementById("qValue");
+  const mValue = document.getElementById("mValue");
+  const r0Value = document.getElementById("r0Value");
+  const v0Value = document.getElementById("v0Value");
+  const hValue = document.getElementById("hValue");
+  const speedValue = document.getElementById("speedValue");
+  const zoomValue = document.getElementById("zoomValue");
+  const outputBox = document.getElementById("outputBox");
+
+  let Q, q, m, r, v, h, alpha;
+  let t = 0;
+  let running = false;
+  let history = [];
+  let energyHistory = [];
+  let radiusHistory = [];
+
+  function readControls() {
+    Q = Number(QSlider.value) * 1e-6;
+    q = Number(qSlider.value) * 1e-6;
+    m = Number(mSlider.value) * 1e-3;
+    h = Number(hSlider.value);
+
+    alpha = kCoulomb * q * Q / m;
+
+    QValue.textContent = Number(QSlider.value).toFixed(1);
+    qValue.textContent = Number(qSlider.value).toFixed(1);
+    mValue.textContent = Number(mSlider.value).toFixed(1);
+    r0Value.textContent = Number(r0Slider.value).toFixed(1);
+    v0Value.textContent = Number(v0Slider.value).toFixed(1);
+    hValue.textContent = Number(hSlider.value).toFixed(4);
+    speedValue.textContent = Number(speedSlider.value);
+    zoomValue.textContent = Number(zoomSlider.value);
+  }
+
+  function resetSimulation() {
+    readControls();
+
+    r = Number(r0Slider.value);
+    v = Number(v0Slider.value);
+    t = 0;
+
+    history = [];
+    energyHistory = [];
+    radiusHistory = [];
+
+    running = false;
+    updateOutput();
+    drawAll();
+  }
+
+  function startSimulation() {
+    running = true;
+  }
+
+  function pauseSimulation() {
+    running = false;
+  }
+
+  function acceleration(radius) {
+    if (radius < 0.03) {
+      radius = 0.03;
+    }
+
+    return alpha / (radius * radius);
+  }
+
+  function derivatives(state) {
+    const radius = state.r;
+    const velocity = state.v;
+
+    return {
+      dr: velocity,
+      dv: acceleration(radius)
+    };
+  }
+
+  function rk4Step() {
+    const state = { r: r, v: v };
+
+    const k1 = derivatives(state);
+
+    const state2 = {
+      r: state.r + 0.5 * h * k1.dr,
+      v: state.v + 0.5 * h * k1.dv
+    };
+    const k2 = derivatives(state2);
+
+    const state3 = {
+      r: state.r + 0.5 * h * k2.dr,
+      v: state.v + 0.5 * h * k2.dv
+    };
+    const k3 = derivatives(state3);
+
+    const state4 = {
+      r: state.r + h * k3.dr,
+      v: state.v + h * k3.dv
+    };
+    const k4 = derivatives(state4);
+
+    r = r + (h / 6) * (k1.dr + 2 * k2.dr + 2 * k3.dr + k4.dr);
+    v = v + (h / 6) * (k1.dv + 2 * k2.dv + 2 * k3.dv + k4.dv);
+
+    if (r < 0.03) {
+      r = 0.03;
+      v = Math.abs(v);
+    }
+
+    t += h;
+  }
+
+  function totalEnergy() {
+    return 0.5 * m * v * v + (kCoulomb * q * Q) / r;
+  }
+
+  function escapeSpeed() {
+    if (q * Q >= 0) {
+      return null;
+    }
+
+    return Math.sqrt((2 * kCoulomb * Math.abs(q * Q)) / (m * r));
+  }
+
+  function updateOutput() {
+    const E = totalEnergy();
+    const vesc = escapeSpeed();
+
+    let forceType;
+
+    if (q * Q > 0) {
+      forceType = "Repulsive, because qQ > 0";
+    } else if (q * Q < 0) {
+      forceType = "Attractive, because qQ < 0";
+    } else {
+      forceType = "No electric force, because qQ = 0";
+    }
+
+    let energyMeaning;
+
+    if (q * Q < 0) {
+      if (E < -1e-8) {
+        energyMeaning = "Negative energy: bound motion / not enough energy to escape";
+      } else if (Math.abs(E) <= 1e-8) {
+        energyMeaning = "Zero energy: escape limit";
+      } else {
+        energyMeaning = "Positive energy: escape motion";
+      }
+    } else if (q * Q > 0) {
+      energyMeaning = "Repulsive case: particle is pushed away from the center";
+    } else {
+      energyMeaning = "No interaction";
+    }
+
+    outputBox.innerHTML = `
+      time t = ${t.toFixed(3)} s<br>
+      radius r = ${r.toFixed(4)} m<br>
+      velocity v = ${v.toFixed(4)} m/s<br>
+      alpha = ${alpha.toExponential(3)} m³/s²<br>
+      total energy E = ${E.toExponential(5)} J<br>
+      force type = ${forceType}<br>
+      energy meaning = ${energyMeaning}<br>
+      ${vesc !== null ? "escape speed at current r = " + vesc.toFixed(4) + " m/s" : "escape speed: not used for repulsive case"}
+    `;
+  }
+
+  function drawMotion() {
+    const ctx = motionCtx;
+    const w = motionCanvas.width;
+    const hCanvas = motionCanvas.height;
+    const cx = w / 2;
+    const cy = hCanvas / 2;
+    const zoom = Number(zoomSlider.value);
+
+    ctx.clearRect(0, 0, w, hCanvas);
+
+    ctx.fillStyle = "#090914";
+    ctx.fillRect(0, 0, w, hCanvas);
+
+    ctx.strokeStyle = "#222244";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < w; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, hCanvas);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(w, i);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#555588";
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(w, cy);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, 0);
+    ctx.lineTo(cx, hCanvas);
+    ctx.stroke();
+
+    const fieldColor = Q >= 0 ? "#ffd166" : "#ef476f";
+
+    ctx.fillStyle = fieldColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px Arial";
+    ctx.fillText("Source charge Q", cx + 22, cy - 18);
+
+    for (let radius = 0.8; radius <= 4.8; radius += 0.8) {
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * zoom, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+      const arrowR = 1.4;
+      const x = cx + Math.cos(angle) * arrowR * zoom;
+      const y = cy + Math.sin(angle) * arrowR * zoom;
+
+      const dir = Q >= 0 ? 1 : -1;
+      const x2 = x + dir * Math.cos(angle) * 22;
+      const y2 = y + dir * Math.sin(angle) * 22;
+
+      drawArrow(ctx, x, y, x2, y2, fieldColor);
+    }
+
+    const px = cx + r * zoom;
+    const py = cy;
+
+    history.push({ x: px, y: py });
+
+    if (history.length > 300) {
+      history.shift();
+    }
+
+    ctx.strokeStyle = "#06d6a0";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let i = 0; i < history.length; i++) {
+      if (i === 0) {
+        ctx.moveTo(history[i].x, history[i].y);
+      } else {
+        ctx.lineTo(history[i].x, history[i].y);
+      }
+    }
+
+    ctx.stroke();
+
+    ctx.fillStyle = q >= 0 ? "#4cc9f0" : "#ef476f";
+    ctx.beginPath();
+    ctx.arc(px, py, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "15px Arial";
+    ctx.fillText("Moving particle q", px + 18, py - 15);
+
+    const velocityScale = 10;
+    drawArrow(ctx, px, py, px + v * velocityScale, py, "#ffffff");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px Arial";
+    ctx.fillText("velocity", px + v * velocityScale + 10, py + 5);
+  }
+
+  function drawArrow(ctx, x1, y1, x2, y2, color) {
+    const headLength = 8;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(
+      x2 - headLength * Math.cos(angle - Math.PI / 6),
+      y2 - headLength * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      x2 - headLength * Math.cos(angle + Math.PI / 6),
+      y2 - headLength * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.lineTo(x2, y2);
+    ctx.fill();
+  }
+
+  function drawEnergyGraph() {
+    const ctx = energyCtx;
+    const w = energyCanvas.width;
+    const hCanvas = energyCanvas.height;
+
+    ctx.clearRect(0, 0, w, hCanvas);
+    ctx.fillStyle = "#090914";
+    ctx.fillRect(0, 0, w, hCanvas);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "16px Arial";
+    ctx.fillText("Total Energy E(t)", 20, 25);
+
+    if (energyHistory.length < 2) {
+      return;
+    }
+
+    const values = energyHistory.map(p => p.E);
+    const minE = Math.min(...values);
+    const maxE = Math.max(...values);
+    const range = maxE - minE || 1;
+
+    ctx.strokeStyle = "#333366";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 5; i++) {
+      const y = 40 + i * 36;
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 20, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#ffd166";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let i = 0; i < energyHistory.length; i++) {
+      const x = 40 + (i / (energyHistory.length - 1)) * (w - 70);
+      const y = hCanvas - 30 - ((energyHistory[i].E - minE) / range) * (hCanvas - 70);
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    ctx.stroke();
+
+    ctx.fillStyle = "#ccccdd";
+    ctx.font = "12px Arial";
+    ctx.fillText("min: " + minE.toExponential(2), 45, hCanvas - 10);
+    ctx.fillText("max: " + maxE.toExponential(2), w - 150, hCanvas - 10);
+  }
+
+  function drawRadiusGraph() {
+    const ctx = radiusCtx;
+    const w = radiusCanvas.width;
+    const hCanvas = radiusCanvas.height;
+
+    ctx.clearRect(0, 0, w, hCanvas);
+    ctx.fillStyle = "#090914";
+    ctx.fillRect(0, 0, w, hCanvas);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "16px Arial";
+    ctx.fillText("Radius r(t)", 20, 25);
+
+    if (radiusHistory.length < 2) {
+      return;
+    }
+
+    const values = radiusHistory.map(p => p.r);
+    const minR = Math.min(...values);
+    const maxR = Math.max(...values);
+    const range = maxR - minR || 1;
+
+    ctx.strokeStyle = "#333366";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 5; i++) {
+      const y = 40 + i * 36;
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 20, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#06d6a0";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let i = 0; i < radiusHistory.length; i++) {
+      const x = 40 + (i / (radiusHistory.length - 1)) * (w - 70);
+      const y = hCanvas - 30 - ((radiusHistory[i].r - minR) / range) * (hCanvas - 70);
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    ctx.stroke();
+
+    ctx.fillStyle = "#ccccdd";
+    ctx.font = "12px Arial";
+    ctx.fillText("min: " + minR.toFixed(2), 45, hCanvas - 10);
+    ctx.fillText("max: " + maxR.toFixed(2), w - 120, hCanvas - 10);
+  }
+
+  function drawAll() {
+    drawMotion();
+    drawEnergyGraph();
+    drawRadiusGraph();
+  }
+
+  function animationLoop() {
+    readControls();
+
+    if (running) {
+      const speed = Number(speedSlider.value);
+
+      for (let i = 0; i < speed; i++) {
+        rk4Step();
+
+        const E = totalEnergy();
+
+        energyHistory.push({ t: t, E: E });
+        radiusHistory.push({ t: t, r: r });
+
+        if (energyHistory.length > 500) {
+          energyHistory.shift();
+        }
+
+        if (radiusHistory.length > 500) {
+          radiusHistory.shift();
+        }
+
+        if (r > 8) {
+          running = false;
+        }
+      }
+    }
+
+    updateOutput();
+    drawAll();
+
+    requestAnimationFrame(animationLoop);
+  }
+
+  QSlider.addEventListener("input", resetSimulation);
+  qSlider.addEventListener("input", resetSimulation);
+  mSlider.addEventListener("input", resetSimulation);
+  r0Slider.addEventListener("input", resetSimulation);
+  v0Slider.addEventListener("input", resetSimulation);
+  hSlider.addEventListener("input", resetSimulation);
+
+  speedSlider.addEventListener("input", readControls);
+  zoomSlider.addEventListener("input", drawAll);
+
+  resetSimulation();
+  animationLoop();
+</script>
+
+</body>
+</html>
+```
