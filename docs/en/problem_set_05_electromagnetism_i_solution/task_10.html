@@ -1,0 +1,740 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 10 – Field Flux and Gauss's Law</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #101820, #1d3557);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+      color: #ffd166;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #dbeafe;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 30px auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+      animation: fadeUp 0.8s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      color: #ffd166;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      color: #90e0ef;
+      margin: 18px 0 10px;
+    }
+
+    p, li {
+      line-height: 1.7;
+      font-size: 1rem;
+      color: #f1faee;
+    }
+
+    ul {
+      padding-left: 22px;
+      margin-top: 10px;
+    }
+
+    .formula {
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 5px solid #ffd166;
+      padding: 14px;
+      margin: 14px 0;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      color: #ffffff;
+      overflow-x: auto;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    canvas {
+      width: 100%;
+      height: 480px;
+      background: radial-gradient(circle, #16213e, #0f172a);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: block;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .control-box {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #caf0f8;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: #ffd166;
+      color: #1d3557;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #ffb703;
+      transform: scale(1.04);
+    }
+
+    .result-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .result {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 18px;
+      border-radius: 14px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .result span {
+      display: block;
+      font-size: 1.25rem;
+      color: #ffd166;
+      margin-top: 8px;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    th {
+      background: rgba(255, 209, 102, 0.25);
+      color: #ffd166;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .highlight {
+      color: #06d6a0;
+      font-weight: bold;
+    }
+
+    .warning {
+      color: #ffb703;
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #dbeafe;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 850px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Problem 10 – Electric Field Flux</h1>
+    <p>Verification of Gauss's Law using a sphere around a point charge</p>
+  </header>
+
+  <main class="container">
+
+    <section class="card">
+      <h2>1. Definition of Electric Flux</h2>
+
+      <p>
+        Electric flux tells us how much electric field passes through a surface.
+      </p>
+
+      <div class="formula">
+        Φ<sub>E</sub> = ∮ <b>E</b> · d<b>A</b>
+      </div>
+
+      <p>
+        For a closed surface, the electric flux depends on the total charge inside the surface.
+      </p>
+
+      <div class="formula">
+        Φ<sub>E</sub> = q / ε<sub>0</sub>
+      </div>
+
+      <p>
+        This is called <span class="highlight">Gauss's Law</span>.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>2. Sphere Around a Point Charge</h2>
+
+      <p>
+        We place a point charge at the center of a spherical surface.
+        The electric field points outward in every direction.
+      </p>
+
+      <div class="formula">
+        E = kq / R²
+      </div>
+
+      <p>
+        On a sphere, every point is the same distance from the charge.
+        So the electric field magnitude is the same everywhere on the sphere.
+      </p>
+
+      <div class="formula">
+        A = 4πR²
+      </div>
+
+      <p>
+        Therefore, the total flux is:
+      </p>
+
+      <div class="formula">
+        Φ<sub>E</sub> = E A = (kq / R²)(4πR²)
+      </div>
+
+      <div class="formula">
+        Φ<sub>E</sub> = 4πkq = q / ε<sub>0</sub>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>3. Animated Flux Simulation</h2>
+
+      <p>
+        The yellow charge is at the center. Blue arrows show electric field lines.
+        The dashed circle represents the Gaussian sphere.
+        Small white dots are discrete grid points used to approximate the flux.
+      </p>
+
+      <canvas id="fluxCanvas"></canvas>
+
+      <div class="controls">
+
+        <div class="control-box">
+          <label>
+            Charge q:
+            <span id="qLabel">4</span> μC
+          </label>
+          <input id="qSlider" type="range" min="1" max="10" value="4" step="1">
+        </div>
+
+        <div class="control-box">
+          <label>
+            Sphere Radius R:
+            <span id="rLabel">0.30</span> m
+          </label>
+          <input id="rSlider" type="range" min="0.15" max="0.60" value="0.30" step="0.01">
+        </div>
+
+        <div class="control-box">
+          <label>
+            Grid Points N:
+            <span id="nLabel">40</span>
+          </label>
+          <input id="nSlider" type="range" min="8" max="160" value="40" step="4">
+        </div>
+
+        <div class="control-box">
+          <label>
+            Animation Speed:
+            <span id="speedLabel">1.0</span>x
+          </label>
+          <input id="speedSlider" type="range" min="0" max="3" value="1" step="0.1">
+        </div>
+
+        <div class="control-box">
+          <label>
+            Field Arrow Length:
+            <span id="arrowLabel">1.0</span>x
+          </label>
+          <input id="arrowSlider" type="range" min="0.4" max="2.5" value="1" step="0.1">
+        </div>
+
+        <div class="control-box">
+          <label>
+            Show / Hide Field Lines
+          </label>
+          <button id="toggleFieldBtn">Hide Field Lines</button>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>4. Numerical and Analytical Results</h2>
+
+      <p>
+        The analytical result from Gauss's law is:
+      </p>
+
+      <div class="formula">
+        Φ<sub>analytical</sub> = q / ε<sub>0</sub>
+      </div>
+
+      <p>
+        The discrete approximation is:
+      </p>
+
+      <div class="formula">
+        Φ<sub>numerical</sub> ≈ Σ E<sub>i</sub> ΔA<sub>i</sub>
+      </div>
+
+      <div class="result-box">
+        <div class="result">
+          Electric Field E
+          <span id="electricFieldResult">---</span>
+        </div>
+
+        <div class="result">
+          Analytical Flux
+          <span id="analyticalFluxResult">---</span>
+        </div>
+
+        <div class="result">
+          Numerical Flux
+          <span id="numericalFluxResult">---</span>
+        </div>
+
+        <div class="result">
+          Relative Error
+          <span id="errorResult">---</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>5. Dependence on Number of Grid Points</h2>
+
+      <p>
+        When the number of grid points increases, the numerical approximation becomes better.
+        For this special sphere problem, the result is already very good because the field is constant on the sphere.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>N</th>
+            <th>Numerical Flux</th>
+            <th>Analytical Flux</th>
+            <th>Relative Error</th>
+          </tr>
+        </thead>
+
+        <tbody id="tableBody">
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card full">
+      <h2>6. Step-by-Step Explanation</h2>
+
+      <h3>Step 1: Electric field from point charge</h3>
+      <div class="formula">
+        E = kq / R²
+      </div>
+
+      <p>
+        The electric field is stronger when the charge is larger and weaker when the radius is larger.
+      </p>
+
+      <h3>Step 2: Area of the sphere</h3>
+      <div class="formula">
+        A = 4πR²
+      </div>
+
+      <p>
+        The surface area increases when the radius increases.
+      </p>
+
+      <h3>Step 3: Flux through the sphere</h3>
+      <div class="formula">
+        Φ = EA
+      </div>
+
+      <p>
+        Substitute the formulas:
+      </p>
+
+      <div class="formula">
+        Φ = (kq / R²)(4πR²)
+      </div>
+
+      <p>
+        The R² cancels:
+      </p>
+
+      <div class="formula">
+        Φ = 4πkq
+      </div>
+
+      <h3>Step 4: Use k = 1 / 4πε<sub>0</sub></h3>
+
+      <div class="formula">
+        Φ = q / ε<sub>0</sub>
+      </div>
+
+      <p>
+        This shows that the flux depends only on the charge inside the sphere,
+        not on the radius of the sphere.
+      </p>
+
+      <p class="warning">
+        Important: changing the radius changes E and A separately, but their product stays the same.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    Gauss's Law Verification — Interactive HTML Presentation
+  </footer>
+
+  <script>
+    const canvas = document.getElementById("fluxCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const qSlider = document.getElementById("qSlider");
+    const rSlider = document.getElementById("rSlider");
+    const nSlider = document.getElementById("nSlider");
+    const speedSlider = document.getElementById("speedSlider");
+    const arrowSlider = document.getElementById("arrowSlider");
+
+    const qLabel = document.getElementById("qLabel");
+    const rLabel = document.getElementById("rLabel");
+    const nLabel = document.getElementById("nLabel");
+    const speedLabel = document.getElementById("speedLabel");
+    const arrowLabel = document.getElementById("arrowLabel");
+
+    const electricFieldResult = document.getElementById("electricFieldResult");
+    const analyticalFluxResult = document.getElementById("analyticalFluxResult");
+    const numericalFluxResult = document.getElementById("numericalFluxResult");
+    const errorResult = document.getElementById("errorResult");
+    const tableBody = document.getElementById("tableBody");
+    const toggleFieldBtn = document.getElementById("toggleFieldBtn");
+
+    const k = 8.99e9;
+    const epsilon0 = 8.854e-12;
+
+    let showFieldLines = true;
+    let time = 0;
+
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    toggleFieldBtn.addEventListener("click", () => {
+      showFieldLines = !showFieldLines;
+
+      if (showFieldLines) {
+        toggleFieldBtn.textContent = "Hide Field Lines";
+      } else {
+        toggleFieldBtn.textContent = "Show Field Lines";
+      }
+    });
+
+    function formatScientific(value) {
+      return value.toExponential(3);
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width = 2) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const headLength = 10;
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.lineTo(x2, y2);
+      ctx.fill();
+    }
+
+    function drawSimulation() {
+      const qMicro = Number(qSlider.value);
+      const q = qMicro * 1e-6;
+      const R = Number(rSlider.value);
+      const N = Number(nSlider.value);
+      const speed = Number(speedSlider.value);
+      const arrowScale = Number(arrowSlider.value);
+
+      qLabel.textContent = qMicro;
+      rLabel.textContent = R.toFixed(2);
+      nLabel.textContent = N;
+      speedLabel.textContent = speed.toFixed(1);
+      arrowLabel.textContent = arrowScale.toFixed(1);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      const maxRadiusMeters = 0.65;
+      const scale = Math.min(canvas.width, canvas.height) * 0.38 / maxRadiusMeters;
+      const radiusPixels = R * scale;
+
+      time += 0.02 * speed;
+
+      const gradient = ctx.createRadialGradient(cx, cy, 5, cx, cy, radiusPixels * 1.6);
+      gradient.addColorStop(0, "rgba(255, 209, 102, 0.35)");
+      gradient.addColorStop(1, "rgba(255, 209, 102, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radiusPixels * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.setLineDash([8, 8]);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radiusPixels, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (showFieldLines) {
+        const fieldCount = 24;
+
+        for (let i = 0; i < fieldCount; i++) {
+          const angle = (i / fieldCount) * Math.PI * 2 + time * 0.25;
+          const startRadius = 25;
+          const endRadius = radiusPixels * 1.35;
+
+          const x1 = cx + Math.cos(angle) * startRadius;
+          const y1 = cy + Math.sin(angle) * startRadius;
+
+          const x2 = cx + Math.cos(angle) * endRadius;
+          const y2 = cy + Math.sin(angle) * endRadius;
+
+          drawArrow(x1, y1, x2, y2, "rgba(144, 224, 239, 0.85)", 2);
+        }
+      }
+
+      for (let i = 0; i < N; i++) {
+        const angle = (i / N) * Math.PI * 2;
+        const pulse = 3 + 2 * Math.sin(time * 4 + i * 0.3);
+
+        const x = cx + Math.cos(angle) * radiusPixels;
+        const y = cy + Math.sin(angle) * radiusPixels;
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.beginPath();
+        ctx.arc(x, y, pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (i % Math.max(1, Math.floor(N / 24)) === 0) {
+          const arrowLength = 32 * arrowScale;
+
+          const x2 = x + Math.cos(angle) * arrowLength;
+          const y2 = y + Math.sin(angle) * arrowLength;
+
+          drawArrow(x, y, x2, y2, "#06d6a0", 2);
+        }
+      }
+
+      ctx.fillStyle = "#ffd166";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18 + 3 * Math.sin(time * 5), 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#1d3557";
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("+", cx, cy);
+
+      ctx.fillStyle = "white";
+      ctx.font = "16px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("Point charge q at center", 20, 30);
+      ctx.fillText("Dashed circle = Gaussian sphere", 20, 55);
+      ctx.fillText("White dots = discrete grid points", 20, 80);
+      ctx.fillText("Green arrows = local flux direction", 20, 105);
+
+      updateCalculations(q, R, N);
+      requestAnimationFrame(drawSimulation);
+    }
+
+    function updateCalculations(q, R, N) {
+      const E = k * q / (R * R);
+      const area = 4 * Math.PI * R * R;
+
+      const analyticalFlux = q / epsilon0;
+
+      /*
+        Simple discrete approximation:
+        Each point represents an equal area patch.
+      */
+      const dA = area / N;
+
+      let numericalFlux = 0;
+
+      for (let i = 0; i < N; i++) {
+        numericalFlux += E * dA;
+      }
+
+      const relativeError = Math.abs(numericalFlux - analyticalFlux) / analyticalFlux;
+
+      electricFieldResult.textContent = formatScientific(E) + " N/C";
+      analyticalFluxResult.textContent = formatScientific(analyticalFlux) + " N·m²/C";
+      numericalFluxResult.textContent = formatScientific(numericalFlux) + " N·m²/C";
+      errorResult.textContent = relativeError.toExponential(3);
+
+      updateTable(q, R);
+    }
+
+    function updateTable(q, R) {
+      const values = [8, 16, 32, 64, 128, 256];
+
+      const E = k * q / (R * R);
+      const area = 4 * Math.PI * R * R;
+      const analyticalFlux = q / epsilon0;
+
+      tableBody.innerHTML = "";
+
+      values.forEach(N => {
+        const dA = area / N;
+
+        let numericalFlux = 0;
+
+        for (let i = 0; i < N; i++) {
+          numericalFlux += E * dA;
+        }
+
+        const relativeError = Math.abs(numericalFlux - analyticalFlux) / analyticalFlux;
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${N}</td>
+          <td>${formatScientific(numericalFlux)}</td>
+          <td>${formatScientific(analyticalFlux)}</td>
+          <td>${relativeError.toExponential(3)}</td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    drawSimulation();
+  </script>
+</body>
+</html>
+```
