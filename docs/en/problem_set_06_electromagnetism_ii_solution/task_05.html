@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 5 – Induction in a Moving Rod</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #f8fafc;
+      min-height: 100vh;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 34px;
+      color: #38bdf8;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #cbd5e1;
+      font-size: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 25px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    h2 {
+      color: #7dd3fc;
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+
+    h3 {
+      color: #facc15;
+      margin: 18px 0 10px;
+      font-size: 20px;
+    }
+
+    p, li {
+      line-height: 1.7;
+      color: #e2e8f0;
+      font-size: 16px;
+    }
+
+    ul {
+      margin-left: 25px;
+      margin-bottom: 12px;
+    }
+
+    .formula {
+      background: rgba(30, 41, 59, 0.9);
+      border-left: 5px solid #38bdf8;
+      padding: 14px;
+      margin: 14px 0;
+      border-radius: 10px;
+      font-size: 20px;
+      color: #f8fafc;
+      text-align: center;
+    }
+
+    .answer {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: #bbf7d0;
+      padding: 14px;
+      border-radius: 12px;
+      margin: 14px 0;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .animation-area {
+      position: relative;
+      height: 420px;
+      background: radial-gradient(circle at center, #1e293b, #020617);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(125, 211, 252, 0.3);
+    }
+
+    .field {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(56, 189, 248, 0.7) 2px, transparent 3px);
+      background-size: 42px 42px;
+      opacity: 0.45;
+    }
+
+    .field-label {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(2, 6, 23, 0.8);
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: #93c5fd;
+      font-weight: bold;
+    }
+
+    .rod {
+      position: absolute;
+      width: 18px;
+      height: 160px;
+      background: linear-gradient(to bottom, #f97316, #facc15);
+      border-radius: 12px;
+      left: 120px;
+      top: 130px;
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.6);
+      transition: height 0.3s ease, transform 0.3s ease;
+    }
+
+    .rod.paused {
+      animation-play-state: paused;
+    }
+
+    .charge-positive,
+    .charge-negative {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+      font-size: 22px;
+      color: white;
+    }
+
+    .charge-positive {
+      top: -18px;
+      background: #ef4444;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.9);
+    }
+
+    .charge-negative {
+      bottom: -18px;
+      background: #3b82f6;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.9);
+    }
+
+    .velocity-arrow {
+      position: absolute;
+      left: 180px;
+      top: 190px;
+      width: 140px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 10px;
+      transform-origin: left center;
+      transition: transform 0.3s ease;
+    }
+
+    .velocity-arrow::after {
+      content: "";
+      position: absolute;
+      right: -14px;
+      top: -8px;
+      border-left: 18px solid #22c55e;
+      border-top: 11px solid transparent;
+      border-bottom: 11px solid transparent;
+    }
+
+    .velocity-text {
+      position: absolute;
+      left: 230px;
+      top: 155px;
+      color: #86efac;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .electric-field {
+      position: absolute;
+      left: 78px;
+      top: 120px;
+      width: 60px;
+      height: 180px;
+      border-left: 3px dashed #f472b6;
+      border-right: 3px dashed #f472b6;
+      opacity: 0.9;
+    }
+
+    .electric-field::before {
+      content: "E";
+      position: absolute;
+      left: -35px;
+      top: 75px;
+      color: #f9a8d4;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .electric-field::after {
+      content: "↓";
+      position: absolute;
+      left: 18px;
+      top: 65px;
+      color: #f9a8d4;
+      font-size: 38px;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+
+    .motion-line {
+      position: absolute;
+      left: 70px;
+      right: 70px;
+      top: 340px;
+      border-top: 2px dashed rgba(148, 163, 184, 0.5);
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .control {
+      background: rgba(30, 41, 59, 0.9);
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #38bdf8;
+      color: #082f49;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #7dd3fc;
+      transform: translateY(-2px);
+    }
+
+    .danger {
+      background: #f97316;
+      color: white;
+    }
+
+    .danger:hover {
+      background: #fb923c;
+    }
+
+    .result-box {
+      margin-top: 18px;
+      background: rgba(2, 6, 23, 0.8);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      font-size: 16px;
+    }
+
+    .result-row:last-child {
+      border-bottom: none;
+    }
+
+    .value {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .step {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .step:last-child {
+      border-bottom: none;
+    }
+
+    .highlight {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    .small-note {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Problem 5 – Induction in a Moving Rod</h1>
+    <p class="subtitle">
+      Interactive explanation of EMF, potential difference, angle effect, length dependence, and energy source.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Animation</h2>
+
+        <div class="animation-area">
+          <div class="field"></div>
+          <div class="field-label">Magnetic field B: out of screen ⊙</div>
+
+          <div class="electric-field"></div>
+
+          <div class="rod" id="rod">
+            <div class="charge-positive">+</div>
+            <div class="charge-negative">−</div>
+          </div>
+
+          <div class="velocity-arrow" id="velocityArrow"></div>
+          <div class="velocity-text">velocity v</div>
+
+          <div class="motion-line"></div>
+        </div>
+
+        <div class="controls">
+          <div class="control">
+            <label>
+              Rod length L
+              <span id="lengthValue">0.25 m</span>
+            </label>
+            <input type="range" id="lengthSlider" min="0.10" max="0.60" step="0.01" value="0.25" />
+          </div>
+
+          <div class="control">
+            <label>
+              Velocity v
+              <span id="velocityValue">4 m/s</span>
+            </label>
+            <input type="range" id="velocitySlider" min="0" max="10" step="0.1" value="4" />
+          </div>
+
+          <div class="control">
+            <label>
+              Magnetic field B
+              <span id="fieldValue">0.6 T</span>
+            </label>
+            <input type="range" id="fieldSlider" min="0" max="2" step="0.1" value="0.6" />
+          </div>
+
+          <div class="control">
+            <label>
+              Angle θ between v and B
+              <span id="angleValue">90°</span>
+            </label>
+            <input type="range" id="angleSlider" min="0" max="90" step="1" value="90" />
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button id="playBtn">Pause Animation</button>
+          <button class="danger" id="resetBtn">Reset Values</button>
+        </div>
+
+        <div class="result-box">
+          <div class="result-row">
+            <span>Formula</span>
+            <span class="value">ε = B L v sinθ</span>
+          </div>
+
+          <div class="result-row">
+            <span>Induced EMF ε</span>
+            <span class="value" id="emfResult">0.60 V</span>
+          </div>
+
+          <div class="result-row">
+            <span>Potential difference ΔV</span>
+            <span class="value" id="voltageResult">0.60 V</span>
+          </div>
+
+          <div class="result-row">
+            <span>Perpendicular velocity v⊥</span>
+            <span class="value" id="vPerpResult">4.00 m/s</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Given Data</h2>
+
+        <p>The rod length is:</p>
+        <div class="formula">L = 0.25 m</div>
+
+        <p>The velocity is:</p>
+        <div class="formula">v = 4 m/s</div>
+
+        <p>The magnetic field is:</p>
+        <div class="formula">B = 0.6 T</div>
+
+        <p>The motion is perpendicular to the magnetic field:</p>
+        <div class="formula">θ = 90°</div>
+
+        <p>Because:</p>
+        <div class="formula">sin 90° = 1</div>
+
+        <div class="answer">
+          Main formula: ε = B L v sinθ
+        </div>
+      </div>
+
+      <div class="card full">
+        <h2>Step-by-step Solution</h2>
+
+        <div class="step">
+          <h3>1. Determine the induced EMF ε</h3>
+
+          <p>
+            When a conducting rod moves in a magnetic field, the free charges inside the rod move together with the rod.
+            Because moving charges are inside a magnetic field, they feel magnetic force.
+          </p>
+
+          <div class="formula">
+            F = q(v × B)
+          </div>
+
+          <p>
+            This force separates charges. One end becomes positive and the other end becomes negative.
+            This creates an induced EMF.
+          </p>
+
+          <p>The formula for motional EMF is:</p>
+
+          <div class="formula">
+            ε = B L v sinθ
+          </div>
+
+          <p>Here the motion is perpendicular to the magnetic field:</p>
+
+          <div class="formula">
+            θ = 90°, &nbsp; sin90° = 1
+          </div>
+
+          <p>So:</p>
+
+          <div class="formula">
+            ε = B L v
+          </div>
+
+          <p>Substitute the values:</p>
+
+          <div class="formula">
+            ε = (0.6)(0.25)(4)
+          </div>
+
+          <div class="formula">
+            ε = 0.6 V
+          </div>
+
+          <div class="answer">
+            ε = 0.6 V
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>2. Determine the potential difference between the ends</h3>
+
+          <p>
+            In this case, the potential difference between the ends of the rod is equal to the induced EMF.
+          </p>
+
+          <div class="formula">
+            ΔV = ε
+          </div>
+
+          <p>Since:</p>
+
+          <div class="formula">
+            ε = 0.6 V
+          </div>
+
+          <p>Then:</p>
+
+          <div class="answer">
+            ΔV = 0.6 V
+          </div>
+
+          <p>
+            So the two ends of the rod have a potential difference of
+            <span class="highlight">0.6 volts</span>.
+          </p>
+        </div>
+
+        <div class="step">
+          <h3>3. What happens if the motion is not perpendicular to B?</h3>
+
+          <p>
+            If the rod does not move perpendicular to the magnetic field, then we use the general formula:
+          </p>
+
+          <div class="formula">
+            ε = B L v sinθ
+          </div>
+
+          <p>
+            Only the perpendicular component of velocity produces EMF.
+          </p>
+
+          <div class="formula">
+            v⊥ = v sinθ
+          </div>
+
+          <p>
+            If θ becomes smaller, sinθ becomes smaller, so the EMF also becomes smaller.
+          </p>
+
+          <p>If the rod moves parallel to the magnetic field:</p>
+
+          <div class="formula">
+            θ = 0°, &nbsp; sin0° = 0
+          </div>
+
+          <p>Then:</p>
+
+          <div class="answer">
+            ε = 0
+          </div>
+
+          <p>
+            So, motion parallel to the magnetic field produces no induced EMF.
+          </p>
+        </div>
+
+        <div class="step">
+          <h3>4. How does ε depend on L?</h3>
+
+          <p>The formula is:</p>
+
+          <div class="formula">
+            ε = B L v
+          </div>
+
+          <p>
+            If B and v are constant, then EMF depends directly on the length of the rod.
+          </p>
+
+          <div class="formula">
+            ε ∝ L
+          </div>
+
+          <p>
+            This means: if the rod becomes longer, the EMF becomes larger.
+          </p>
+
+          <p>For example, if L is doubled:</p>
+
+          <div class="formula">
+            Lnew = 2L
+          </div>
+
+          <div class="formula">
+            εnew = B(2L)v = 2BLv
+          </div>
+
+          <div class="answer">
+            If L doubles, ε also doubles.
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>5. Where does the energy of the electric field come from?</h3>
+
+          <p>
+            The energy does not come from the magnetic field itself.
+          </p>
+
+          <p>
+            The magnetic field helps separate the charges, but the magnetic force does no work because it is perpendicular to the motion of charges.
+          </p>
+
+          <p>
+            The energy comes from the external mechanical work needed to keep the rod moving.
+          </p>
+
+          <div class="formula">
+            Mechanical energy → Electrical energy
+          </div>
+
+          <div class="answer">
+            The energy comes from the external force moving the rod.
+          </div>
+
+          <p>
+            So, when we push or pull the rod through the magnetic field, our mechanical work is converted into electrical energy.
+          </p>
+        </div>
+      </div>
+
+      <div class="card full">
+        <h2>Final Answers</h2>
+
+        <p>The induced EMF is:</p>
+        <div class="answer">ε = 0.6 V</div>
+
+        <p>The potential difference between the ends is:</p>
+        <div class="answer">ΔV = 0.6 V</div>
+
+        <p>If the motion is not perpendicular to the magnetic field:</p>
+        <div class="answer">ε = B L v sinθ</div>
+
+        <p>If the motion is parallel to the magnetic field:</p>
+        <div class="answer">ε = 0</div>
+
+        <p>The dependence on rod length is:</p>
+        <div class="answer">ε ∝ L</div>
+
+        <p>The energy comes from:</p>
+        <div class="answer">External mechanical work → Electrical energy</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const rod = document.getElementById("rod");
+    const velocityArrow = document.getElementById("velocityArrow");
+
+    const lengthSlider = document.getElementById("lengthSlider");
+    const velocitySlider = document.getElementById("velocitySlider");
+    const fieldSlider = document.getElementById("fieldSlider");
+    const angleSlider = document.getElementById("angleSlider");
+
+    const lengthValue = document.getElementById("lengthValue");
+    const velocityValue = document.getElementById("velocityValue");
+    const fieldValue = document.getElementById("fieldValue");
+    const angleValue = document.getElementById("angleValue");
+
+    const emfResult = document.getElementById("emfResult");
+    const voltageResult = document.getElementById("voltageResult");
+    const vPerpResult = document.getElementById("vPerpResult");
+
+    const playBtn = document.getElementById("playBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let isPlaying = true;
+    let position = 80;
+    let direction = 1;
+    let animationId;
+
+    function calculateValues() {
+      const L = Number(lengthSlider.value);
+      const v = Number(velocitySlider.value);
+      const B = Number(fieldSlider.value);
+      const angle = Number(angleSlider.value);
+
+      const angleRad = angle * Math.PI / 180;
+      const vPerp = v * Math.sin(angleRad);
+      const emf = B * L * v * Math.sin(angleRad);
+
+      lengthValue.textContent = L.toFixed(2) + " m";
+      velocityValue.textContent = v.toFixed(1) + " m/s";
+      fieldValue.textContent = B.toFixed(1) + " T";
+      angleValue.textContent = angle + "°";
+
+      emfResult.textContent = emf.toFixed(2) + " V";
+      voltageResult.textContent = emf.toFixed(2) + " V";
+      vPerpResult.textContent = vPerp.toFixed(2) + " m/s";
+
+      const rodHeight = 80 + L * 400;
+      rod.style.height = rodHeight + "px";
+      rod.style.top = (210 - rodHeight / 2) + "px";
+
+      const arrowLength = 60 + v * 12;
+      velocityArrow.style.width = arrowLength + "px";
+
+      const arrowRotation = 90 - angle;
+      velocityArrow.style.transform = `rotate(${-arrowRotation}deg)`;
+
+      const brightness = 0.3 + B / 2;
+      document.querySelector(".field").style.opacity = brightness;
+
+      const chargeStrength = Math.min(1, emf / 2);
+      document.querySelector(".charge-positive").style.opacity = 0.4 + chargeStrength;
+      document.querySelector(".charge-negative").style.opacity = 0.4 + chargeStrength;
+      document.querySelector(".electric-field").style.opacity = 0.2 + chargeStrength;
+    }
+
+    function animateRod() {
+      if (isPlaying) {
+        const v = Number(velocitySlider.value);
+        const speed = 0.4 + v * 0.25;
+
+        position += direction * speed;
+
+        if (position > 360) {
+          direction = -1;
+        }
+
+        if (position < 80) {
+          direction = 1;
+        }
+
+        rod.style.left = position + "px";
+
+        const arrowLeft = position + 55;
+        velocityArrow.style.left = arrowLeft + "px";
+        document.querySelector(".velocity-text").style.left = arrowLeft + 45 + "px";
+      }
+
+      animationId = requestAnimationFrame(animateRod);
+    }
+
+    playBtn.addEventListener("click", () => {
+      isPlaying = !isPlaying;
+
+      if (isPlaying) {
+        playBtn.textContent = "Pause Animation";
+      } else {
+        playBtn.textContent = "Play Animation";
+      }
+    });
+
+    resetBtn.addEventListener("click", () => {
+      lengthSlider.value = 0.25;
+      velocitySlider.value = 4;
+      fieldSlider.value = 0.6;
+      angleSlider.value = 90;
+      position = 80;
+      direction = 1;
+      calculateValues();
+    });
+
+    lengthSlider.addEventListener("input", calculateValues);
+    velocitySlider.addEventListener("input", calculateValues);
+    fieldSlider.addEventListener("input", calculateValues);
+    angleSlider.addEventListener("input", calculateValues);
+
+    calculateValues();
+    animateRod();
+  </script>
+</body>
+</html>

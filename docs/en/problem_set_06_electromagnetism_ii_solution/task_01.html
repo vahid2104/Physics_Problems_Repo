@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 2 – Coulomb's Force Interactive Explanation</title>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card2: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --positive: #ef4444;
+      --negative: #3b82f6;
+      --green: #22c55e;
+      --yellow: #facc15;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      text-align: center;
+      padding: 35px 20px;
+      background: linear-gradient(135deg, #0f172a, #1e40af);
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.4rem;
+      color: white;
+    }
+
+    header p {
+      color: #bfdbfe;
+      font-size: 1.1rem;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    section {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    h2 {
+      color: var(--accent);
+      margin-top: 0;
+    }
+
+    h3 {
+      color: #93c5fd;
+    }
+
+    .given-grid, .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+
+    .box {
+      background: var(--card2);
+      border-radius: 14px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .box strong {
+      color: white;
+    }
+
+    .formula {
+      background: #020617;
+      padding: 15px;
+      border-radius: 12px;
+      overflow-x: auto;
+      border-left: 4px solid var(--accent);
+      font-size: 1.05rem;
+    }
+
+    .visual-area {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .visual-area {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    canvas {
+      width: 100%;
+      height: 520px;
+      background: #020617;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .controls {
+      background: var(--card2);
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .control {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 16px;
+      margin: 5px 5px 5px 0;
+      background: var(--accent);
+      color: #00111d;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    button.secondary {
+      background: #334155;
+      color: white;
+    }
+
+    button.danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .step {
+      opacity: 0;
+      transform: translateY(25px);
+      transition: all 0.7s ease;
+      border-left: 4px solid #334155;
+      padding-left: 18px;
+      margin-bottom: 25px;
+    }
+
+    .step.visible {
+      opacity: 1;
+      transform: translateY(0);
+      border-left-color: var(--accent);
+    }
+
+    .highlight {
+      color: var(--yellow);
+      font-weight: bold;
+    }
+
+    .final {
+      border: 2px solid var(--green);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    code {
+      color: #bae6fd;
+    }
+
+    .mini-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #1e293b;
+      color: #bfdbfe;
+      margin: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .animated-title {
+      animation: glow 2.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 5px #38bdf8;
+      }
+      to {
+        text-shadow: 0 0 18px #38bdf8, 0 0 35px #60a5fa;
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 1.2s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
+    }
+
+    th {
+      color: #93c5fd;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 class="animated-title">Problem 2 – Coulomb's Force</h1>
+    <p>Interactive animated explanation with controls</p>
+  </header>
+
+  <main>
+    <section class="fade-in">
+      <h2>Given Data</h2>
+
+      <div class="given-grid">
+        <div class="box">
+          <strong>Charge 1:</strong>
+          <p>q₁ = 3 μC</p>
+        </div>
+
+        <div class="box">
+          <strong>Charge 2:</strong>
+          <p>q₂ = -5 μC</p>
+        </div>
+
+        <div class="box">
+          <strong>Position of q₁:</strong>
+          <p>r₁ = (0, 0) m</p>
+        </div>
+
+        <div class="box">
+          <strong>Position of q₂:</strong>
+          <p>r₂ = (0.4, 0.3) m</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Interactive Animation</h2>
+
+      <div class="visual-area">
+        <div>
+          <canvas id="scene" width="900" height="620"></canvas>
+          <p class="mini-note">
+            Red charge is positive. Blue charge is negative. The yellow arrow shows the force acting on q₂.
+          </p>
+        </div>
+
+        <div class="controls">
+          <h3>Animation Controls</h3>
+
+          <button onclick="playAnimation()">Play</button>
+          <button class="secondary" onclick="pauseAnimation()">Pause</button>
+          <button class="danger" onclick="resetValues()">Reset</button>
+
+          <div class="control">
+            <label>
+              q₁ value
+              <span id="q1Label">3 μC</span>
+            </label>
+            <input id="q1Slider" type="range" min="1" max="10" step="0.5" value="3">
+          </div>
+
+          <div class="control">
+            <label>
+              q₂ value
+              <span id="q2Label">-5 μC</span>
+            </label>
+            <input id="q2Slider" type="range" min="-10" max="-1" step="0.5" value="-5">
+          </div>
+
+          <div class="control">
+            <label>
+              x-position of q₂
+              <span id="xLabel">0.4 m</span>
+            </label>
+            <input id="xSlider" type="range" min="0.1" max="1.2" step="0.05" value="0.4">
+          </div>
+
+          <div class="control">
+            <label>
+              y-position of q₂
+              <span id="yLabel">0.3 m</span>
+            </label>
+            <input id="ySlider" type="range" min="0.1" max="1.0" step="0.05" value="0.3">
+          </div>
+
+          <div class="control">
+            <label>
+              Final separation distance
+              <span id="rfLabel">2 m</span>
+            </label>
+            <input id="rfSlider" type="range" min="0.6" max="4" step="0.1" value="2">
+          </div>
+
+          <div class="control">
+            <label>
+              Animation speed
+              <span id="speedLabel">1x</span>
+            </label>
+            <input id="speedSlider" type="range" min="0.2" max="3" step="0.1" value="1">
+          </div>
+
+          <div class="box">
+            <strong>Live Results</strong>
+            <p id="liveDistance"></p>
+            <p id="liveForce"></p>
+            <p id="liveVector"></p>
+            <p id="liveEnergy"></p>
+            <p id="liveWork"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Step-by-Step Solution</h2>
+
+      <div class="step">
+        <h3>1. Convert the charges to SI units</h3>
+        <p>The charges are given in microcoulombs.</p>
+
+        <div class="formula">
+          1 μC = 10⁻⁶ C
+        </div>
+
+        <p>Therefore:</p>
+
+        <div class="formula">
+          q₁ = 3 × 10⁻⁶ C<br>
+          q₂ = -5 × 10⁻⁶ C
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>2. Find the vector from q₁ to q₂</h3>
+
+        <p>The vector from q₁ to q₂ is:</p>
+
+        <div class="formula">
+          r₁₂ = r₂ - r₁
+        </div>
+
+        <p>Substitute the positions:</p>
+
+        <div class="formula">
+          r₁₂ = (0.4, 0.3) - (0, 0)
+        </div>
+
+        <div class="formula">
+          r₁₂ = (0.4, 0.3) m
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>3. Calculate the distance between the charges</h3>
+
+        <p>The distance is the magnitude of the vector:</p>
+
+        <div class="formula">
+          r = √(0.4² + 0.3²)
+        </div>
+
+        <div class="formula">
+          r = √(0.16 + 0.09)
+        </div>
+
+        <div class="formula">
+          r = √0.25 = 0.5 m
+        </div>
+
+        <p>So the distance between the charges is:</p>
+
+        <p class="highlight">r = 0.5 m</p>
+      </div>
+
+      <div class="step">
+        <h3>4. Find the unit vector</h3>
+
+        <p>The unit vector gives the direction from q₁ to q₂.</p>
+
+        <div class="formula">
+          r̂₁₂ = r₁₂ / |r₁₂|
+        </div>
+
+        <div class="formula">
+          r̂₁₂ = (0.4, 0.3) / 0.5
+        </div>
+
+        <div class="formula">
+          r̂₁₂ = (0.8, 0.6)
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>5. Calculate the force magnitude</h3>
+
+        <p>Coulomb's law is:</p>
+
+        <div class="formula">
+          F = k |q₁q₂| / r²
+        </div>
+
+        <p>where:</p>
+
+        <div class="formula">
+          k = 8.99 × 10⁹ N m²/C²
+        </div>
+
+        <p>Substitute the values:</p>
+
+        <div class="formula">
+          F = 8.99 × 10⁹ × |(3 × 10⁻⁶)(-5 × 10⁻⁶)| / (0.5)²
+        </div>
+
+        <div class="formula">
+          F = 0.5394 N
+        </div>
+
+        <p class="highlight">|F₂| ≈ 0.539 N</p>
+      </div>
+
+      <div class="step">
+        <h3>6. Determine the force vector acting on q₂</h3>
+
+        <p>
+          Since q₁ is positive and q₂ is negative, the charges attract each other.
+          Therefore, the force on q₂ points toward q₁.
+        </p>
+
+        <p>The direction from q₁ to q₂ is:</p>
+
+        <div class="formula">
+          r̂₁₂ = (0.8, 0.6)
+        </div>
+
+        <p>But the force on q₂ points in the opposite direction:</p>
+
+        <div class="formula">
+          F₂ = -F r̂₁₂
+        </div>
+
+        <div class="formula">
+          F₂ = -0.5394(0.8, 0.6)
+        </div>
+
+        <div class="formula">
+          F₂ = (-0.43152, -0.32364) N
+        </div>
+
+        <p class="highlight">F₂ ≈ (-0.432, -0.324) N</p>
+      </div>
+
+      <div class="step">
+        <h3>7. Calculate the potential energy</h3>
+
+        <p>The electric potential energy is:</p>
+
+        <div class="formula">
+          U = k q₁q₂ / r
+        </div>
+
+        <p>Substitute the values:</p>
+
+        <div class="formula">
+          U = 8.99 × 10⁹ × (3 × 10⁻⁶)(-5 × 10⁻⁶) / 0.5
+        </div>
+
+        <div class="formula">
+          U = -0.2697 J
+        </div>
+
+        <p class="highlight">U ≈ -0.270 J</p>
+
+        <p>
+          The potential energy is negative because the charges have opposite signs.
+        </p>
+      </div>
+
+      <div class="step">
+        <h3>8. Work required to separate the charges to 2 m</h3>
+
+        <p>The work done by an external force is equal to the change in potential energy:</p>
+
+        <div class="formula">
+          Wext = ΔU = Uf - Ui
+        </div>
+
+        <p>The initial potential energy is:</p>
+
+        <div class="formula">
+          Ui = -0.2697 J
+        </div>
+
+        <p>The final distance is:</p>
+
+        <div class="formula">
+          rf = 2 m
+        </div>
+
+        <p>So:</p>
+
+        <div class="formula">
+          Uf = k q₁q₂ / rf
+        </div>
+
+        <div class="formula">
+          Uf = -0.067425 J
+        </div>
+
+        <p>Now calculate the work:</p>
+
+        <div class="formula">
+          Wext = Uf - Ui
+        </div>
+
+        <div class="formula">
+          Wext = -0.067425 - (-0.2697)
+        </div>
+
+        <div class="formula">
+          Wext = 0.202275 J
+        </div>
+
+        <p class="highlight">Wext ≈ 0.202 J</p>
+      </div>
+    </section>
+
+    <section class="final">
+      <h2>Final Answers</h2>
+
+      <div class="results-grid">
+        <div class="box">
+          <strong>Distance</strong>
+          <p>r = 0.5 m</p>
+        </div>
+
+        <div class="box">
+          <strong>Force Vector on q₂</strong>
+          <p>F₂ = (-0.432, -0.324) N</p>
+        </div>
+
+        <div class="box">
+          <strong>Force Magnitude</strong>
+          <p>|F₂| = 0.539 N</p>
+        </div>
+
+        <div class="box">
+          <strong>Potential Energy</strong>
+          <p>U = -0.270 J</p>
+        </div>
+
+        <div class="box">
+          <strong>Work to Separate to 2 m</strong>
+          <p>Wext = 0.202 J</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const q1Slider = document.getElementById("q1Slider");
+    const q2Slider = document.getElementById("q2Slider");
+    const xSlider = document.getElementById("xSlider");
+    const ySlider = document.getElementById("ySlider");
+    const rfSlider = document.getElementById("rfSlider");
+    const speedSlider = document.getElementById("speedSlider");
+
+    const q1Label = document.getElementById("q1Label");
+    const q2Label = document.getElementById("q2Label");
+    const xLabel = document.getElementById("xLabel");
+    const yLabel = document.getElementById("yLabel");
+    const rfLabel = document.getElementById("rfLabel");
+    const speedLabel = document.getElementById("speedLabel");
+
+    const liveDistance = document.getElementById("liveDistance");
+    const liveForce = document.getElementById("liveForce");
+    const liveVector = document.getElementById("liveVector");
+    const liveEnergy = document.getElementById("liveEnergy");
+    const liveWork = document.getElementById("liveWork");
+
+    const k = 8.99e9;
+
+    let isPlaying = true;
+    let animationTime = 0;
+
+    function getValues() {
+      const q1Micro = Number(q1Slider.value);
+      const q2Micro = Number(q2Slider.value);
+      const x = Number(xSlider.value);
+      const y = Number(ySlider.value);
+      const rf = Number(rfSlider.value);
+      const speed = Number(speedSlider.value);
+
+      const q1 = q1Micro * 1e-6;
+      const q2 = q2Micro * 1e-6;
+
+      const r = Math.sqrt(x * x + y * y);
+      const ux = x / r;
+      const uy = y / r;
+
+      const forceMagnitude = k * Math.abs(q1 * q2) / (r * r);
+
+      /*
+        If charges have opposite signs, the force on q2 points toward q1.
+        If charges have same signs, the force on q2 points away from q1.
+      */
+      const directionSign = q1 * q2 < 0 ? -1 : 1;
+
+      const fx = directionSign * forceMagnitude * ux;
+      const fy = directionSign * forceMagnitude * uy;
+
+      const Ui = k * q1 * q2 / r;
+      const Uf = k * q1 * q2 / rf;
+      const Wext = Uf - Ui;
+
+      return {
+        q1Micro,
+        q2Micro,
+        q1,
+        q2,
+        x,
+        y,
+        r,
+        ux,
+        uy,
+        rf,
+        speed,
+        forceMagnitude,
+        fx,
+        fy,
+        Ui,
+        Uf,
+        Wext,
+        directionSign
+      };
+    }
+
+    function updateLabels() {
+      const v = getValues();
+
+      q1Label.textContent = `${v.q1Micro} μC`;
+      q2Label.textContent = `${v.q2Micro} μC`;
+      xLabel.textContent = `${v.x.toFixed(2)} m`;
+      yLabel.textContent = `${v.y.toFixed(2)} m`;
+      rfLabel.textContent = `${v.rf.toFixed(1)} m`;
+      speedLabel.textContent = `${v.speed.toFixed(1)}x`;
+
+      liveDistance.innerHTML = `<strong>Distance:</strong> r = ${v.r.toFixed(3)} m`;
+      liveForce.innerHTML = `<strong>Force magnitude:</strong> |F₂| = ${v.forceMagnitude.toFixed(4)} N`;
+      liveVector.innerHTML = `<strong>Force vector:</strong> F₂ = (${v.fx.toFixed(4)}, ${v.fy.toFixed(4)}) N`;
+      liveEnergy.innerHTML = `<strong>Potential energy:</strong> U = ${v.Ui.toFixed(4)} J`;
+      liveWork.innerHTML = `<strong>Work to separate:</strong> Wext = ${v.Wext.toFixed(4)} J`;
+    }
+
+    function drawGrid(scale, originX, originY) {
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x <= canvas.width; x += scale * 0.1) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= canvas.height; y += scale * 0.1) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, originY);
+      ctx.lineTo(canvas.width, originY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, canvas.height);
+      ctx.stroke();
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width = 4) {
+      const headLength = 16;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawCharge(x, y, radius, color, label, sign) {
+      ctx.save();
+
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 25;
+
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "white";
+      ctx.font = "bold 28px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(sign, x, y - 3);
+
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(label, x, y + radius + 22);
+
+      ctx.restore();
+    }
+
+    function drawScene() {
+      const v = getValues();
+
+      updateLabels();
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const scale = 360;
+      const originX = 170;
+      const originY = 460;
+
+      drawGrid(scale, originX, originY);
+
+      const q1x = originX;
+      const q1y = originY;
+
+      const q2x = originX + v.x * scale;
+      const q2y = originY - v.y * scale;
+
+      const pulse = 1 + 0.08 * Math.sin(animationTime * 0.08);
+      const q1Radius = 26 * pulse;
+      const q2Radius = 31 * pulse;
+
+      ctx.strokeStyle = "rgba(250, 204, 21, 0.6)";
+      ctx.setLineDash([8, 8]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(q1x, q1y);
+      ctx.lineTo(q2x, q2y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      drawCharge(q1x, q1y, q1Radius, "#ef4444", "q₁ = positive", "+");
+      drawCharge(q2x, q2y, q2Radius, "#3b82f6", "q₂ = negative", "−");
+
+      const forceScale = 170;
+      const arrowLength = Math.min(180, 50 + v.forceMagnitude * forceScale);
+
+      const forceAngle = Math.atan2(-v.fy, v.fx);
+
+      const arrowEndX = q2x + Math.cos(forceAngle) * arrowLength;
+      const arrowEndY = q2y - Math.sin(forceAngle) * arrowLength;
+
+      drawArrow(q2x, q2y, arrowEndX, arrowEndY, "#facc15", 5);
+
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 18px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("Force on q₂", arrowEndX + 10, arrowEndY);
+
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "16px Arial";
+      ctx.fillText(`r = ${v.r.toFixed(2)} m`, (q1x + q2x) / 2 + 10, (q1y + q2y) / 2 - 10);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "14px Arial";
+      ctx.fillText("x-axis", canvas.width - 70, originY - 10);
+      ctx.fillText("y-axis", originX + 10, 30);
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "15px Arial";
+      ctx.fillText(`q₂ position: (${v.x.toFixed(2)}, ${v.y.toFixed(2)}) m`, 25, 35);
+      ctx.fillText(`F₂ = (${v.fx.toFixed(3)}, ${v.fy.toFixed(3)}) N`, 25, 60);
+      ctx.fillText(`U = ${v.Ui.toFixed(3)} J`, 25, 85);
+      ctx.fillText(`Wext to rf = ${v.rf.toFixed(1)} m: ${v.Wext.toFixed(3)} J`, 25, 110);
+
+      if (isPlaying) {
+        animationTime += v.speed;
+      }
+
+      requestAnimationFrame(drawScene);
+    }
+
+    function playAnimation() {
+      isPlaying = true;
+    }
+
+    function pauseAnimation() {
+      isPlaying = false;
+    }
+
+    function resetValues() {
+      q1Slider.value = 3;
+      q2Slider.value = -5;
+      xSlider.value = 0.4;
+      ySlider.value = 0.3;
+      rfSlider.value = 2;
+      speedSlider.value = 1;
+      animationTime = 0;
+      updateLabels();
+    }
+
+    const sliders = [
+      q1Slider,
+      q2Slider,
+      xSlider,
+      ySlider,
+      rfSlider,
+      speedSlider
+    ];
+
+    sliders.forEach(slider => {
+      slider.addEventListener("input", updateLabels);
+    });
+
+    const steps = document.querySelectorAll(".step");
+
+    function revealSteps() {
+      const triggerBottom = window.innerHeight * 0.85;
+
+      steps.forEach(step => {
+        const stepTop = step.getBoundingClientRect().top;
+
+        if (stepTop < triggerBottom) {
+          step.classList.add("visible");
+        }
+      });
+    }
+
+    window.addEventListener("scroll", revealSteps);
+    window.addEventListener("load", () => {
+      revealSteps();
+      drawScene();
+    });
+  </script>
+</body>
+</html>

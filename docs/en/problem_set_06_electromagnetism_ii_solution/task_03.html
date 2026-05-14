@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 3 – Magnetic Moment of a Loop</title>
+
+  <style>
+    :root {
+      --bg1: #020617;
+      --bg2: #0f172a;
+      --card: rgba(15, 23, 42, 0.9);
+      --card2: rgba(30, 41, 59, 0.85);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent2: #a78bfa;
+      --good: #22c55e;
+      --warn: #facc15;
+      --bad: #fb7185;
+      --line: rgba(148, 163, 184, 0.25);
+      --radius: 22px;
+      --shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.16), transparent 35%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 48px 20px 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      letter-spacing: -1px;
+      background: linear-gradient(90deg, #38bdf8, #a78bfa, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      max-width: 850px;
+      margin: 18px auto 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+
+    .container {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto 60px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0 34px;
+    }
+
+    .nav a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      transition: 0.25s;
+      font-size: 0.95rem;
+    }
+
+    .nav a:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.12);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #f8fafc;
+      font-size: 1.7rem;
+    }
+
+    .card h3 {
+      color: #bae6fd;
+      margin-top: 24px;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .formula {
+      background: rgba(2, 6, 23, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 16px;
+      border-radius: 16px;
+      margin: 14px 0;
+      color: #e0f2fe;
+      font-size: 1.15rem;
+      overflow-x: auto;
+    }
+
+    .highlight {
+      color: #fef08a;
+      font-weight: bold;
+    }
+
+    .good {
+      color: var(--good);
+      font-weight: bold;
+    }
+
+    .bad {
+      color: var(--bad);
+      font-weight: bold;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-weight: bold;
+    }
+
+    .sim-card {
+      position: sticky;
+      top: 18px;
+      min-height: 680px;
+    }
+
+    @media (max-width: 900px) {
+      .sim-card {
+        position: static;
+      }
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background:
+        radial-gradient(circle at center, rgba(56, 189, 248, 0.08), transparent 45%),
+        rgba(2, 6, 23, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 20px;
+      height: 390px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .controls {
+      display: grid;
+      gap: 16px;
+    }
+
+    .control {
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+      color: #e2e8f0;
+      font-weight: bold;
+    }
+
+    .control span {
+      color: var(--accent);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #38bdf8;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #020617;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa);
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+
+    button.secondary {
+      background: rgba(148, 163, 184, 0.18);
+      color: var(--text);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+    }
+
+    .values {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 520px) {
+      .values {
+        grid-template-columns: 1fr;
+      }
+
+      .buttons {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .value-box {
+      background: rgba(2, 6, 23, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .value-box small {
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .value-box strong {
+      font-size: 1.15rem;
+      color: #f8fafc;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      color: #dbeafe;
+      line-height: 1.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    th,
+    td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      text-align: left;
+      color: var(--muted);
+    }
+
+    th {
+      color: #e2e8f0;
+      background: rgba(2, 6, 23, 0.65);
+    }
+
+    tr:hover td {
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #7dd3fc;
+      font-size: 0.9rem;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 20px 0 50px;
+    }
+
+    .mini-diagram {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .mini-diagram {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mini {
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 130px;
+    }
+
+    .mini h4 {
+      margin: 0 0 10px;
+      color: #e0f2fe;
+    }
+
+    .bar-wrap {
+      margin-top: 10px;
+      height: 10px;
+      background: rgba(148, 163, 184, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, #38bdf8, #a78bfa);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Problem 3 – Magnetic Moment of a Loop</h1>
+    <p>
+      Interactive explanation of a current loop in a magnetic field:
+      magnetic moment, torque, maximum torque, potential energy,
+      stable position, and unstable position.
+    </p>
+  </header>
+
+  <div class="container">
+    <div class="nav">
+      <a href="#given">Given Data</a>
+      <a href="#moment">Magnetic Moment</a>
+      <a href="#torque">Torque</a>
+      <a href="#maximum">Maximum Torque</a>
+      <a href="#energy">Potential Energy</a>
+      <a href="#positions">Stable / Unstable</a>
+      <a href="#summary">Final Answers</a>
+    </div>
+
+    <div class="grid">
+      <main>
+        <section class="card" id="given">
+          <h2>Given Data</h2>
+
+          <p>
+            We have a conducting loop placed in a uniform magnetic field.
+            The loop has current flowing through it.
+          </p>
+
+          <div class="formula">
+            Number of turns: \(N\)
+          </div>
+
+          <div class="formula">
+            Area of loop: \(S\)
+          </div>
+
+          <div class="formula">
+            Current: \(I\)
+          </div>
+
+          <div class="formula">
+            Magnetic field: \(\vec B\)
+          </div>
+
+          <p>
+            A current loop behaves like a small magnet. The magnetic field tries
+            to rotate the loop until it reaches a stable position.
+          </p>
+        </section>
+
+        <section class="card" id="moment">
+          <h2>1. Magnetic Moment of the Loop</h2>
+
+          <p>
+            The magnetic moment describes how strong the current loop behaves
+            like a magnet.
+          </p>
+
+          <div class="formula">
+            \[
+            \vec \mu = NI\vec S
+            \]
+          </div>
+
+          <p>
+            The magnitude is:
+          </p>
+
+          <div class="formula">
+            \[
+            \mu = NIS
+            \]
+          </div>
+
+          <p>
+            Here:
+          </p>
+
+          <ul>
+            <li>\(N\) = number of turns</li>
+            <li>\(I\) = current</li>
+            <li>\(S\) = area of the loop</li>
+            <li>\(\vec S\) = area vector perpendicular to the loop surface</li>
+          </ul>
+
+          <h3>Direction of \(\vec \mu\)</h3>
+
+          <p>
+            The direction of \(\vec \mu\) is perpendicular to the plane of the loop.
+            We find it using the right-hand rule.
+          </p>
+
+          <div class="formula">
+            If fingers follow current direction, thumb shows direction of \(\vec \mu\).
+          </div>
+        </section>
+
+        <section class="card" id="torque">
+          <h2>2. Torque Acting on the Loop</h2>
+
+          <p>
+            In a magnetic field, the magnetic moment experiences torque.
+            Torque tries to rotate the loop.
+          </p>
+
+          <div class="formula">
+            \[
+            \vec M = \vec \mu \times \vec B
+            \]
+          </div>
+
+          <p>
+            The magnitude of the torque is:
+          </p>
+
+          <div class="formula">
+            \[
+            M = \mu B \sin\theta
+            \]
+          </div>
+
+          <p>
+            Since:
+          </p>
+
+          <div class="formula">
+            \[
+            \mu = NIS
+            \]
+          </div>
+
+          <p>
+            then:
+          </p>
+
+          <div class="formula">
+            \[
+            M = NISB\sin\theta
+            \]
+          </div>
+
+          <p>
+            Here \(\theta\) is the angle between \(\vec \mu\) and \(\vec B\).
+          </p>
+        </section>
+
+        <section class="card" id="maximum">
+          <h2>3. Angle for Maximum Torque</h2>
+
+          <p>
+            The torque is:
+          </p>
+
+          <div class="formula">
+            \[
+            M = NISB\sin\theta
+            \]
+          </div>
+
+          <p>
+            The maximum value of \(\sin\theta\) is:
+          </p>
+
+          <div class="formula">
+            \[
+            \sin 90^\circ = 1
+            \]
+          </div>
+
+          <p>
+            Therefore, torque is maximum when:
+          </p>
+
+          <div class="formula">
+            \[
+            \theta = 90^\circ
+            \]
+          </div>
+
+          <p>
+            So the magnetic moment must be perpendicular to the magnetic field:
+          </p>
+
+          <div class="formula">
+            \[
+            \vec \mu \perp \vec B
+            \]
+          </div>
+
+          <p>
+            The maximum torque is:
+          </p>
+
+          <div class="formula">
+            \[
+            M_{\max}=NISB
+            \]
+          </div>
+        </section>
+
+        <section class="card" id="energy">
+          <h2>4. Potential Energy</h2>
+
+          <p>
+            The potential energy of a magnetic moment in a magnetic field is:
+          </p>
+
+          <div class="formula">
+            \[
+            U = -\vec \mu \cdot \vec B
+            \]
+          </div>
+
+          <p>
+            Using the dot product:
+          </p>
+
+          <div class="formula">
+            \[
+            \vec \mu \cdot \vec B = \mu B\cos\theta
+            \]
+          </div>
+
+          <p>
+            Therefore:
+          </p>
+
+          <div class="formula">
+            \[
+            U = -\mu B\cos\theta
+            \]
+          </div>
+
+          <p>
+            Since \(\mu=NIS\), we get:
+          </p>
+
+          <div class="formula">
+            \[
+            U = -NISB\cos\theta
+            \]
+          </div>
+
+          <p>
+            The loop prefers the position with the lowest potential energy.
+          </p>
+        </section>
+
+        <section class="card" id="positions">
+          <h2>5. Stable and Unstable Positions</h2>
+
+          <p>
+            Stable position means minimum potential energy.
+            Unstable position means maximum potential energy.
+          </p>
+
+          <div class="mini-diagram">
+            <div class="mini">
+              <h4>Stable Position</h4>
+              <p>
+                \(\theta = 0^\circ\)
+              </p>
+              <p class="good">
+                \(\vec \mu\) parallel to \(\vec B\)
+              </p>
+              <p>
+                \(U_{\min}=-NISB\)
+              </p>
+            </div>
+
+            <div class="mini">
+              <h4>Maximum Torque</h4>
+              <p>
+                \(\theta = 90^\circ\)
+              </p>
+              <p class="warn">
+                \(\vec \mu\) perpendicular to \(\vec B\)
+              </p>
+              <p>
+                \(M_{\max}=NISB\)
+              </p>
+            </div>
+
+            <div class="mini">
+              <h4>Unstable Position</h4>
+              <p>
+                \(\theta = 180^\circ\)
+              </p>
+              <p class="bad">
+                \(\vec \mu\) opposite to \(\vec B\)
+              </p>
+              <p>
+                \(U_{\max}=+NISB\)
+              </p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Angle</th>
+                <th>Torque</th>
+                <th>Energy</th>
+                <th>Position</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>\(0^\circ\)</td>
+                <td>\(0\)</td>
+                <td>\(-NISB\)</td>
+                <td><span class="pill">Stable</span></td>
+              </tr>
+              <tr>
+                <td>\(90^\circ\)</td>
+                <td>\(NISB\)</td>
+                <td>\(0\)</td>
+                <td><span class="pill">Maximum torque</span></td>
+              </tr>
+              <tr>
+                <td>\(180^\circ\)</td>
+                <td>\(0\)</td>
+                <td>\(+NISB\)</td>
+                <td><span class="pill">Unstable</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card" id="summary">
+          <h2>Final Answers</h2>
+
+          <div class="formula">
+            \[
+            \boxed{\vec \mu = NI\vec S}
+            \]
+          </div>
+
+          <div class="formula">
+            \[
+            \boxed{\mu=NIS}
+            \]
+          </div>
+
+          <div class="formula">
+            \[
+            \boxed{\vec M=\vec \mu \times \vec B}
+            \]
+          </div>
+
+          <div class="formula">
+            \[
+            \boxed{M=NISB\sin\theta}
+            \]
+          </div>
+
+          <div class="formula">
+            \[
+            \boxed{M_{\max}=NISB,\quad \theta=90^\circ}
+            \]
+          </div>
+
+          <div class="formula">
+            \[
+            \boxed{U=-\vec \mu\cdot\vec B}
+            \]
+          </div>
+
+          <div class="formula">
+            \[
+            \boxed{U=-NISB\cos\theta}
+            \]
+          </div>
+
+          <div class="formula">
+            Stable:
+            \[
+            \boxed{\theta=0^\circ,\quad U_{\min}=-NISB}
+            \]
+          </div>
+
+          <div class="formula">
+            Unstable:
+            \[
+            \boxed{\theta=180^\circ,\quad U_{\max}=+NISB}
+            \]
+          </div>
+        </section>
+      </main>
+
+      <aside class="card sim-card">
+        <h2>Interactive Animation</h2>
+
+        <p>
+          Change \(N\), \(I\), \(S\), \(B\), and angle \(\theta\).
+          Watch how torque and potential energy change.
+        </p>
+
+        <div class="canvas-wrap">
+          <canvas id="scene"></canvas>
+        </div>
+
+        <div class="controls">
+          <div class="control">
+            <label>
+              Angle \(\theta\)
+              <span id="angleValue">60°</span>
+            </label>
+            <input id="angle" type="range" min="0" max="180" value="60" />
+          </div>
+
+          <div class="control">
+            <label>
+              Turns \(N\)
+              <span id="nValue">10</span>
+            </label>
+            <input id="turns" type="range" min="1" max="50" value="10" />
+          </div>
+
+          <div class="control">
+            <label>
+              Current \(I\)
+              <span id="iValue">2.0 A</span>
+            </label>
+            <input id="current" type="range" min="0.1" max="10" value="2" step="0.1" />
+          </div>
+
+          <div class="control">
+            <label>
+              Area \(S\)
+              <span id="sValue">0.50 m²</span>
+            </label>
+            <input id="area" type="range" min="0.1" max="2" value="0.5" step="0.05" />
+          </div>
+
+          <div class="control">
+            <label>
+              Magnetic Field \(B\)
+              <span id="bValue">0.80 T</span>
+            </label>
+            <input id="field" type="range" min="0.1" max="3" value="0.8" step="0.05" />
+          </div>
+
+          <div class="buttons">
+            <button id="playBtn">Play</button>
+            <button class="secondary" id="stableBtn">Stable</button>
+            <button class="secondary" id="unstableBtn">Unstable</button>
+          </div>
+        </div>
+
+        <div class="values">
+          <div class="value-box">
+            <small>Magnetic moment</small>
+            <strong id="muOut">10.00 A·m²</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Torque</small>
+            <strong id="torqueOut">6.93 N·m</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Potential energy</small>
+            <strong id="energyOut">-4.00 J</strong>
+          </div>
+
+          <div class="value-box">
+            <small>Position</small>
+            <strong id="positionOut">Rotating</strong>
+          </div>
+        </div>
+
+        <div class="result" id="explanation">
+          At this angle, the magnetic field produces torque that tries to rotate the loop toward the stable position.
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Magnetic moment of a loop animation and solution presentation.
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    const angleInput = document.getElementById("angle");
+    const turnsInput = document.getElementById("turns");
+    const currentInput = document.getElementById("current");
+    const areaInput = document.getElementById("area");
+    const fieldInput = document.getElementById("field");
+
+    const angleValue = document.getElementById("angleValue");
+    const nValue = document.getElementById("nValue");
+    const iValue = document.getElementById("iValue");
+    const sValue = document.getElementById("sValue");
+    const bValue = document.getElementById("bValue");
+
+    const muOut = document.getElementById("muOut");
+    const torqueOut = document.getElementById("torqueOut");
+    const energyOut = document.getElementById("energyOut");
+    const positionOut = document.getElementById("positionOut");
+    const explanation = document.getElementById("explanation");
+
+    const playBtn = document.getElementById("playBtn");
+    const stableBtn = document.getElementById("stableBtn");
+    const unstableBtn = document.getElementById("unstableBtn");
+
+    let playing = false;
+    let direction = 1;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width = 4, label = "") {
+      const headLength = 12;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      if (label) {
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(label, x2 + 8, y2 - 8);
+      }
+    }
+
+    function roundedRect(x, y, w, h, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      ctx.fill();
+    }
+
+    function drawScene() {
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const N = Number(turnsInput.value);
+      const I = Number(currentInput.value);
+      const S = Number(areaInput.value);
+      const B = Number(fieldInput.value);
+      const theta = Number(angleInput.value);
+
+      const thetaRad = degToRad(theta);
+
+      const mu = N * I * S;
+      const torque = mu * B * Math.sin(thetaRad);
+      const energy = -mu * B * Math.cos(thetaRad);
+
+      angleValue.textContent = theta.toFixed(0) + "°";
+      nValue.textContent = N.toFixed(0);
+      iValue.textContent = I.toFixed(1) + " A";
+      sValue.textContent = S.toFixed(2) + " m²";
+      bValue.textContent = B.toFixed(2) + " T";
+
+      muOut.textContent = mu.toFixed(2) + " A·m²";
+      torqueOut.textContent = torque.toFixed(2) + " N·m";
+      energyOut.textContent = energy.toFixed(2) + " J";
+
+      let status = "Rotating";
+      let text = "At this angle, the magnetic field produces torque that tries to rotate the loop toward the stable position.";
+
+      if (theta <= 3) {
+        status = "Stable";
+        text = "Stable position: magnetic moment is parallel to magnetic field. Torque is zero and potential energy is minimum.";
+      } else if (theta >= 177) {
+        status = "Unstable";
+        text = "Unstable position: magnetic moment is opposite to magnetic field. Torque is zero but potential energy is maximum.";
+      } else if (Math.abs(theta - 90) <= 3) {
+        status = "Maximum torque";
+        text = "Maximum torque position: magnetic moment is perpendicular to magnetic field. Here sin(theta) = 1.";
+      }
+
+      positionOut.textContent = status;
+      explanation.textContent = text;
+
+      const cx = w / 2;
+      const cy = h / 2 + 10;
+
+      ctx.save();
+
+      for (let x = 40; x < w - 20; x += 55) {
+        drawArrow(x, 55, x + 35, 55, "rgba(56,189,248,0.45)", 3);
+      }
+
+      ctx.font = "bold 18px Arial";
+      ctx.fillStyle = "#7dd3fc";
+      ctx.fillText("Uniform magnetic field  B →", 36, 34);
+
+      ctx.translate(cx, cy);
+
+      const loopScale = 70 + S * 28;
+      const loopWidth = loopScale * 1.55;
+      const loopHeight = loopScale * 0.65;
+
+      ctx.rotate(thetaRad);
+
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, loopWidth / 2, loopHeight / 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(254, 240, 138, 0.35)";
+      ctx.lineWidth = 2;
+
+      const visibleTurns = Math.min(8, N);
+      for (let k = 1; k <= visibleTurns; k++) {
+        ctx.beginPath();
+        ctx.ellipse(
+          0,
+          0,
+          loopWidth / 2 - k * 4,
+          loopHeight / 2 - k * 2,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#020617";
+      ctx.beginPath();
+      ctx.arc(0, -loopHeight / 2, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("I", -7, -loopHeight / 2 - 12);
+
+      ctx.restore();
+
+      const muLength = Math.min(140, 45 + mu * 3.5);
+      const muX = cx + muLength * Math.cos(thetaRad);
+      const muY = cy + muLength * Math.sin(thetaRad);
+
+      drawArrow(cx, cy, muX, muY, "#22c55e", 5, "μ");
+
+      const torqueStrength = Math.abs(Math.sin(thetaRad));
+      ctx.strokeStyle = `rgba(251, 113, 133, ${0.25 + torqueStrength * 0.65})`;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 95, -0.7, -0.7 + torqueStrength * 4.5);
+      ctx.stroke();
+
+      if (torqueStrength > 0.05) {
+        const endAngle = -0.7 + torqueStrength * 4.5;
+        const ax = cx + 95 * Math.cos(endAngle);
+        const ay = cy + 95 * Math.sin(endAngle);
+        drawArrow(ax - 1, ay - 1, ax + 1, ay + 1, "#fb7185", 5, "M");
+      }
+
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.font = "bold 15px Arial";
+      ctx.fillText("θ = " + theta.toFixed(0) + "°", cx - 35, cy + 130);
+
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,255,255,0.3)";
+      ctx.lineWidth = 2;
+      ctx.arc(cx, cy, 38, 0, thetaRad);
+      ctx.stroke();
+
+      const torqueBar = Math.min(1, torque / Math.max(1, mu * B));
+      const energyNorm = (energy + mu * B) / (2 * mu * B || 1);
+
+      roundedRect(18, h - 75, 180, 18, 999, "rgba(148,163,184,0.18)");
+      roundedRect(18, h - 75, 180 * torqueBar, 18, 999, "rgba(56,189,248,0.75)");
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "13px Arial";
+      ctx.fillText("Torque level", 18, h - 84);
+
+      roundedRect(18, h - 35, 180, 18, 999, "rgba(148,163,184,0.18)");
+      roundedRect(18, h - 35, 180 * energyNorm, 18, 999, "rgba(167,139,250,0.75)");
+      ctx.fillStyle = "#e5e7eb";
+      ctx.fillText("Energy level", 18, h - 44);
+    }
+
+    function animate() {
+      if (playing) {
+        let value = Number(angleInput.value);
+        value += direction * 0.8;
+
+        if (value >= 180) {
+          value = 180;
+          direction = -1;
+        }
+
+        if (value <= 0) {
+          value = 0;
+          direction = 1;
+        }
+
+        angleInput.value = value;
+      }
+
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    playBtn.addEventListener("click", () => {
+      playing = !playing;
+      playBtn.textContent = playing ? "Pause" : "Play";
+    });
+
+    stableBtn.addEventListener("click", () => {
+      angleInput.value = 0;
+      playing = false;
+      playBtn.textContent = "Play";
+      drawScene();
+    });
+
+    unstableBtn.addEventListener("click", () => {
+      angleInput.value = 180;
+      playing = false;
+      playBtn.textContent = "Play";
+      drawScene();
+    });
+
+    [angleInput, turnsInput, currentInput, areaInput, fieldInput].forEach(input => {
+      input.addEventListener("input", drawScene);
+    });
+
+    animate();
+  </script>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["\\(", "\\)"], ["$", "$"]],
+        displayMath: [["\\[", "\\]"], ["$$", "$$"]]
+      },
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</body>
+</html>

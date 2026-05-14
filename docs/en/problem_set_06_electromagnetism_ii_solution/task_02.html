@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem 2 – Velocity Selector</title>
+
+  <style>
+    :root {
+      --bg1: #0f172a;
+      --bg2: #111827;
+      --card: #1e293b;
+      --card2: #020617;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent2: #a78bfa;
+      --good: #22c55e;
+      --warn: #facc15;
+      --bad: #fb7185;
+      --electric: #facc15;
+      --magnetic: #38bdf8;
+      --particle: #ffffff;
+      --radius: 20px;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.22), transparent 35%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.7;
+    }
+
+    header {
+      padding: 50px 20px 25px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      color: white;
+      letter-spacing: -1px;
+    }
+
+    header p {
+      max-width: 900px;
+      margin: 16px auto 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    main {
+      width: min(1200px, 94%);
+      margin: auto;
+      padding-bottom: 60px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: white;
+      font-size: 1.6rem;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }
+
+    .formula {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 16px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 1.15rem;
+      color: #e0f2fe;
+      margin: 14px 0;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .good {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .bad {
+      color: var(--bad);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      gap: 18px;
+    }
+
+    .control-box {
+      background: rgba(2, 6, 23, 0.45);
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: #f8fafc;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    button.secondary {
+      background: rgba(148, 163, 184, 0.18);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .result-box {
+      display: grid;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .result-item {
+      background: rgba(15, 23, 42, 0.65);
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .value {
+      font-size: 1.25rem;
+      color: white;
+      font-weight: 800;
+    }
+
+    .scene {
+      position: relative;
+      height: 440px;
+      background:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(56,189,248,0.08), transparent 55%),
+        #020617;
+      background-size: 35px 35px, 35px 35px, auto, auto;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .selector-zone {
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 15%;
+      bottom: 15%;
+      border: 2px dashed rgba(148, 163, 184, 0.35);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .plate {
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      height: 20px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, rgba(250,204,21,0.3), rgba(250,204,21,0.9), rgba(250,204,21,0.3));
+      box-shadow: 0 0 25px rgba(250,204,21,0.35);
+    }
+
+    .plate.top {
+      top: 10%;
+    }
+
+    .plate.bottom {
+      bottom: 10%;
+    }
+
+    .plate-label {
+      position: absolute;
+      right: 4%;
+      color: var(--electric);
+      font-weight: 900;
+      font-size: 1rem;
+    }
+
+    .plate-label.top-label {
+      top: 8%;
+    }
+
+    .plate-label.bottom-label {
+      bottom: 8%;
+    }
+
+    .e-arrow {
+      position: absolute;
+      width: 4px;
+      height: 54px;
+      background: var(--electric);
+      border-radius: 99px;
+      opacity: 0.8;
+      animation: ePulse 1.5s infinite;
+    }
+
+    .e-arrow::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -8px;
+      transform: translateX(-50%);
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-top: 13px solid var(--electric);
+    }
+
+    @keyframes ePulse {
+      0%, 100% {
+        opacity: 0.5;
+        transform: translateY(-3px);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(3px);
+      }
+    }
+
+    .b-symbol {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--magnetic);
+      color: var(--magnetic);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      box-shadow: 0 0 16px rgba(56,189,248,0.3);
+      opacity: 0.85;
+      animation: bPulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes bPulse {
+      0%, 100% {
+        transform: scale(0.92);
+        opacity: 0.55;
+      }
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
+    .particle {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: var(--particle);
+      border-radius: 50%;
+      box-shadow:
+        0 0 10px rgba(255,255,255,0.9),
+        0 0 25px rgba(56,189,248,0.9);
+      z-index: 5;
+      transform: translate(-50%, -50%);
+    }
+
+    .trail {
+      position: absolute;
+      height: 4px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75));
+      transform-origin: left center;
+      z-index: 4;
+    }
+
+    .force-arrow {
+      position: absolute;
+      width: 4px;
+      height: 58px;
+      border-radius: 99px;
+      transform-origin: center;
+      z-index: 6;
+    }
+
+    .force-arrow::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+    }
+
+    .force-electric {
+      background: var(--electric);
+      box-shadow: 0 0 12px rgba(250,204,21,0.55);
+    }
+
+    .force-electric::after {
+      bottom: -8px;
+      border-top: 12px solid var(--electric);
+    }
+
+    .force-magnetic {
+      background: var(--magnetic);
+      box-shadow: 0 0 12px rgba(56,189,248,0.55);
+    }
+
+    .force-magnetic::after {
+      top: -8px;
+      border-bottom: 12px solid var(--magnetic);
+    }
+
+    .force-label {
+      position: absolute;
+      font-size: 0.8rem;
+      font-weight: 900;
+      z-index: 7;
+      white-space: nowrap;
+      text-shadow: 0 2px 8px black;
+    }
+
+    .status {
+      position: absolute;
+      left: 20px;
+      bottom: 18px;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 999px;
+      color: white;
+      font-weight: 800;
+      z-index: 10;
+    }
+
+    .axis-label {
+      position: absolute;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .x-axis {
+      right: 20px;
+      top: 50%;
+    }
+
+    .y-axis {
+      left: 50%;
+      top: 18px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot.e {
+      background: var(--electric);
+    }
+
+    .dot.b {
+      background: var(--magnetic);
+    }
+
+    .dot.p {
+      background: white;
+    }
+
+    .step {
+      border-left: 4px solid var(--accent);
+      padding-left: 16px;
+      margin: 18px 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    th, td {
+      padding: 13px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      text-align: left;
+    }
+
+    th {
+      background: rgba(56, 189, 248, 0.16);
+      color: #e0f2fe;
+    }
+
+    td {
+      background: rgba(2, 6, 23, 0.35);
+    }
+
+    .mini-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 760px) {
+      .mini-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mini {
+      background: rgba(2, 6, 23, 0.45);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .mini h3 {
+      margin-top: 0;
+    }
+
+    .progress-shell {
+      width: 100%;
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Problem 2 – Velocity Selector</h1>
+    <p>
+      Crossed electric and magnetic fields can select particles with one special velocity.
+      In this presentation, we show why the condition is
+      <strong style="color:#38bdf8;">v = E / B</strong>.
+    </p>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card">
+        <h2>Interactive animation</h2>
+
+        <div class="scene" id="scene">
+          <div class="selector-zone"></div>
+
+          <div class="plate top"></div>
+          <div class="plate bottom"></div>
+
+          <div class="plate-label top-label">+ plate</div>
+          <div class="plate-label bottom-label">− plate</div>
+
+          <div class="axis-label x-axis">+x direction</div>
+          <div class="axis-label y-axis">+y</div>
+
+          <div class="trail" id="trail"></div>
+          <div class="particle" id="particle"></div>
+
+          <div class="force-arrow force-electric" id="electricForce"></div>
+          <div class="force-arrow force-magnetic" id="magneticForce"></div>
+
+          <div class="force-label" id="electricLabel">Fₑ = qE</div>
+          <div class="force-label" id="magneticLabel">Fᵦ = qvB</div>
+
+          <div class="status" id="status">Balanced motion</div>
+        </div>
+
+        <div class="legend">
+          <span><span class="dot e"></span> Electric field / electric force</span>
+          <span><span class="dot b"></span> Magnetic field / magnetic force</span>
+          <span><span class="dot p"></span> Particle</span>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2>Controls</h2>
+
+        <div class="controls">
+          <div class="control-box">
+            <label>
+              Electric field E
+              <span><span id="eValue">400</span> V/m</span>
+            </label>
+            <input id="eSlider" type="range" min="50" max="1000" step="10" value="400" />
+          </div>
+
+          <div class="control-box">
+            <label>
+              Magnetic field B
+              <span><span id="bValue">0.8</span> T</span>
+            </label>
+            <input id="bSlider" type="range" min="0.1" max="2" step="0.1" value="0.8" />
+          </div>
+
+          <div class="control-box">
+            <label>
+              Particle velocity v
+              <span><span id="vValue">500</span> m/s</span>
+            </label>
+            <input id="vSlider" type="range" min="50" max="1500" step="10" value="500" />
+          </div>
+
+          <div class="btn-row">
+            <button id="playBtn">Pause</button>
+            <button class="secondary" id="resetBtn">Reset</button>
+            <button class="secondary" id="matchBtn">Set v = E/B</button>
+          </div>
+        </div>
+
+        <div class="result-box">
+          <div class="result-item">
+            Selected velocity:
+            <div class="value" id="selectedVelocity">500 m/s</div>
+          </div>
+
+          <div class="result-item">
+            Force comparison:
+            <div class="value" id="forceComparison">Fₑ = Fᵦ</div>
+          </div>
+
+          <div class="result-item">
+            Motion type:
+            <div class="value" id="motionType">Straight line</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card">
+      <h2>Given data</h2>
+
+      <p>We are given crossed electric and magnetic fields:</p>
+
+      <div class="formula">
+        E⃗ = (0, E, 0)
+      </div>
+
+      <div class="formula">
+        B⃗ = (0, 0, B)
+      </div>
+
+      <p>This means:</p>
+
+      <ul>
+        <li>The electric field points in the <span class="highlight">positive y-direction</span>.</li>
+        <li>The magnetic field points in the <span class="highlight">positive z-direction</span>.</li>
+        <li>The particle moves mainly in the <span class="highlight">x-direction</span>.</li>
+      </ul>
+
+      <p>The Lorentz force is:</p>
+
+      <div class="formula">
+        F⃗ = q(E⃗ + v⃗ × B⃗)
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Condition for rectilinear motion</h2>
+
+      <p>
+        Rectilinear motion means <span class="highlight">straight-line motion</span>.
+        For the particle to move straight, the total force must be zero.
+      </p>
+
+      <div class="formula">
+        F⃗ = 0
+      </div>
+
+      <p>Using the Lorentz force:</p>
+
+      <div class="formula">
+        q(E⃗ + v⃗ × B⃗) = 0
+      </div>
+
+      <p>Since the charge is not zero, we divide by q:</p>
+
+      <div class="formula">
+        E⃗ + v⃗ × B⃗ = 0
+      </div>
+
+      <p>Now assume the velocity is along the x-axis:</p>
+
+      <div class="formula">
+        v⃗ = (v, 0, 0)
+      </div>
+
+      <p>And the magnetic field is:</p>
+
+      <div class="formula">
+        B⃗ = (0, 0, B)
+      </div>
+
+      <p>Now calculate the cross product:</p>
+
+      <div class="formula">
+        v⃗ × B⃗ = (v, 0, 0) × (0, 0, B)
+      </div>
+
+      <div class="formula">
+        v⃗ × B⃗ = (0, -vB, 0)
+      </div>
+
+      <p>The electric field is:</p>
+
+      <div class="formula">
+        E⃗ = (0, E, 0)
+      </div>
+
+      <p>So:</p>
+
+      <div class="formula">
+        E⃗ + v⃗ × B⃗ = (0, E, 0) + (0, -vB, 0)
+      </div>
+
+      <div class="formula">
+        E⃗ + v⃗ × B⃗ = (0, E - vB, 0)
+      </div>
+
+      <p>For straight-line motion:</p>
+
+      <div class="formula">
+        E - vB = 0
+      </div>
+
+      <p>Therefore:</p>
+
+      <div class="formula">
+        E = vB
+      </div>
+
+      <p>Solving for velocity:</p>
+
+      <div class="formula">
+        v = E / B
+      </div>
+
+      <p class="good">
+        So the selected velocity is:
+      </p>
+
+      <div class="formula">
+        v<sub>d</sub> = E / B
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Calculate selected velocity</h2>
+
+      <p>We are given:</p>
+
+      <div class="formula">
+        E = 400 V/m
+      </div>
+
+      <div class="formula">
+        B = 0.8 T
+      </div>
+
+      <p>Use the formula:</p>
+
+      <div class="formula">
+        v<sub>d</sub> = E / B
+      </div>
+
+      <p>Substitute the values:</p>
+
+      <div class="formula">
+        v<sub>d</sub> = 400 / 0.8
+      </div>
+
+      <p>Calculate:</p>
+
+      <div class="formula">
+        v<sub>d</sub> = 500 m/s
+      </div>
+
+      <p class="good">
+        Therefore, the selected velocity is 500 m/s.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>3. Does kinetic energy change in steady motion?</h2>
+
+      <p>Kinetic energy is:</p>
+
+      <div class="formula">
+        K = 1/2 mv²
+      </div>
+
+      <p>
+        In steady straight-line motion, the particle velocity is constant.
+        That means the kinetic energy is also constant.
+      </p>
+
+      <div class="formula">
+        v = constant
+      </div>
+
+      <div class="formula">
+        K = constant
+      </div>
+
+      <p>The net force is zero:</p>
+
+      <div class="formula">
+        F⃗<sub>net</sub> = 0
+      </div>
+
+      <p>Therefore, the net work is zero:</p>
+
+      <div class="formula">
+        W<sub>net</sub> = 0
+      </div>
+
+      <p>Using the work-energy theorem:</p>
+
+      <div class="formula">
+        W<sub>net</sub> = ΔK
+      </div>
+
+      <div class="formula">
+        ΔK = 0
+      </div>
+
+      <p class="good">
+        So the kinetic energy does not change in steady motion.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>4. Operating principle of the velocity selector</h2>
+
+      <p>
+        A velocity selector allows only particles with a specific velocity to pass straight through.
+        The electric and magnetic forces must cancel each other.
+      </p>
+
+      <div class="mini-cards">
+        <div class="mini">
+          <h3 class="warn">Too slow</h3>
+          <p>If v &lt; E/B, then magnetic force is weaker.</p>
+          <div class="formula">qvB &lt; qE</div>
+          <p>The particle is deflected in the direction of electric force.</p>
+        </div>
+
+        <div class="mini">
+          <h3 class="good">Correct speed</h3>
+          <p>If v = E/B, the forces are balanced.</p>
+          <div class="formula">qvB = qE</div>
+          <p>The particle moves straight through.</p>
+        </div>
+
+        <div class="mini">
+          <h3 class="bad">Too fast</h3>
+          <p>If v &gt; E/B, then magnetic force is stronger.</p>
+          <div class="formula">qvB &gt; qE</div>
+          <p>The particle is deflected in the opposite direction.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Case</th>
+              <th>Condition</th>
+              <th>Force result</th>
+              <th>Particle motion</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>Too slow</td>
+              <td>v &lt; E/B</td>
+              <td>F<sub>E</sub> &gt; F<sub>B</sub></td>
+              <td>Deflects downward</td>
+            </tr>
+
+            <tr>
+              <td>Selected velocity</td>
+              <td>v = E/B</td>
+              <td>F<sub>E</sub> = F<sub>B</sub></td>
+              <td>Straight line</td>
+            </tr>
+
+            <tr>
+              <td>Too fast</td>
+              <td>v &gt; E/B</td>
+              <td>F<sub>B</sub> &gt; F<sub>E</sub></td>
+              <td>Deflects upward</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Final answers</h2>
+
+      <div class="step">
+        <h3>Condition for rectilinear motion</h3>
+        <div class="formula">
+          E⃗ + v⃗ × B⃗ = 0
+        </div>
+
+        <div class="formula">
+          v<sub>d</sub> = E / B
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>Numerical result</h3>
+        <div class="formula">
+          v<sub>d</sub> = 400 / 0.8 = 500 m/s
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>Kinetic energy</h3>
+        <div class="formula">
+          ΔK = 0
+        </div>
+
+        <p>The kinetic energy does not change in steady motion.</p>
+      </div>
+
+      <div class="step">
+        <h3>Operating principle</h3>
+        <p>
+          The selector balances electric and magnetic forces.
+          Only particles with velocity E/B pass straight through.
+          Slower or faster particles are deflected.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Velocity Selector Animation Presentation
+  </footer>
+
+  <script>
+    const scene = document.getElementById("scene");
+    const particle = document.getElementById("particle");
+    const trail = document.getElementById("trail");
+    const electricForce = document.getElementById("electricForce");
+    const magneticForce = document.getElementById("magneticForce");
+    const electricLabel = document.getElementById("electricLabel");
+    const magneticLabel = document.getElementById("magneticLabel");
+    const statusBox = document.getElementById("status");
+
+    const eSlider = document.getElementById("eSlider");
+    const bSlider = document.getElementById("bSlider");
+    const vSlider = document.getElementById("vSlider");
+
+    const eValue = document.getElementById("eValue");
+    const bValue = document.getElementById("bValue");
+    const vValue = document.getElementById("vValue");
+
+    const selectedVelocity = document.getElementById("selectedVelocity");
+    const forceComparison = document.getElementById("forceComparison");
+    const motionType = document.getElementById("motionType");
+
+    const playBtn = document.getElementById("playBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const matchBtn = document.getElementById("matchBtn");
+
+    let running = true;
+    let t = 0;
+
+    function createFieldVisuals() {
+      const oldE = document.querySelectorAll(".e-arrow");
+      const oldB = document.querySelectorAll(".b-symbol");
+
+      oldE.forEach(item => item.remove());
+      oldB.forEach(item => item.remove());
+
+      const ePositions = [24, 38, 52, 66, 80];
+      ePositions.forEach(x => {
+        const arrow = document.createElement("div");
+        arrow.className = "e-arrow";
+        arrow.style.left = x + "%";
+        arrow.style.top = "33%";
+        scene.appendChild(arrow);
+      });
+
+      const bPositions = [
+        [20, 28], [32, 28], [44, 28], [56, 28], [68, 28], [80, 28],
+        [20, 45], [32, 45], [44, 45], [56, 45], [68, 45], [80, 45],
+        [20, 62], [32, 62], [44, 62], [56, 62], [68, 62], [80, 62]
+      ];
+
+      bPositions.forEach(([x, y]) => {
+        const symbol = document.createElement("div");
+        symbol.className = "b-symbol";
+        symbol.textContent = "×";
+        symbol.style.left = x + "%";
+        symbol.style.top = y + "%";
+        scene.appendChild(symbol);
+      });
+    }
+
+    function getValues() {
+      const E = Number(eSlider.value);
+      const B = Number(bSlider.value);
+      const v = Number(vSlider.value);
+      const vd = E / B;
+
+      return { E, B, v, vd };
+    }
+
+    function updateText() {
+      const { E, B, v, vd } = getValues();
+
+      eValue.textContent = E.toFixed(0);
+      bValue.textContent = B.toFixed(1);
+      vValue.textContent = v.toFixed(0);
+
+      selectedVelocity.textContent = `${vd.toFixed(1)} m/s`;
+
+      const electric = E;
+      const magnetic = v * B;
+      const difference = magnetic - electric;
+
+      if (Math.abs(difference) < 8) {
+        forceComparison.textContent = "Fₑ = Fᵦ";
+        motionType.textContent = "Straight line";
+        motionType.style.color = "var(--good)";
+        statusBox.textContent = "Balanced: particle passes straight";
+        statusBox.style.color = "var(--good)";
+      } else if (difference < 0) {
+        forceComparison.textContent = "Fₑ > Fᵦ";
+        motionType.textContent = "Deflected downward";
+        motionType.style.color = "var(--warn)";
+        statusBox.textContent = "Too slow: electric force is stronger";
+        statusBox.style.color = "var(--warn)";
+      } else {
+        forceComparison.textContent = "Fᵦ > Fₑ";
+        motionType.textContent = "Deflected upward";
+        motionType.style.color = "var(--bad)";
+        statusBox.textContent = "Too fast: magnetic force is stronger";
+        statusBox.style.color = "var(--bad)";
+      }
+    }
+
+    function updateAnimation() {
+      const { E, B, v, vd } = getValues();
+
+      if (running) {
+        t += 0.006 * (v / 500);
+      }
+
+      if (t > 1) {
+        t = 0;
+      }
+
+      const sceneWidth = scene.clientWidth;
+      const sceneHeight = scene.clientHeight;
+
+      const startX = sceneWidth * 0.08;
+      const endX = sceneWidth * 0.92;
+      const centerY = sceneHeight * 0.5;
+
+      const x = startX + (endX - startX) * t;
+
+      const normalizedDifference = (v - vd) / vd;
+
+      let yDeflection = normalizedDifference * 95 * Math.sin(t * Math.PI);
+      yDeflection = Math.max(-115, Math.min(115, yDeflection));
+
+      const y = centerY - yDeflection;
+
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+
+      trail.style.left = `${startX}px`;
+      trail.style.top = `${y}px`;
+      trail.style.width = `${Math.max(0, x - startX)}px`;
+
+      const electricLength = Math.min(90, 25 + E / 10);
+      const magneticLength = Math.min(90, 25 + (v * B) / 10);
+
+      electricForce.style.left = `${x + 28}px`;
+      electricForce.style.top = `${y - electricLength / 2}px`;
+      electricForce.style.height = `${electricLength}px`;
+
+      magneticForce.style.left = `${x - 28}px`;
+      magneticForce.style.top = `${y - magneticLength / 2}px`;
+      magneticForce.style.height = `${magneticLength}px`;
+
+      electricLabel.style.left = `${x + 38}px`;
+      electricLabel.style.top = `${y + electricLength / 2 + 8}px`;
+      electricLabel.style.color = "var(--electric)";
+
+      magneticLabel.style.left = `${x - 82}px`;
+      magneticLabel.style.top = `${y - magneticLength / 2 - 28}px`;
+      magneticLabel.style.color = "var(--magnetic)";
+
+      requestAnimationFrame(updateAnimation);
+    }
+
+    function reset() {
+      eSlider.value = 400;
+      bSlider.value = 0.8;
+      vSlider.value = 500;
+      t = 0;
+      updateText();
+    }
+
+    function matchVelocity() {
+      const E = Number(eSlider.value);
+      const B = Number(bSlider.value);
+      const vd = E / B;
+
+      vSlider.value = Math.max(50, Math.min(1500, vd));
+      updateText();
+    }
+
+    eSlider.addEventListener("input", updateText);
+    bSlider.addEventListener("input", updateText);
+    vSlider.addEventListener("input", updateText);
+
+    playBtn.addEventListener("click", () => {
+      running = !running;
+      playBtn.textContent = running ? "Pause" : "Play";
+    });
+
+    resetBtn.addEventListener("click", reset);
+    matchBtn.addEventListener("click", matchVelocity);
+
+    createFieldVisuals();
+    updateText();
+    updateAnimation();
+  </script>
+</body>
+</html>
